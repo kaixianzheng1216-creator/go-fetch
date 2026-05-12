@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/migrations/01_edit_keys.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/migrations/02_add_visit_id.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/migrations/03_session_data.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/migrations/04_add_tag.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/migrations/05_add_utm_clid.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/migrations/06_update_subdivision.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/migrations/07_add_distinct_id.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/migrations/08_update_hostname_view.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/migrations/09_add_performance.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/migrations/10_add_session_replay.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/clickhouse/schema.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/postgresql/data-migrations/convert-utm-clid-columns.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/db/postgresql/data-migrations/populate-revenue-table.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/01_init/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/02_report_schema_session_data/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/03_metric_performance_index/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/04_team_redesign/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/05_add_visit_id/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/06_session_data/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/07_add_tag/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/08_add_utm_clid/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/09_update_hostname_region/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/10_add_distinct_id/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/11_add_segment/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/12_update_report_parameter/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/13_add_revenue/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/14_add_link_and_pixel/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/15_add_share/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/16_boards/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/17_remove_duplicate_key/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/18_add_performance/migration.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/reference/umami/prisma/migrations/19_add_session_replay/migration.sql" dialect="GenericSQL" />
+  </component>
+</project>
