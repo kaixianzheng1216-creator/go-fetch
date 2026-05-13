@@ -66,8 +66,6 @@ func run(production bool) error {
 		Handler: app.Routes(),
 	}
 
-	slog.Info("go-fetch analytics listening", "addr", srv.Addr)
-
 	if err := srv.ListenAndServe(); err != nil {
 		return fmt.Errorf("listen http: %w", err)
 	}
