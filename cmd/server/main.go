@@ -43,6 +43,10 @@ func run(production bool) error {
 
 	ctx := context.Background()
 
+	if err := store.Migrate(ctx, cfg.DatabaseURL); err != nil {
+		return fmt.Errorf("migrate database: %w", err)
+	}
+
 	db, err := store.Open(ctx, cfg.DatabaseURL)
 
 	if err != nil {
@@ -50,10 +54,6 @@ func run(production bool) error {
 	}
 
 	defer db.Close()
-
-	if err := db.Migrate(ctx); err != nil {
-		return fmt.Errorf("migrate database: %w", err)
-	}
 
 	if err := db.EnsureAdmin(ctx, cfg.AdminUsername, cfg.AdminPassword); err != nil {
 		return fmt.Errorf("ensure admin: %w", err)

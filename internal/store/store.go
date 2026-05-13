@@ -9,9 +9,8 @@ import (
 )
 
 type Store struct {
-	db          *pgxpool.Pool
-	queries     *storedb.Queries
-	databaseURL string
+	db      *pgxpool.Pool
+	queries *storedb.Queries
 }
 
 func Open(ctx context.Context, databaseURL string) (*Store, error) {
@@ -33,7 +32,7 @@ func Open(ctx context.Context, databaseURL string) (*Store, error) {
 		return nil, err
 	}
 
-	return &Store{db: pool, queries: storedb.New(pool), databaseURL: databaseURL}, nil
+	return &Store{db: pool, queries: storedb.New(pool)}, nil
 }
 
 func (s *Store) Close() {
