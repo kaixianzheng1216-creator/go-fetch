@@ -64,7 +64,10 @@ type CollectRequest struct {
 type CollectionType string
 
 func (CollectionType) Schema(huma.Registry) *huma.Schema {
-	return StringEnumSchema(domain.CollectionTypeValues(), "")
+	return &huma.Schema{
+		Type: huma.TypeString,
+		Enum: enumValues(domain.CollectionTypeValues()),
+	}
 }
 
 type CollectPayload struct {
@@ -78,25 +81,8 @@ type CollectPayload struct {
 	Data      map[string]any `json:"data,omitempty"`
 }
 
-type CollectResult struct {
-	SessionID string `json:"sessionId" format:"uuid"`
-	VisitID   string `json:"visitId" format:"uuid"`
-}
-
 type OK struct {
 	OK bool `json:"ok"`
-}
-
-type OKString struct {
-	OK string `json:"ok"`
-}
-
-type ErrorResponse struct {
-	Error ErrorDetail `json:"error"`
-}
-
-type ErrorDetail struct {
-	Message string `json:"message"`
 }
 
 func UserFromDomain(user domain.User) User {
@@ -137,6 +123,7 @@ func PageviewPointsFromDomain(points []domain.PageviewPoint) []PageviewPoint {
 	for _, point := range points {
 		result = append(result, PageviewPointFromDomain(point))
 	}
+
 	return result
 }
 
@@ -153,11 +140,8 @@ func MetricRowsFromDomain(rows []domain.MetricRow) []MetricRow {
 	for _, row := range rows {
 		result = append(result, MetricRowFromDomain(row))
 	}
-	return result
-}
 
-func CollectResultFromDomain(result domain.CollectResult) CollectResult {
-	return CollectResult{SessionID: result.SessionID, VisitID: result.VisitID}
+	return result
 }
 
 func WebsitesFromDomain(websites []domain.Website) []Website {
@@ -165,6 +149,7 @@ func WebsitesFromDomain(websites []domain.Website) []Website {
 	for _, website := range websites {
 		result = append(result, WebsiteFromDomain(website))
 	}
+
 	return result
 }
 
@@ -179,4 +164,13 @@ func CollectPayloadToDomain(payload CollectPayload) domain.CollectPayload {
 		Name:      payload.Name,
 		Data:      payload.Data,
 	}
+}
+
+func enumValues(values []string) []any {
+	result := make([]any, 0, len(values))
+	for _, value := range values {
+		result = append(result, value)
+	}
+
+	return result
 }

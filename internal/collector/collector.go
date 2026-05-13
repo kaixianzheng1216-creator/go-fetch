@@ -90,14 +90,18 @@ func parseURL(raw string, payload domain.CollectPayload) *url.URL {
 			baseHost = parsedURL.Host
 		}
 	}
+
 	base := &url.URL{Scheme: defaultURLScheme, Host: baseHost}
+
 	if raw == "" {
 		return &url.URL{Scheme: base.Scheme, Host: base.Host, Path: defaultURLPath}
 	}
+
 	parsedURL, err := url.Parse(raw)
 	if err != nil {
 		return &url.URL{Scheme: base.Scheme, Host: base.Host, Path: defaultURLPath}
 	}
+
 	return base.ResolveReference(parsedURL)
 }
 
@@ -106,9 +110,11 @@ func pathWithHash(pageURL *url.URL) string {
 	if path == "" {
 		path = defaultURLPath
 	}
+
 	if pageURL.Fragment != "" {
 		path += "#" + pageURL.EscapedFragment()
 	}
+
 	return path
 }
 
@@ -122,10 +128,12 @@ func IsBot(userAgent string) bool {
 
 func parseUserAgent(ua, screen string) (browser, osName, device string) {
 	parsed := useragent.Parse(ua)
+
 	browser = parsed.Name
 	if browser == "" || parsed.IsUnknown() {
 		browser = "Unknown"
 	}
+
 	osName = parsed.OS
 	if osName == "" {
 		osName = "Unknown"
@@ -153,11 +161,13 @@ func clientIP(r *http.Request) string {
 	if err == nil {
 		return host
 	}
+
 	return r.RemoteAddr
 }
 
 func FlattenData(data map[string]any) []FlatData {
 	var result []FlatData
+
 	var walk func(prefix string, value any)
 	walk = func(prefix string, value any) {
 		switch v := value.(type) {
@@ -183,9 +193,11 @@ func FlattenData(data map[string]any) []FlatData {
 			result = append(result, FlatData{Key: prefix, StringValue: truncate(fmt.Sprint(v), maxDataValueLength)})
 		}
 	}
+
 	for key, value := range data {
 		walk(key, value)
 	}
+
 	return result
 }
 
@@ -193,6 +205,7 @@ func joinKey(prefix, key string) string {
 	if prefix == "" {
 		return key
 	}
+
 	return prefix + "." + key
 }
 
@@ -204,5 +217,6 @@ func truncate(value string, max int) string {
 	if len(value) <= max {
 		return value
 	}
+
 	return value[:max]
 }

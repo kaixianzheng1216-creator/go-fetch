@@ -8,7 +8,12 @@ export type PageviewPoint = components["schemas"]["PageviewPoint"]
 export type MetricRow = components["schemas"]["MetricRow"]
 export type MetricType = operations["websiteMetrics"]["parameters"]["query"]["type"]
 
-type ErrorResponse = { error: components["schemas"]["ErrorDetail"] }
+type ErrorResponse = {
+  detail?: string
+  title?: string
+  message?: string
+  error?: { message?: string }
+}
 type ApiResult<T> = {
   data?: T
   error?: ErrorResponse
@@ -30,7 +35,10 @@ async function unwrap<T>(request: Promise<ApiResult<T>>): Promise<T> {
   const { data, error, response } = await request
 
   if (error) {
-    throw new ApiError(response.status, error.error.message || response.statusText)
+    throw new ApiError(
+      response.status,
+      error.detail ?? error.error?.message ?? error.message ?? error.title ?? response.statusText,
+    )
   }
   if (data === undefined) {
     throw new ApiError(response.status, response.statusText)

@@ -15,6 +15,7 @@ func ParseCollectionType(value string) (CollectionType, bool) {
 	if value == "" {
 		return CollectionTypeEvent, true
 	}
+
 	switch CollectionType(value) {
 	case CollectionTypeEvent:
 		return CollectionTypeEvent, true
@@ -61,9 +62,11 @@ func DateRange(startAt, endAt *int64, unit string) (time.Time, time.Time, DateUn
 	if startAt != nil {
 		start = time.UnixMilli(*startAt)
 	}
+
 	if endAt != nil {
 		end = time.UnixMilli(*endAt)
 	}
+
 	return start, end, ParseDateUnit(unit)
 }
 
@@ -124,6 +127,7 @@ func (m MetricType) EventType() EventType {
 	if m == MetricTypeEvent {
 		return EventTypeCustom
 	}
+
 	return EventTypePageView
 }
 
@@ -131,5 +135,6 @@ func NormalizeMetricLimit(limit int) int {
 	if limit <= 0 || limit > MaxMetricLimit {
 		return DefaultMetricLimit
 	}
+
 	return limit
 }

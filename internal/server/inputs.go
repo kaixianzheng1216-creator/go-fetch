@@ -26,22 +26,22 @@ type updateWebsiteInput struct {
 }
 
 type dateRangeInput struct {
-	WebsiteID string               `path:"websiteID" format:"uuid"`
-	StartAt   optionalParam[int64] `query:"startAt"`
-	EndAt     optionalParam[int64] `query:"endAt"`
+	WebsiteID string `path:"websiteID" format:"uuid"`
+	StartAt   int64  `query:"startAt"`
+	EndAt     int64  `query:"endAt"`
 }
 
 type pageviewsInput struct {
-	WebsiteID string               `path:"websiteID" format:"uuid"`
-	StartAt   optionalParam[int64] `query:"startAt"`
-	EndAt     optionalParam[int64] `query:"endAt"`
-	Unit      dateUnitParam        `query:"unit"`
+	WebsiteID string        `path:"websiteID" format:"uuid"`
+	StartAt   int64         `query:"startAt"`
+	EndAt     int64         `query:"endAt"`
+	Unit      dateUnitParam `query:"unit"`
 }
 
 type metricsInput struct {
-	WebsiteID string               `path:"websiteID" format:"uuid"`
-	StartAt   optionalParam[int64] `query:"startAt"`
-	EndAt     optionalParam[int64] `query:"endAt"`
-	Type      metricTypeParam      `query:"type" required:"true"`
-	Limit     metricLimit          `query:"limit"`
+	WebsiteID string          `path:"websiteID" format:"uuid"`
+	StartAt   int64           `query:"startAt"`
+	EndAt     int64           `query:"endAt"`
+	Type      metricTypeParam `query:"type" required:"true"`
+	Limit     metricLimit     `query:"limit"`
 }

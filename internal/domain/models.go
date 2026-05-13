@@ -56,11 +56,6 @@ type CollectPayload struct {
 	Data      map[string]any
 }
 
-type CollectResult struct {
-	SessionID string
-	VisitID   string
-}
-
 type EventInput struct {
 	WebsiteID      string
 	SessionID      string

@@ -10,24 +10,26 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) (domain.CollectResult, error) {
+func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return domain.CollectResult{}, err
+		return err
 	}
 	defer tx.Rollback(ctx)
 
 	websiteUUID, err := uuid.Parse(input.WebsiteID)
 	if err != nil {
-		return domain.CollectResult{}, err
+		return err
 	}
+
 	sessionID, err := uuid.Parse(input.SessionID)
 	if err != nil {
-		return domain.CollectResult{}, err
+		return err
 	}
+
 	visitID, err := uuid.Parse(input.VisitID)
 	if err != nil {
-		return domain.CollectResult{}, err
+		return err
 	}
 
 	qtx := s.queries.WithTx(tx)
@@ -42,7 +44,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) (domain.
 		Country:   input.Country,
 		CreatedAt: input.CreatedAt,
 	}); err != nil {
-		return domain.CollectResult{}, err
+		return err
 	}
 
 	eventID := uuid.New()
@@ -72,7 +74,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) (domain.
 		Country:        input.Country,
 		CreatedAt:      input.CreatedAt,
 	}); err != nil {
-		return domain.CollectResult{}, err
+		return err
 	}
 
 	for _, item := range collector.FlattenData(input.Data) {
@@ -85,12 +87,13 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) (domain.
 			NumberValue: pgFloat(item.NumberValue),
 			CreatedAt:   input.CreatedAt,
 		}); err != nil {
-			return domain.CollectResult{}, err
+			return err
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return domain.CollectResult{}, err
+		return err
 	}
-	return domain.CollectResult{SessionID: input.SessionID, VisitID: input.VisitID}, nil
+
+	return nil
 }

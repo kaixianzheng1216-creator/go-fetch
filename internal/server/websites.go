@@ -32,6 +32,7 @@ func (a *App) listWebsites(ctx context.Context, _ *emptyInput) (*jsonBody[[]http
 	if err != nil {
 		return nil, huma.Error500InternalServerError("failed to list websites")
 	}
+
 	return &jsonBody[[]httpapi.Website]{Body: httpapi.WebsitesFromDomain(websites)}, nil
 }
 
@@ -40,10 +41,12 @@ func (a *App) createWebsite(ctx context.Context, input *websiteBodyInput) (*json
 	if request.Name == "" {
 		return nil, huma.Error400BadRequest("name is required")
 	}
+
 	website, err := a.store.CreateWebsite(ctx, userFromContext(ctx).ID, request.Name, request.Domain)
 	if err != nil {
 		return nil, huma.Error500InternalServerError("failed to create website")
 	}
+
 	return &jsonBody[httpapi.Website]{Body: httpapi.WebsiteFromDomain(website)}, nil
 }
 
@@ -52,6 +55,7 @@ func (a *App) getWebsite(ctx context.Context, input *websitePathInput) (*jsonBod
 	if err != nil {
 		return nil, websiteLookupError(err)
 	}
+
 	return &jsonBody[httpapi.Website]{Body: httpapi.WebsiteFromDomain(website)}, nil
 }
 
@@ -60,14 +64,17 @@ func (a *App) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*js
 	if request.Name == "" {
 		return nil, huma.Error400BadRequest("name is required")
 	}
+
 	user := userFromContext(ctx)
 	if err := a.store.UpdateWebsite(ctx, user.ID, input.WebsiteID, request.Name, request.Domain); err != nil {
 		return nil, websiteLookupError(err)
 	}
+
 	website, err := a.store.GetWebsite(ctx, user.ID, input.WebsiteID)
 	if err != nil {
 		return nil, websiteLookupError(err)
 	}
+
 	return &jsonBody[httpapi.Website]{Body: httpapi.WebsiteFromDomain(website)}, nil
 }
 
@@ -75,6 +82,7 @@ func (a *App) deleteWebsite(ctx context.Context, input *websitePathInput) (*json
 	if err := a.store.DeleteWebsite(ctx, userFromContext(ctx).ID, input.WebsiteID); err != nil {
 		return nil, websiteLookupError(err)
 	}
+
 	return &jsonBody[httpapi.OK]{Body: httpapi.OK{OK: true}}, nil
 }
 

@@ -44,8 +44,6 @@ func New(cfg config.Config, store *store.Store) (*App, error) {
 }
 
 func (a *App) Routes() http.Handler {
-	ConfigureAPIErrorModel()
-
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)

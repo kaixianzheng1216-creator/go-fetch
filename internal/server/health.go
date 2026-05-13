@@ -23,8 +23,10 @@ func (a *App) ready(ctx context.Context, _ *emptyInput) (*jsonBody[httpapi.OK], 
 	if a == nil || a.store == nil {
 		return nil, huma.Error503ServiceUnavailable("database unavailable")
 	}
+
 	if err := a.store.Ping(ctx); err != nil {
 		return nil, huma.Error503ServiceUnavailable("database unavailable")
 	}
+
 	return &jsonBody[httpapi.OK]{Body: httpapi.OK{OK: true}}, nil
 }

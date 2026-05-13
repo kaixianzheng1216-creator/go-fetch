@@ -15,6 +15,7 @@ func (s *Store) WebsiteStats(ctx context.Context, websiteID string, start, end t
 	if err != nil {
 		return domain.WebsiteStats{}, err
 	}
+
 	row, err := s.queries.WebsiteStats(ctx, storedb.WebsiteStatsParams{
 		WebsiteID:         websiteUUID,
 		StartAt:           start,
@@ -24,6 +25,7 @@ func (s *Store) WebsiteStats(ctx context.Context, websiteID string, start, end t
 	if err != nil {
 		return domain.WebsiteStats{}, err
 	}
+
 	stats := domain.WebsiteStats{
 		Pageviews: row.Pageviews,
 		Visitors:  row.Visitors,
@@ -31,9 +33,11 @@ func (s *Store) WebsiteStats(ctx context.Context, websiteID string, start, end t
 		Bounces:   row.Bounces,
 		TotalTime: row.TotalTime,
 	}
+
 	if stats.Visits > 0 {
 		stats.AvgVisitSeconds = stats.TotalTime / stats.Visits
 	}
+
 	return stats, nil
 }
 
@@ -42,6 +46,7 @@ func (s *Store) Pageviews(ctx context.Context, websiteID string, start, end time
 	if err != nil {
 		return nil, err
 	}
+
 	rows, err := s.queries.Pageviews(ctx, storedb.PageviewsParams{
 		Bucket:            domain.DateTruncUnit(unit),
 		WebsiteID:         websiteUUID,
@@ -52,6 +57,7 @@ func (s *Store) Pageviews(ctx context.Context, websiteID string, start, end time
 	if err != nil {
 		return nil, err
 	}
+
 	points := make([]domain.PageviewPoint, 0, len(rows))
 	for _, row := range rows {
 		point := domain.PageviewPoint{
@@ -62,6 +68,7 @@ func (s *Store) Pageviews(ctx context.Context, websiteID string, start, end time
 		point.Label = domain.FormatBucket(point.Time, unit)
 		points = append(points, point)
 	}
+
 	return points, nil
 }
 
@@ -69,11 +76,13 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 	if _, ok := domain.ParseMetricType(string(metric)); !ok {
 		return nil, domain.ErrUnsupportedMetricType
 	}
+
 	limit = domain.NormalizeMetricLimit(limit)
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
 		return nil, err
 	}
+
 	rows, err := s.queries.Metrics(ctx, storedb.MetricsParams{
 		Metric:     string(metric),
 		WebsiteID:  websiteUUID,
@@ -85,6 +94,7 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 	if err != nil {
 		return nil, err
 	}
+
 	metrics := make([]domain.MetricRow, 0, len(rows))
 	for _, row := range rows {
 		metrics = append(metrics, domain.MetricRow{
@@ -93,5 +103,6 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 			Visitors: row.Visitors,
 		})
 	}
+
 	return metrics, nil
 }

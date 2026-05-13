@@ -24,11 +24,12 @@ func registerCollectRoutes(api huma.API, app *App) {
 	huma.Register(api, collectOp, app.collect)
 }
 
-func (a *App) collect(ctx context.Context, input *collectInput) (*jsonBody[collectResponseBody], error) {
+func (a *App) collect(ctx context.Context, input *collectInput) (*jsonBody[httpapi.OK], error) {
 	collectionType, ok := domain.ParseCollectionType(string(input.Body.Type))
 	if !ok {
 		return nil, huma.Error400BadRequest("unsupported collection type")
 	}
+
 	input.Body.Type = httpapi.CollectionType(collectionType)
 	if input.Body.Payload.WebsiteID == "" || input.Body.Payload.URL == "" {
 		return nil, huma.Error400BadRequest("website and url are required")
@@ -39,6 +40,7 @@ func (a *App) collect(ctx context.Context, input *collectInput) (*jsonBody[colle
 		if isStoreNotFound(err) {
 			return nil, huma.Error400BadRequest("website not found")
 		}
+
 		return nil, huma.Error500InternalServerError("failed to load website")
 	}
 
@@ -46,13 +48,14 @@ func (a *App) collect(ctx context.Context, input *collectInput) (*jsonBody[colle
 	if r == nil {
 		return nil, huma.Error500InternalServerError("failed to read request")
 	}
+
 	if collector.IsBot(r.UserAgent()) {
-		return &jsonBody[collectResponseBody]{Body: collectOKBody()}, nil
+		return &jsonBody[httpapi.OK]{Body: httpapi.OK{OK: true}}, nil
 	}
 
-	result, err := a.store.SaveEvent(ctx, collector.BuildEventInput(r, payload, time.Now()))
-	if err != nil {
+	if err := a.store.SaveEvent(ctx, collector.BuildEventInput(r, payload, time.Now())); err != nil {
 		return nil, huma.Error500InternalServerError("failed to save event")
 	}
-	return &jsonBody[collectResponseBody]{Body: collectResultBody(httpapi.CollectResultFromDomain(result))}, nil
+
+	return &jsonBody[httpapi.OK]{Body: httpapi.OK{OK: true}}, nil
 }

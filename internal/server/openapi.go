@@ -9,8 +9,6 @@ import (
 )
 
 func OpenAPIJSON() ([]byte, error) {
-	ConfigureAPIErrorModel()
-
 	r := chi.NewRouter()
 	api := humachi.New(r, humaConfig())
 	registerAPIRoutes(api, nil)

@@ -1,0 +1,1 @@
+import{B as e}from"./card-BgMZ2DH7.js";var t=e();function n({message:e}){return(0,t.jsx)(`div`,{className:`border-destructive/30 bg-destructive/10 text-destructive rounded-md border px-3 py-2 text-sm`,children:e})}export{n as t};

@@ -31,24 +31,24 @@ func TestRoutesRequireAuthReturnsJSONUnauthorized(t *testing.T) {
 	if rec.Code != http.StatusUnauthorized {
 		t.Fatalf("status = %d", rec.Code)
 	}
-	if contentType := rec.Header().Get("Content-Type"); contentType != "application/json" {
+	if contentType := rec.Header().Get("Content-Type"); contentType != "application/problem+json" {
 		t.Fatalf("Content-Type = %q", contentType)
 	}
-	if body := rec.Body.String(); !strings.Contains(body, `"message":"unauthorized"`) {
+	if body := rec.Body.String(); !strings.Contains(body, `"detail":"unauthorized"`) {
 		t.Fatalf("body = %q", body)
 	}
 }
 
-func TestRoutesInvalidJSONReturnsErrorEnvelope(t *testing.T) {
+func TestRoutesInvalidJSONReturnsProblemDetails(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/api/login", strings.NewReader("{"))
 	req.Header.Set("Content-Type", "application/json")
 	testApp().Routes().ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusBadRequest {
+	if rec.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("status = %d", rec.Code)
 	}
-	if body := rec.Body.String(); !strings.Contains(body, `"message":"invalid json"`) {
+	if body := rec.Body.String(); !strings.Contains(body, `"detail":"validation failed"`) {
 		t.Fatalf("body = %q", body)
 	}
 }
@@ -83,6 +83,7 @@ func TestRoutesServeHumaOpenAPI(t *testing.T) {
 	if contentType := rec.Header().Get("Content-Type"); contentType != "application/openapi+json" {
 		t.Fatalf("Content-Type = %q", contentType)
 	}
+
 	body := rec.Body.String()
 	if !strings.Contains(body, `"/api/websites/{websiteID}/metrics"`) {
 		t.Fatalf("OpenAPI body does not include metrics path")

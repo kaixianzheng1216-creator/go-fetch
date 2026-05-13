@@ -31,6 +31,7 @@ func Load() (Config, error) {
 	if err := env.Parse(&cfg); err != nil {
 		return cfg, err
 	}
+
 	if _, ok := os.LookupEnv("COOKIE_SECURE"); !ok && cfg.Environment == "production" {
 		cfg.CookieSecure = true
 	}
@@ -38,12 +39,15 @@ func Load() (Config, error) {
 	if cfg.DatabaseURL == "" {
 		return cfg, errors.New("DATABASE_URL is required")
 	}
+
 	if cfg.DBMaxConns < 1 {
 		return cfg, fmt.Errorf("DB_MAX_CONNS must be positive")
 	}
+
 	if cfg.LoginRateLimit < 1 {
 		return cfg, fmt.Errorf("LOGIN_RATE_LIMIT_PER_MINUTE must be positive")
 	}
+
 	if cfg.CollectRateLimit < 1 {
 		return cfg, fmt.Errorf("COLLECT_RATE_LIMIT_PER_MINUTE must be positive")
 	}

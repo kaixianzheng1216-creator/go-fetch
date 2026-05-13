@@ -203,7 +203,45 @@ export interface components {
       type?: "event"
     }
     ErrorDetail: {
-      message: string
+      /** @description Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id' */
+      location?: string
+      /** @description Error message text */
+      message?: string
+      /** @description The value at the given location */
+      value?: unknown
+    }
+    ErrorModel: {
+      /**
+       * @description A human-readable explanation specific to this occurrence of the problem.
+       * @example Property foo is required but is missing.
+       */
+      detail?: string
+      /** @description Optional list of individual error details */
+      errors?: components["schemas"]["ErrorDetail"][] | null
+      /**
+       * Format: uri
+       * @description A URI reference that identifies the specific occurrence of the problem.
+       * @example https://example.com/error-log/abc123
+       */
+      instance?: string
+      /**
+       * Format: int64
+       * @description HTTP status code
+       * @example 400
+       */
+      status?: number
+      /**
+       * @description A short, human-readable summary of the problem type. This value should not change between occurrences of the error.
+       * @example Bad Request
+       */
+      title?: string
+      /**
+       * Format: uri
+       * @description A URI reference to human-readable documentation for the error.
+       * @default about:blank
+       * @example https://example.com/errors/example
+       */
+      type: string
     }
     LoginRequest: {
       password: string
@@ -290,16 +328,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json":
-            | {
-                /** Format: uuid */
-                sessionId: string
-                /** Format: uuid */
-                visitId: string
-              }
-            | {
-                ok: string
-              }
+          "application/json": components["schemas"]["OK"]
         }
       }
       /** @description Bad Request */
@@ -308,9 +337,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unprocessable Entity */
@@ -319,9 +346,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -330,9 +355,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -365,9 +388,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unauthorized */
@@ -376,9 +397,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unprocessable Entity */
@@ -387,9 +406,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -398,9 +415,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -429,9 +444,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -460,9 +473,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -471,9 +482,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -502,9 +511,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -513,9 +520,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -548,9 +553,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unauthorized */
@@ -559,9 +562,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unprocessable Entity */
@@ -570,9 +571,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -581,9 +580,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -614,9 +611,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Not Found */
@@ -625,9 +620,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unprocessable Entity */
@@ -636,9 +629,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -647,9 +638,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -680,9 +669,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Not Found */
@@ -691,9 +678,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unprocessable Entity */
@@ -702,9 +687,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -713,9 +696,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -750,9 +731,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unauthorized */
@@ -761,9 +740,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Not Found */
@@ -772,9 +749,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unprocessable Entity */
@@ -783,9 +758,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -794,9 +767,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -832,9 +803,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unauthorized */
@@ -843,9 +812,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Not Found */
@@ -854,9 +821,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unprocessable Entity */
@@ -865,9 +830,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -876,9 +839,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -913,9 +874,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Not Found */
@@ -924,9 +883,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unprocessable Entity */
@@ -935,9 +892,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -946,9 +901,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -982,9 +935,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Not Found */
@@ -993,9 +944,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Unprocessable Entity */
@@ -1004,9 +953,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Internal Server Error */
@@ -1015,9 +962,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -1046,9 +991,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
@@ -1077,9 +1020,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
       /** @description Service Unavailable */
@@ -1088,9 +1029,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": {
-            error: components["schemas"]["ErrorDetail"]
-          }
+          "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
     }
