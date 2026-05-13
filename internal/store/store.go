@@ -16,17 +16,20 @@ type Store struct {
 
 func Open(ctx context.Context, databaseURL string) (*Store, error) {
 	poolConfig, err := pgxpool.ParseConfig(databaseURL)
+
 	if err != nil {
 		return nil, err
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
+
 	if err != nil {
 		return nil, err
 	}
 
 	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
+
 		return nil, err
 	}
 
