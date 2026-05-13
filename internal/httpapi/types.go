@@ -3,7 +3,7 @@ package httpapi
 import (
 	"time"
 
-	"go-fetch/internal/domain"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 
 	"github.com/danielgtaylor/huma/v2"
 )

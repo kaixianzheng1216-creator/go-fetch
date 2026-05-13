@@ -2,14 +2,14 @@
 
 一个用 Go + PostgreSQL 写的轻量网站分析服务。目标很朴素：把页面访问、访客、来源和自定义事件收好、算清楚、展示出来。至于把项目包装成宇宙级数据平台，这事先放进待办列表的最后一页。
 
-它借鉴了 Umami 的产品方向，但不兼容原项目的 API、数据库结构或前端实现。这里是一个从零实现的 Go MVP。
+它借鉴了轻量网站分析产品的方向，但不兼容任何现有项目的 API、数据库结构或前端实现。这里是一个从零实现的 Go MVP。
 
 ## 它能做什么
 
 - 管理员登录和持久化会话。
 - 创建、查看、编辑、删除网站。
 - 提供 `/script.js` 采集脚本。
-- 采集 pageview、SPA 路由变化和 `window.umami.track(name, data)` 自定义事件。
+- 采集 pageview、SPA 路由变化和 `window.goFetch.track(name, data)` 自定义事件。
 - 查看 pageviews、visitors、visits、bounces、平均访问时长。
 - 查看 path、referrer、browser、OS、device、country 和自定义事件排行。
 - 自动执行 PostgreSQL 迁移。
@@ -41,10 +41,12 @@ docker compose up -d
 设置环境变量：
 
 ```powershell
-$env:DATABASE_URL = "postgres://umami:umami@localhost:5432/umami?sslmode=disable"
+$env:DATABASE_URL = "postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable"
 $env:ADMIN_USERNAME = "admin"
 $env:ADMIN_PASSWORD = "admin123"
 ```
+
+如果之前用旧数据库名启动过本地 PostgreSQL，且不需要保留本地数据，可以用 `docker compose down -v` 后重新 `docker compose up -d`。
 
 安装前端依赖、构建前端、启动后端：
 
@@ -105,7 +107,7 @@ npm --prefix frontend run build
 自定义事件：
 
 ```html
-<button onclick="window.umami.track('signup', { plan: 'pro' })">注册</button>
+<button onclick="window.goFetch.track('signup', { plan: 'pro' })">注册</button>
 ```
 
 ## 文档
@@ -117,6 +119,6 @@ npm --prefix frontend run build
 
 发布到 GitHub 前，建议补上 `LICENSE`、`CONTRIBUTING.md` 和 `SECURITY.md`。这几个文件不写代码，但能让贡献者少猜很多事。
 
-发布后，请把 `go.mod` 的 `module go-fetch` 替换成真实仓库路径，例如 `github.com/<owner>/<repo>`，并同步替换内部 import path。
+当前 Go module path 是 `github.com/kaixianzheng1216-creator/go-fetch`，与 GitHub 仓库地址保持一致。
 
 生成产物会提交进仓库，包括 `api/openapi.json`、`frontend/src/lib/api-types.ts`、`internal/store/db/*` 和 `internal/web/dist/*`。这样普通 `go build ./cmd/server` 就能直接工作，不需要先念一段生成咒语。

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"go-fetch/internal/httpapi"
-	"go-fetch/internal/web"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/web"
 )
 
 func (a *App) handleFrontendAsset(w http.ResponseWriter, r *http.Request) {

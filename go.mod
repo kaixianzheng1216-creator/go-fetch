@@ -1,4 +1,4 @@
-module go-fetch
+module github.com/kaixianzheng1216-creator/go-fetch
 
 go 1.25.7
 

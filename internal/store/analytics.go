@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"go-fetch/internal/domain"
-	storedb "go-fetch/internal/store/db"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	storedb "github.com/kaixianzheng1216-creator/go-fetch/internal/store/db"
 
 	"github.com/google/uuid"
 )

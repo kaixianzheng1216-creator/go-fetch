@@ -1,6 +1,6 @@
 package server
 
-import "go-fetch/internal/httpapi"
+import "github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 
 type emptyInput struct{}
 

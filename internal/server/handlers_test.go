@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"go-fetch/internal/config"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
 
 	"github.com/alexedwards/scs/v2"
 )

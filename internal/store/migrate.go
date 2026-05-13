@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"go-fetch/internal/store/migrations"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/store/migrations"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"

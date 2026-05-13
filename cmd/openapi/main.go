@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"go-fetch/internal/server"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/server"
 )
 
 func main() {

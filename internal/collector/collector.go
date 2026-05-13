@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"go-fetch/internal/domain"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 
 	"github.com/google/uuid"
 	"github.com/mileusna/useragent"

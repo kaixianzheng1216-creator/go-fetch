@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"go-fetch/internal/domain"
-	"go-fetch/internal/httpapi"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 
 	"github.com/danielgtaylor/huma/v2"
 )

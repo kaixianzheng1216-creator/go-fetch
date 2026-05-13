@@ -6,9 +6,15 @@
   var endpoint = currentScript.getAttribute("data-host-url") || "";
   endpoint = endpoint.replace(/\/$/, "") + "/api/collect";
 
-  var screenSize = window.screen ? window.screen.width + "x" + window.screen.height : "";
+  var screenSize = window.screen
+    ? window.screen.width + "x" + window.screen.height
+    : "";
   var currentUrl = location.href;
-  var currentRef = document.referrer && new URL(document.referrer, location.href).hostname === location.hostname ? "" : document.referrer;
+  var currentRef =
+    document.referrer &&
+    new URL(document.referrer, location.href).hostname === location.hostname
+      ? ""
+      : document.referrer;
 
   function payload(name, data) {
     return {
@@ -19,7 +25,7 @@
       screen: screenSize,
       language: navigator.language,
       name: name || "",
-      data: data || undefined
+      data: data || undefined,
     };
   }
 
@@ -27,12 +33,18 @@
     if (!website) return;
     try {
       navigator.sendBeacon && !data
-        ? navigator.sendBeacon(endpoint, JSON.stringify({ type: "event", payload: payload(name, data) }))
+        ? navigator.sendBeacon(
+            endpoint,
+            JSON.stringify({ type: "event", payload: payload(name, data) }),
+          )
         : fetch(endpoint, {
             method: "POST",
             keepalive: true,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "event", payload: payload(name, data) })
+            body: JSON.stringify({
+              type: "event",
+              payload: payload(name, data),
+            }),
           });
     } catch (_) {}
   }
@@ -48,7 +60,9 @@
     if (next === currentUrl) return;
     currentRef = currentUrl;
     currentUrl = next;
-    setTimeout(function () { track(); }, 100);
+    setTimeout(function () {
+      track();
+    }, 100);
   }
 
   function hook(method) {
@@ -60,7 +74,7 @@
     };
   }
 
-  window.umami = window.umami || { track: track };
+  window.goFetch = window.goFetch || { track: track };
   hook("pushState");
   hook("replaceState");
   window.addEventListener("popstate", function () {
@@ -70,6 +84,8 @@
   if (document.readyState === "complete") {
     track();
   } else {
-    window.addEventListener("load", function () { track(); });
+    window.addEventListener("load", function () {
+      track();
+    });
   }
 })();

@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"strings"
 
-	"go-fetch/internal/httpapi"
-	"go-fetch/internal/store"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/store"
 
 	"github.com/danielgtaylor/huma/v2"
 )

@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"go-fetch/internal/config"
-	"go-fetch/internal/server"
-	"go-fetch/internal/store"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/server"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/store"
 )
 
 func main() {

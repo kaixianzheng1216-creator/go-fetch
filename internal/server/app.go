@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"go-fetch/internal/config"
-	"go-fetch/internal/store"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/store"
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"

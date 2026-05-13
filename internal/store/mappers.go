@@ -3,7 +3,7 @@ package store
 import (
 	"time"
 
-	"go-fetch/internal/domain"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"

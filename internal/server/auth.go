@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	authpkg "go-fetch/internal/auth"
-	"go-fetch/internal/httpapi"
+	authpkg "github.com/kaixianzheng1216-creator/go-fetch/internal/auth"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/go-chi/httprate"

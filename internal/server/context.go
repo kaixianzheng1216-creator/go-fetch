@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"go-fetch/internal/domain"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"

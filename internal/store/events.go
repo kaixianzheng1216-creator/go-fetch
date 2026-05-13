@@ -3,9 +3,9 @@ package store
 import (
 	"context"
 
-	"go-fetch/internal/collector"
-	"go-fetch/internal/domain"
-	storedb "go-fetch/internal/store/db"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/collector"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	storedb "github.com/kaixianzheng1216-creator/go-fetch/internal/store/db"
 
 	"github.com/google/uuid"
 )
