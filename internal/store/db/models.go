@@ -12,73 +12,127 @@ import (
 )
 
 type AppSession struct {
-	Token  string    `json:"token"`
-	Data   []byte    `json:"data"`
+	// 会话令牌
+	Token string `json:"token"`
+	// 编码后的会话数据
+	Data []byte `json:"data"`
+	// 会话过期时间
 	Expiry time.Time `json:"expiry"`
 }
 
 type Event struct {
-	ID             uuid.UUID   `json:"id"`
-	WebsiteID      uuid.UUID   `json:"website_id"`
-	SessionID      uuid.UUID   `json:"session_id"`
-	VisitID        uuid.UUID   `json:"visit_id"`
-	EventType      int32       `json:"event_type"`
-	EventName      pgtype.Text `json:"event_name"`
-	UrlPath        string      `json:"url_path"`
-	UrlQuery       pgtype.Text `json:"url_query"`
-	ReferrerPath   pgtype.Text `json:"referrer_path"`
+	// 事件 ID
+	ID uuid.UUID `json:"id"`
+	// 网站 ID
+	WebsiteID uuid.UUID `json:"website_id"`
+	// 访问会话 ID
+	SessionID uuid.UUID `json:"session_id"`
+	// 访问 ID
+	VisitID uuid.UUID `json:"visit_id"`
+	// 事件类型
+	EventType int32 `json:"event_type"`
+	// 自定义事件名称
+	EventName pgtype.Text `json:"event_name"`
+	// 页面路径
+	UrlPath string `json:"url_path"`
+	// URL 查询参数
+	UrlQuery pgtype.Text `json:"url_query"`
+	// 来源页面路径
+	ReferrerPath pgtype.Text `json:"referrer_path"`
+	// 来源页面域名
 	ReferrerDomain pgtype.Text `json:"referrer_domain"`
-	PageTitle      pgtype.Text `json:"page_title"`
-	Hostname       pgtype.Text `json:"hostname"`
-	UtmSource      pgtype.Text `json:"utm_source"`
-	UtmMedium      pgtype.Text `json:"utm_medium"`
-	UtmCampaign    pgtype.Text `json:"utm_campaign"`
-	UtmContent     pgtype.Text `json:"utm_content"`
-	UtmTerm        pgtype.Text `json:"utm_term"`
-	Browser        pgtype.Text `json:"browser"`
-	Os             pgtype.Text `json:"os"`
-	Device         pgtype.Text `json:"device"`
-	Screen         pgtype.Text `json:"screen"`
-	Language       pgtype.Text `json:"language"`
-	Country        pgtype.Text `json:"country"`
-	CreatedAt      time.Time   `json:"created_at"`
+	// 页面标题
+	PageTitle pgtype.Text `json:"page_title"`
+	// 页面主机名
+	Hostname pgtype.Text `json:"hostname"`
+	// UTM 来源
+	UtmSource pgtype.Text `json:"utm_source"`
+	// UTM 媒介
+	UtmMedium pgtype.Text `json:"utm_medium"`
+	// UTM 活动
+	UtmCampaign pgtype.Text `json:"utm_campaign"`
+	// UTM 内容
+	UtmContent pgtype.Text `json:"utm_content"`
+	// UTM 关键词
+	UtmTerm pgtype.Text `json:"utm_term"`
+	// 浏览器快照
+	Browser pgtype.Text `json:"browser"`
+	// 操作系统快照
+	Os pgtype.Text `json:"os"`
+	// 设备类型快照
+	Device pgtype.Text `json:"device"`
+	// 屏幕尺寸快照
+	Screen pgtype.Text `json:"screen"`
+	// 语言快照
+	Language pgtype.Text `json:"language"`
+	// 国家代码快照
+	Country pgtype.Text `json:"country"`
+	// 事件时间
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type EventDatum struct {
-	ID          uuid.UUID     `json:"id"`
-	WebsiteID   uuid.UUID     `json:"website_id"`
-	EventID     uuid.UUID     `json:"event_id"`
-	DataKey     string        `json:"data_key"`
-	StringValue pgtype.Text   `json:"string_value"`
+	// 事件数据 ID
+	ID uuid.UUID `json:"id"`
+	// 网站 ID
+	WebsiteID uuid.UUID `json:"website_id"`
+	// 事件 ID
+	EventID uuid.UUID `json:"event_id"`
+	// 数据键
+	DataKey string `json:"data_key"`
+	// 字符串值
+	StringValue pgtype.Text `json:"string_value"`
+	// 数值
 	NumberValue pgtype.Float8 `json:"number_value"`
-	CreatedAt   time.Time     `json:"created_at"`
+	// 创建时间
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Session struct {
-	ID        uuid.UUID   `json:"id"`
-	WebsiteID uuid.UUID   `json:"website_id"`
-	Browser   pgtype.Text `json:"browser"`
-	Os        pgtype.Text `json:"os"`
-	Device    pgtype.Text `json:"device"`
-	Screen    pgtype.Text `json:"screen"`
-	Language  pgtype.Text `json:"language"`
-	Country   pgtype.Text `json:"country"`
-	CreatedAt time.Time   `json:"created_at"`
+	// 访问会话 ID
+	ID uuid.UUID `json:"id"`
+	// 网站 ID
+	WebsiteID uuid.UUID `json:"website_id"`
+	// 浏览器名称
+	Browser pgtype.Text `json:"browser"`
+	// 操作系统
+	Os pgtype.Text `json:"os"`
+	// 设备类型
+	Device pgtype.Text `json:"device"`
+	// 屏幕尺寸
+	Screen pgtype.Text `json:"screen"`
+	// 浏览器语言
+	Language pgtype.Text `json:"language"`
+	// 国家代码
+	Country pgtype.Text `json:"country"`
+	// 会话创建时间
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type User struct {
-	ID           uuid.UUID `json:"id"`
-	Username     string    `json:"username"`
-	PasswordHash string    `json:"password_hash"`
-	CreatedAt    time.Time `json:"created_at"`
+	// 用户 ID
+	ID uuid.UUID `json:"id"`
+	// 登录用户名
+	Username string `json:"username"`
+	// 密码哈希
+	PasswordHash string `json:"password_hash"`
+	// 创建时间
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Website struct {
-	ID        uuid.UUID          `json:"id"`
-	UserID    uuid.UUID          `json:"user_id"`
-	Name      string             `json:"name"`
-	Domain    pgtype.Text        `json:"domain"`
-	CreatedAt time.Time          `json:"created_at"`
+	// 网站 ID
+	ID uuid.UUID `json:"id"`
+	// 所属用户 ID
+	UserID uuid.UUID `json:"user_id"`
+	// 网站名称
+	Name string `json:"name"`
+	// 网站域名
+	Domain pgtype.Text `json:"domain"`
+	// 创建时间
+	CreatedAt time.Time `json:"created_at"`
+	// 更新时间
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	// 软删除时间
 	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
 }

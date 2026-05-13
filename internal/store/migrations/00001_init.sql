@@ -6,6 +6,11 @@ create table if not exists users (
 	created_at timestamptz not null default now()
 );
 
+comment on column users.id is '用户 ID';
+comment on column users.username is '登录用户名';
+comment on column users.password_hash is '密码哈希';
+comment on column users.created_at is '创建时间';
+
 create table if not exists websites (
 	id uuid primary key,
 	user_id uuid not null references users(id) on delete cascade,
@@ -15,6 +20,14 @@ create table if not exists websites (
 	updated_at timestamptz,
 	deleted_at timestamptz
 );
+
+comment on column websites.id is '网站 ID';
+comment on column websites.user_id is '所属用户 ID';
+comment on column websites.name is '网站名称';
+comment on column websites.domain is '网站域名';
+comment on column websites.created_at is '创建时间';
+comment on column websites.updated_at is '更新时间';
+comment on column websites.deleted_at is '软删除时间';
 
 create table if not exists sessions (
 	id uuid primary key,
@@ -27,6 +40,16 @@ create table if not exists sessions (
 	country char(2),
 	created_at timestamptz not null default now()
 );
+
+comment on column sessions.id is '访问会话 ID';
+comment on column sessions.website_id is '网站 ID';
+comment on column sessions.browser is '浏览器名称';
+comment on column sessions.os is '操作系统';
+comment on column sessions.device is '设备类型';
+comment on column sessions.screen is '屏幕尺寸';
+comment on column sessions.language is '浏览器语言';
+comment on column sessions.country is '国家代码';
+comment on column sessions.created_at is '会话创建时间';
 
 create table if not exists events (
 	id uuid primary key,
@@ -55,6 +78,31 @@ create table if not exists events (
 	created_at timestamptz not null default now()
 );
 
+comment on column events.id is '事件 ID';
+comment on column events.website_id is '网站 ID';
+comment on column events.session_id is '访问会话 ID';
+comment on column events.visit_id is '访问 ID';
+comment on column events.event_type is '事件类型';
+comment on column events.event_name is '自定义事件名称';
+comment on column events.url_path is '页面路径';
+comment on column events.url_query is 'URL 查询参数';
+comment on column events.referrer_path is '来源页面路径';
+comment on column events.referrer_domain is '来源页面域名';
+comment on column events.page_title is '页面标题';
+comment on column events.hostname is '页面主机名';
+comment on column events.utm_source is 'UTM 来源';
+comment on column events.utm_medium is 'UTM 媒介';
+comment on column events.utm_campaign is 'UTM 活动';
+comment on column events.utm_content is 'UTM 内容';
+comment on column events.utm_term is 'UTM 关键词';
+comment on column events.browser is '浏览器快照';
+comment on column events.os is '操作系统快照';
+comment on column events.device is '设备类型快照';
+comment on column events.screen is '屏幕尺寸快照';
+comment on column events.language is '语言快照';
+comment on column events.country is '国家代码快照';
+comment on column events.created_at is '事件时间';
+
 create table if not exists event_data (
 	id uuid primary key,
 	website_id uuid not null references websites(id) on delete cascade,
@@ -65,11 +113,23 @@ create table if not exists event_data (
 	created_at timestamptz not null default now()
 );
 
+comment on column event_data.id is '事件数据 ID';
+comment on column event_data.website_id is '网站 ID';
+comment on column event_data.event_id is '事件 ID';
+comment on column event_data.data_key is '数据键';
+comment on column event_data.string_value is '字符串值';
+comment on column event_data.number_value is '数值';
+comment on column event_data.created_at is '创建时间';
+
 create table if not exists app_sessions (
 	token text primary key,
 	data bytea not null,
 	expiry timestamptz not null
 );
+
+comment on column app_sessions.token is '会话令牌';
+comment on column app_sessions.data is '编码后的会话数据';
+comment on column app_sessions.expiry is '会话过期时间';
 
 create index if not exists websites_user_idx on websites(user_id);
 create index if not exists events_website_created_idx on events(website_id, created_at);
