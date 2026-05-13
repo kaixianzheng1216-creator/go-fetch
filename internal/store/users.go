@@ -13,6 +13,7 @@ import (
 
 func (s *Store) EnsureAdmin(ctx context.Context, username, password string) error {
 	count, err := s.queries.CountUsers(ctx)
+
 	if err != nil {
 		return err
 	}
@@ -26,6 +27,7 @@ func (s *Store) EnsureAdmin(ctx context.Context, username, password string) erro
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
 	if err != nil {
 		return err
 	}
@@ -39,6 +41,7 @@ func (s *Store) EnsureAdmin(ctx context.Context, username, password string) erro
 
 func (s *Store) GetUserByUsername(ctx context.Context, username string) (domain.User, error) {
 	row, err := s.queries.GetUserByUsername(ctx, username)
+
 	if err != nil {
 		return domain.User{}, mapNotFound(err)
 	}
@@ -48,11 +51,13 @@ func (s *Store) GetUserByUsername(ctx context.Context, username string) (domain.
 
 func (s *Store) GetUserByID(ctx context.Context, userID string) (domain.User, error) {
 	userUUID, err := uuid.Parse(userID)
+
 	if err != nil {
 		return domain.User{}, err
 	}
 
 	row, err := s.queries.GetUserByID(ctx, userUUID)
+
 	if err != nil {
 		return domain.User{}, mapNotFound(err)
 	}
