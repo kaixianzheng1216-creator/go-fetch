@@ -2,10 +2,14 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/server"
@@ -62,13 +66,38 @@ func run(production bool) error {
 	}
 
 	srv := &http.Server{
-		Addr:    ":8080",
-		Handler: app.Routes(),
+		Addr:         cfg.ListenAddr,
+		Handler:      app.Routes(),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
-		return fmt.Errorf("listen http: %w", err)
+	shutdownCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
+	defer stop()
+
+	go func() {
+		slog.Info("server starting", "addr", srv.Addr)
+
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("listen error", "error", err)
+		}
+	}()
+
+	<-shutdownCtx.Done()
+
+	slog.Info("shutting down")
+
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
+
+	if err := srv.Shutdown(timeoutCtx); err != nil {
+		return fmt.Errorf("server shutdown: %w", err)
 	}
+
+	slog.Info("server stopped")
 
 	return nil
 }

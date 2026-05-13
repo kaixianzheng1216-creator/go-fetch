@@ -8,12 +8,15 @@ import (
 
 type Config struct {
 	DatabaseURL   string `env:"DATABASE_URL"`
+	ListenAddr    string `env:"LISTEN_ADDR"`
 	AdminUsername string `env:"ADMIN_USERNAME"`
 	AdminPassword string `env:"ADMIN_PASSWORD"`
 }
 
 func Load() (Config, error) {
-	var cfg Config
+	cfg := Config{
+		ListenAddr: ":8080",
+	}
 
 	if err := env.Parse(&cfg); err != nil {
 		return cfg, err
