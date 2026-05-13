@@ -16,8 +16,6 @@ func (s *Store) Migrate(ctx context.Context) error {
 		return err
 	}
 	defer sqlDB.Close()
-	sqlDB.SetMaxOpenConns(int(s.maxConns))
-	sqlDB.SetMaxIdleConns(int(s.maxConns))
 
 	goose.SetBaseFS(migrations.FS)
 	if err := goose.SetDialect("postgres"); err != nil {

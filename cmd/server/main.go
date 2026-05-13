@@ -16,18 +16,17 @@ import (
 )
 
 func main() {
-	logger := newLogger(os.Getenv("APP_ENV"))
+	production := os.Getenv("APP_ENV") == "production"
+	logger := newLogger(production)
 	slog.SetDefault(logger)
 
 	cfg, err := config.Load()
 	if err != nil {
 		fatal(logger, err)
 	}
-	logger = newLogger(cfg.Environment)
-	slog.SetDefault(logger)
 
 	ctx := context.Background()
-	db, err := store.Open(ctx, cfg.DatabaseURL, cfg.DBMaxConns)
+	db, err := store.Open(ctx, cfg.DatabaseURL)
 	if err != nil {
 		fatal(logger, err)
 	}
@@ -37,26 +36,26 @@ func main() {
 		fatal(logger, err)
 	}
 
-	if err := db.EnsureAdmin(ctx, cfg.AdminUsername, cfg.AdminPassword); err != nil {
+	if err := db.EnsureAdmin(ctx, "admin", cfg.AdminPassword); err != nil {
 		fatal(logger, err)
 	}
 
-	app, err := server.New(cfg, db)
+	app, err := server.New(db, production)
 	if err != nil {
 		fatal(logger, err)
 	}
 
 	httpServer := &http.Server{
-		Addr:              cfg.ListenAddr,
+		Addr:              ":8080",
 		Handler:           app.Routes(),
 		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       cfg.ReadTimeout,
-		WriteTimeout:      cfg.WriteTimeout,
-		IdleTimeout:       cfg.IdleTimeout,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       time.Minute,
 	}
 
 	go func() {
-		logger.Info("go-fetch analytics listening", "addr", cfg.ListenAddr)
+		logger.Info("go-fetch analytics listening", "addr", httpServer.Addr)
 		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			fatal(logger, err)
 		}
@@ -66,15 +65,15 @@ func main() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := httpServer.Shutdown(shutdownCtx); err != nil {
 		logger.Error("shutdown failed", "error", err)
 	}
 }
 
-func newLogger(environment string) *slog.Logger {
-	if environment == "production" {
+func newLogger(production bool) *slog.Logger {
+	if production {
 		return slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	}
 	return slog.New(slog.NewTextHandler(os.Stdout, nil))

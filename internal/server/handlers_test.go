@@ -5,20 +5,12 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
-
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
 
 	"github.com/alexedwards/scs/v2"
 )
 
 func testApp() *App {
 	return &App{
-		cfg: config.Config{
-			HandlerTimeout:   5 * time.Second,
-			LoginRateLimit:   10,
-			CollectRateLimit: 10,
-		},
 		sessions: scs.New(),
 	}
 }

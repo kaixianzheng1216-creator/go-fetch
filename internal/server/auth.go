@@ -16,7 +16,7 @@ func registerAuthRoutes(api huma.API, app *App, auth huma.Middlewares) {
 	loginOp := operation(http.MethodPost, "/api/login", "login", "Auth", http.StatusBadRequest, http.StatusUnauthorized, http.StatusInternalServerError)
 	loginOp.SkipValidateBody = true
 	if app != nil {
-		loginOp.Middlewares = append(loginOp.Middlewares, adaptHTTPMiddleware(httprate.LimitByRealIP(app.cfg.LoginRateLimit, time.Minute)))
+		loginOp.Middlewares = append(loginOp.Middlewares, adaptHTTPMiddleware(httprate.LimitByRealIP(10, time.Minute)))
 	}
 	huma.Register(api, loginOp, app.login)
 

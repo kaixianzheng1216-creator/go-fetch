@@ -18,7 +18,7 @@ func registerCollectRoutes(api huma.API, app *App) {
 	collectOp.MaxBodyBytes = 256 * 1024
 	collectOp.SkipValidateBody = true
 	if app != nil {
-		collectOp.Middlewares = append(collectOp.Middlewares, adaptHTTPMiddleware(httprate.LimitByRealIP(app.cfg.CollectRateLimit, time.Minute)))
+		collectOp.Middlewares = append(collectOp.Middlewares, adaptHTTPMiddleware(httprate.LimitByRealIP(120, time.Minute)))
 	}
 
 	huma.Register(api, collectOp, app.collect)

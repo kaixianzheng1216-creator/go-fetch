@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/store"
 
 	"github.com/alexedwards/scs/pgxstore"
@@ -22,12 +21,12 @@ const (
 )
 
 type App struct {
-	cfg      config.Config
-	store    *store.Store
-	sessions *scs.SessionManager
+	secureCookie bool
+	store        *store.Store
+	sessions     *scs.SessionManager
 }
 
-func New(cfg config.Config, store *store.Store) (*App, error) {
+func New(store *store.Store, secureCookie bool) (*App, error) {
 	sessions := scs.New()
 	sessions.Store = pgxstore.NewWithConfig(store.Pool(), pgxstore.Config{
 		TableName:       "app_sessions",
@@ -38,9 +37,9 @@ func New(cfg config.Config, store *store.Store) (*App, error) {
 	sessions.Cookie.HttpOnly = true
 	sessions.Cookie.Path = "/"
 	sessions.Cookie.SameSite = http.SameSiteLaxMode
-	sessions.Cookie.Secure = cfg.CookieSecure
+	sessions.Cookie.Secure = secureCookie
 
-	return &App{cfg: cfg, store: store, sessions: sessions}, nil
+	return &App{secureCookie: secureCookie, store: store, sessions: sessions}, nil
 }
 
 func (a *App) Routes() http.Handler {
@@ -49,7 +48,7 @@ func (a *App) Routes() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(httplog.RequestLogger(slog.Default(), &httplog.Options{Level: slog.LevelInfo, Schema: httplog.SchemaECS}))
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(a.cfg.HandlerTimeout))
+	r.Use(middleware.Timeout(30 * time.Second))
 	r.Use(a.secureHeaders().Handler)
 
 	api := humachi.New(r, humaConfig())

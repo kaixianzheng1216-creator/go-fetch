@@ -60,31 +60,18 @@ scripts/                     格式化和格式检查脚本
 
 ## 环境变量
 
-必填：
+本地运行只需要显式配置应用无法推导的项：
 
 ```text
 DATABASE_URL=postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable
 ADMIN_PASSWORD=change-me
 ```
 
-常用可选项：
+其他运行策略由代码常量或底层库默认值负责，不再作为环境变量配置项。管理员用户名固定为 `admin`，服务监听 `:8080`。
 
-```text
-LISTEN_ADDR=:8080
-ADMIN_USERNAME=admin
-APP_ENV=development
-COOKIE_SECURE=false
-DB_MAX_CONNS=10
-LOGIN_RATE_LIMIT_PER_MINUTE=10
-COLLECT_RATE_LIMIT_PER_MINUTE=120
-HTTP_READ_TIMEOUT=10s
-HTTP_WRITE_TIMEOUT=30s
-HTTP_IDLE_TIMEOUT=60s
-HTTP_HANDLER_TIMEOUT=30s
-HTTP_SHUTDOWN_TIMEOUT=10s
-```
+生产环境可设置 `APP_ENV=production`，用于切换 JSON 日志并启用 Secure Cookie；本地运行不用设置。
 
-`ADMIN_PASSWORD` 只在第一次启动、数据库中还没有用户时用于创建初始管理员。
+`ADMIN_PASSWORD` 只在第一次启动、数据库中还没有用户时用于创建初始管理员；数据库已有用户后不会重置密码。
 
 ## 本地启动
 
@@ -98,7 +85,6 @@ docker compose up -d postgres
 
 ```powershell
 $env:DATABASE_URL = "postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable"
-$env:ADMIN_USERNAME = "admin"
 $env:ADMIN_PASSWORD = "change-me"
 go run ./cmd/server
 ```

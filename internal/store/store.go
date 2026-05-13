@@ -12,17 +12,12 @@ type Store struct {
 	db          *pgxpool.Pool
 	queries     *storedb.Queries
 	databaseURL string
-	maxConns    int32
 }
 
-func Open(ctx context.Context, databaseURL string, maxConns int32) (*Store, error) {
+func Open(ctx context.Context, databaseURL string) (*Store, error) {
 	poolConfig, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
 		return nil, err
-	}
-
-	if maxConns > 0 {
-		poolConfig.MaxConns = maxConns
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
@@ -35,7 +30,7 @@ func Open(ctx context.Context, databaseURL string, maxConns int32) (*Store, erro
 		return nil, err
 	}
 
-	return &Store{db: pool, queries: storedb.New(pool), databaseURL: databaseURL, maxConns: poolConfig.MaxConns}, nil
+	return &Store{db: pool, queries: storedb.New(pool), databaseURL: databaseURL}, nil
 }
 
 func (s *Store) Close() {

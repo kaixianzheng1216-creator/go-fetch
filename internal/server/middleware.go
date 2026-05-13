@@ -16,7 +16,7 @@ func (a *App) secureHeaders() *secure.Secure {
 		ReferrerPolicy:     "strict-origin-when-cross-origin",
 		PermissionsPolicy:  "camera=(), microphone=(), geolocation=()",
 		SSLProxyHeaders:    map[string]string{"X-Forwarded-Proto": "https"},
-		STSSeconds:         stsSeconds(a.cfg.CookieSecure),
+		STSSeconds:         stsSeconds(a.secureCookie),
 	})
 }
 
