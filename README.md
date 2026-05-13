@@ -64,10 +64,11 @@ scripts/                     格式化和格式检查脚本
 
 ```text
 DATABASE_URL=postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable
+ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-me
 ```
 
-其他运行策略由代码常量或底层库默认值负责，不再作为环境变量配置项。管理员用户名固定为 `admin`，服务监听 `:8080`。
+其他运行策略由代码常量或底层库默认值负责，不再作为环境变量配置项。服务监听 `:8080`。
 
 生产环境可设置 `APP_ENV=production`，用于切换 JSON 日志并启用 Secure Cookie；本地运行不用设置。
 
@@ -85,6 +86,7 @@ docker compose up -d postgres
 
 ```powershell
 $env:DATABASE_URL = "postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable"
+$env:ADMIN_USERNAME = "admin"
 $env:ADMIN_PASSWORD = "change-me"
 go run ./cmd/server
 ```

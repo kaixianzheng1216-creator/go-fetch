@@ -17,6 +17,7 @@ import (
 
 func main() {
 	production := os.Getenv("APP_ENV") == "production"
+
 	logger := newLogger(production)
 	slog.SetDefault(logger)
 
@@ -26,17 +27,20 @@ func main() {
 	}
 
 	ctx := context.Background()
+
 	db, err := store.Open(ctx, cfg.DatabaseURL)
+
 	if err != nil {
 		fatal(logger, err)
 	}
+
 	defer db.Close()
 
 	if err := db.Migrate(ctx); err != nil {
 		fatal(logger, err)
 	}
 
-	if err := db.EnsureAdmin(ctx, "admin", cfg.AdminPassword); err != nil {
+	if err := db.EnsureAdmin(ctx, cfg.AdminUsername, cfg.AdminPassword); err != nil {
 		fatal(logger, err)
 	}
 
@@ -55,18 +59,29 @@ func main() {
 	}
 
 	go func() {
-		logger.Info("go-fetch analytics listening", "addr", httpServer.Addr)
-		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Info(
+			"go-fetch analytics listening",
+			"addr",
+			httpServer.Addr,
+		)
+
+		if err := httpServer.ListenAndServe(); err != nil &&
+			!errors.Is(err, http.ErrServerClosed) {
 			fatal(logger, err)
 		}
 	}()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
 	<-stop
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(
+		context.Background(),
+		10*time.Second,
+	)
 	defer cancel()
+
 	if err := httpServer.Shutdown(shutdownCtx); err != nil {
 		logger.Error("shutdown failed", "error", err)
 	}
@@ -74,9 +89,14 @@ func main() {
 
 func newLogger(production bool) *slog.Logger {
 	if production {
-		return slog.New(slog.NewJSONHandler(os.Stdout, nil))
+		return slog.New(
+			slog.NewJSONHandler(os.Stdout, nil),
+		)
 	}
-	return slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	return slog.New(
+		slog.NewTextHandler(os.Stdout, nil),
+	)
 }
 
 func fatal(logger *slog.Logger, err error) {
