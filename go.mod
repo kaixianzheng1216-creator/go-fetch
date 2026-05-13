@@ -2,6 +2,8 @@ module go-fetch
 
 go 1.25.7
 
+toolchain go1.26.3
+
 require (
 	github.com/alexedwards/scs/pgxstore v0.0.0-20251002162104-209de6e426de
 	github.com/alexedwards/scs/v2 v2.9.0

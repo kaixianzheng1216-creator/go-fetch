@@ -13,7 +13,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
-func init() {
+func ConfigureAPIErrorModel() {
 	huma.NewError = newAPIError
 	huma.NewErrorWithContext = func(_ huma.Context, status int, msg string, errs ...error) huma.StatusError {
 		return newAPIError(status, msg, errs...)

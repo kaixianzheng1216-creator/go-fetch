@@ -4,7 +4,7 @@
 
 ## 技术栈
 
-- Go `1.25.7`
+- Go `1.25.7`，推荐工具链 `go1.26.3`
 - HTTP：标准库 `net/http` + `github.com/go-chi/chi/v5`
 - API 框架与文档：`github.com/danielgtaylor/huma/v2` + `humachi`
 - 数据库：PostgreSQL + `github.com/jackc/pgx/v5`
@@ -96,9 +96,8 @@ go run ./cmd/openapi -out api/openapi.json
 ```text
 api/openapi.json            Huma 从 Go 后端生成的 OpenAPI 契约
 cmd/openapi/                OpenAPI 生成命令
-cmd/server/                 服务启动入口
+cmd/server/                 服务启动、应用装配和生命周期管理
 frontend/                   React + TypeScript + Tailwind + shadcn/ui 前端源码
-internal/app/               应用装配和生命周期管理
 internal/auth/              密码校验
 internal/collector/         采集请求 URL/UTM/session/visit 归一化
 internal/config/            环境变量配置
@@ -111,7 +110,6 @@ internal/store/migrations/  goose 迁移文件
 internal/store/query/       sqlc 查询定义
 internal/web/               采集脚本和 React 构建产物的 embed 入口
 scripts/                    后端和前端格式化脚本
-reference/umami/            Umami 原项目源码，仅作为参考
 ```
 
 后端文件组织约定：
@@ -196,6 +194,13 @@ npm --prefix frontend run lint
 ./scripts/check-format.ps1
 ```
 
+macOS/Linux 或已安装 `make` 的环境也可以使用：
+
+```bash
+make generate
+make verify
+```
+
 单独生成 sqlc：
 
 ```powershell
@@ -212,14 +217,15 @@ npm --prefix frontend run api:generate
 运行测试：
 
 ```powershell
-go test ./...
+go test $(go list ./... | Where-Object { $_ -notlike "*/frontend/node_modules/*" })
 ```
 
 静态检查：
 
 ```powershell
-go vet ./...
-go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+$packages = go list ./... | Where-Object { $_ -notlike "*/frontend/node_modules/*" }
+go vet $packages
+go run honnef.co/go/tools/cmd/staticcheck@latest $packages
 ```
 
 构建服务：
@@ -231,13 +237,23 @@ go build -o go-fetch.exe ./cmd/server
 完整验证建议：
 
 ```powershell
-go test ./...
-go vet ./...
-go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+$packages = go list ./... | Where-Object { $_ -notlike "*/frontend/node_modules/*" }
+go test $packages
+go vet $packages
+go run honnef.co/go/tools/cmd/staticcheck@latest $packages
 npm --prefix frontend run lint
 npm --prefix frontend run build
 ./scripts/check-format.ps1
 ```
+
+## 开源维护
+
+- 许可证：MIT，见 `LICENSE`。
+- 贡献说明：见 `CONTRIBUTING.md`。
+- 安全问题：见 `SECURITY.md`。
+- CI：GitHub Actions 会运行代码生成、Go 测试、Go vet、Staticcheck、前端 lint/build 和格式检查。
+- 生成产物：`api/openapi.json`、`frontend/src/lib/api-types.ts`、`internal/store/db/*` 和 `internal/web/dist/*` 会提交进仓库，保证普通 `go build ./cmd/server` 可用。
+- 发布到 GitHub 后，把 `go.mod` 的 `module go-fetch` 替换成真实仓库路径，例如 `github.com/<owner>/<repo>`，并同步替换内部 import path。
 
 ## 常见问题
 

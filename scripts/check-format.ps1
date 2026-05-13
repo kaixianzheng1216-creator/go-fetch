@@ -3,7 +3,6 @@ $ErrorActionPreference = "Stop"
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $goFiles = Get-ChildItem -Path $root -Recurse -Filter "*.go" -File |
   Where-Object {
-    $_.FullName -notlike "*\reference\umami\*" -and
     $_.FullName -notlike "*\frontend\node_modules\*"
   } |
   ForEach-Object { $_.FullName }
