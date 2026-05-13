@@ -1,0 +1,81 @@
+-- +goose Up
+create table if not exists users (
+	id uuid primary key,
+	username varchar(255) not null unique,
+	password_hash varchar(100) not null,
+	created_at timestamptz not null default now()
+);
+
+create table if not exists websites (
+	id uuid primary key,
+	user_id uuid not null references users(id) on delete cascade,
+	name varchar(100) not null,
+	domain varchar(500),
+	created_at timestamptz not null default now(),
+	updated_at timestamptz,
+	deleted_at timestamptz
+);
+
+create table if not exists sessions (
+	id uuid primary key,
+	website_id uuid not null references websites(id) on delete cascade,
+	browser varchar(40),
+	os varchar(40),
+	device varchar(40),
+	screen varchar(20),
+	language varchar(35),
+	country char(2),
+	created_at timestamptz not null default now()
+);
+
+create table if not exists events (
+	id uuid primary key,
+	website_id uuid not null references websites(id) on delete cascade,
+	session_id uuid not null references sessions(id) on delete cascade,
+	visit_id uuid not null,
+	event_type integer not null,
+	event_name varchar(50),
+	url_path varchar(500) not null,
+	url_query varchar(500),
+	referrer_path varchar(500),
+	referrer_domain varchar(500),
+	page_title varchar(500),
+	hostname varchar(100),
+	utm_source varchar(255),
+	utm_medium varchar(255),
+	utm_campaign varchar(255),
+	utm_content varchar(255),
+	utm_term varchar(255),
+	browser varchar(40),
+	os varchar(40),
+	device varchar(40),
+	screen varchar(20),
+	language varchar(35),
+	country char(2),
+	created_at timestamptz not null default now()
+);
+
+create table if not exists event_data (
+	id uuid primary key,
+	website_id uuid not null references websites(id) on delete cascade,
+	event_id uuid not null references events(id) on delete cascade,
+	data_key varchar(500) not null,
+	string_value varchar(500),
+	number_value double precision,
+	created_at timestamptz not null default now()
+);
+
+create table if not exists app_sessions (
+	token text primary key,
+	data bytea not null,
+	expiry timestamptz not null
+);
+
+create index if not exists websites_user_idx on websites(user_id);
+create index if not exists events_website_created_idx on events(website_id, created_at);
+create index if not exists events_website_session_created_idx on events(website_id, session_id, created_at);
+create index if not exists events_website_visit_created_idx on events(website_id, visit_id, created_at);
+create index if not exists events_website_path_created_idx on events(website_id, url_path, created_at);
+create index if not exists events_website_event_created_idx on events(website_id, event_name, created_at);
+create index if not exists event_data_event_idx on event_data(event_id);
+create index if not exists app_sessions_expiry_idx on app_sessions(expiry);
