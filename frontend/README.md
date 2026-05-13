@@ -5,7 +5,7 @@
 ## 技术栈
 
 - React `19`
-- TypeScript `6`
+- TypeScript `5.9`
 - Vite `8`
 - React Router
 - TanStack Query
