@@ -235,14 +235,8 @@
             "format": "date-time",
             "type": "string"
           },
-          "displayName": {
-            "type": "string"
-          },
           "id": {
             "format": "uuid",
-            "type": "string"
-          },
-          "logoUrl": {
             "type": "string"
           },
           "updatedAt": {

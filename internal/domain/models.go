@@ -23,8 +23,6 @@ type User struct {
 	ID           string
 	Username     string
 	PasswordHash string
-	LogoURL      string
-	DisplayName  string
 	CreatedAt    time.Time
 	UpdatedAt    *time.Time
 	DeletedAt    *time.Time

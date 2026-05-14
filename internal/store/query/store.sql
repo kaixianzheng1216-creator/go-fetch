@@ -2,16 +2,14 @@
 select count(*)::bigint from users where deleted_at is null;
 
 -- name: CreateUser :exec
-insert into users (id, username, password_hash, display_name)
-values (sqlc.arg(id)::uuid, sqlc.arg(username), sqlc.arg(password_hash), nullif(sqlc.arg(display_name)::text, ''));
+insert into users (id, username, password_hash)
+values (sqlc.arg(id)::uuid, sqlc.arg(username), sqlc.arg(password_hash));
 
 -- name: GetUserByUsername :one
 select
 	id,
 	username,
 	password_hash,
-	coalesce(logo_url, '')::text as logo_url,
-	coalesce(display_name, '')::text as display_name,
 	created_at,
 	updated_at,
 	deleted_at
@@ -23,8 +21,6 @@ select
 	id,
 	username,
 	password_hash,
-	coalesce(logo_url, '')::text as logo_url,
-	coalesce(display_name, '')::text as display_name,
 	created_at,
 	updated_at,
 	deleted_at

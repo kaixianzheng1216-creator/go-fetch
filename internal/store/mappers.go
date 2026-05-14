@@ -11,13 +11,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func toUser(userUUID uuid.UUID, username, passwordHash, logoURL, displayName string, createdAt time.Time, updatedAt, deletedAt pgtype.Timestamptz) domain.User {
+func toUser(userUUID uuid.UUID, username, passwordHash string, createdAt time.Time, updatedAt, deletedAt pgtype.Timestamptz) domain.User {
 	return domain.User{
 		ID:           userUUID.String(),
 		Username:     username,
 		PasswordHash: passwordHash,
-		LogoURL:      logoURL,
-		DisplayName:  displayName,
 		CreatedAt:    createdAt,
 		UpdatedAt:    optionalTimeFrom(updatedAt),
 		DeletedAt:    optionalTimeFrom(deletedAt),

@@ -4,8 +4,6 @@ create table if not exists users
     id            uuid primary key,
     username      varchar(255) not null unique,
     password_hash varchar(60)  not null,
-    logo_url      varchar(2183),
-    display_name  varchar(255),
     created_at    timestamptz not null default now(),
     updated_at    timestamptz,
     deleted_at    timestamptz
@@ -14,8 +12,6 @@ create table if not exists users
 comment on column users.id is 'ID';
 comment on column users.username is '用户名';
 comment on column users.password_hash is '密码哈希';
-comment on column users.logo_url is '头像';
-comment on column users.display_name is '显示名';
 comment on column users.created_at is '创建时间';
 comment on column users.updated_at is '更新时间';
 comment on column users.deleted_at is '删除时间';

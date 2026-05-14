@@ -25,24 +25,18 @@ func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
 }
 
 const createUser = `-- name: CreateUser :exec
-insert into users (id, username, password_hash, display_name)
-values ($1::uuid, $2, $3, nullif($4::text, ''))
+insert into users (id, username, password_hash)
+values ($1::uuid, $2, $3)
 `
 
 type CreateUserParams struct {
 	ID           uuid.UUID `json:"id"`
 	Username     string    `json:"username"`
 	PasswordHash string    `json:"password_hash"`
-	DisplayName  string    `json:"display_name"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
-	_, err := q.db.Exec(ctx, createUser,
-		arg.ID,
-		arg.Username,
-		arg.PasswordHash,
-		arg.DisplayName,
-	)
+	_, err := q.db.Exec(ctx, createUser, arg.ID, arg.Username, arg.PasswordHash)
 	return err
 }
 
@@ -168,8 +162,6 @@ select
 	id,
 	username,
 	password_hash,
-	coalesce(logo_url, '')::text as logo_url,
-	coalesce(display_name, '')::text as display_name,
 	created_at,
 	updated_at,
 	deleted_at
@@ -177,26 +169,13 @@ from users
 where id = $1::uuid and deleted_at is null
 `
 
-type GetUserByIDRow struct {
-	ID           uuid.UUID          `json:"id"`
-	Username     string             `json:"username"`
-	PasswordHash string             `json:"password_hash"`
-	LogoUrl      string             `json:"logo_url"`
-	DisplayName  string             `json:"display_name"`
-	CreatedAt    time.Time          `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt    pgtype.Timestamptz `json:"deleted_at"`
-}
-
-func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error) {
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByID, id)
-	var i GetUserByIDRow
+	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
 		&i.PasswordHash,
-		&i.LogoUrl,
-		&i.DisplayName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -209,8 +188,6 @@ select
 	id,
 	username,
 	password_hash,
-	coalesce(logo_url, '')::text as logo_url,
-	coalesce(display_name, '')::text as display_name,
 	created_at,
 	updated_at,
 	deleted_at
@@ -218,26 +195,13 @@ from users
 where username = $1 and deleted_at is null
 `
 
-type GetUserByUsernameRow struct {
-	ID           uuid.UUID          `json:"id"`
-	Username     string             `json:"username"`
-	PasswordHash string             `json:"password_hash"`
-	LogoUrl      string             `json:"logo_url"`
-	DisplayName  string             `json:"display_name"`
-	CreatedAt    time.Time          `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt    pgtype.Timestamptz `json:"deleted_at"`
-}
-
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByUsername, username)
-	var i GetUserByUsernameRow
+	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
 		&i.PasswordHash,
-		&i.LogoUrl,
-		&i.DisplayName,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,

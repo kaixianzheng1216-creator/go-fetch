@@ -116,10 +116,6 @@ type User struct {
 	Username string `json:"username"`
 	// 密码哈希
 	PasswordHash string `json:"password_hash"`
-	// 头像
-	LogoUrl pgtype.Text `json:"logo_url"`
-	// 显示名
-	DisplayName pgtype.Text `json:"display_name"`
 	// 创建时间
 	CreatedAt time.Time `json:"created_at"`
 	// 更新时间

@@ -32,7 +32,6 @@ func (s *Store) EnsureAdmin(ctx context.Context, username, password string) erro
 		ID:           uuid.New(),
 		Username:     username,
 		PasswordHash: string(hash),
-		DisplayName:  username,
 	}); err != nil {
 		return fmt.Errorf("创建管理员用户失败: %w", err)
 	}
@@ -47,7 +46,7 @@ func (s *Store) GetUserByUsername(ctx context.Context, username string) (domain.
 		return domain.User{}, fmt.Errorf("按用户名查询用户失败: %w", mapNotFound(err))
 	}
 
-	return toUser(row.ID, row.Username, row.PasswordHash, row.LogoUrl, row.DisplayName, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil
+	return toUser(row.ID, row.Username, row.PasswordHash, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil
 }
 
 func (s *Store) GetUserByID(ctx context.Context, userID string) (domain.User, error) {
@@ -63,5 +62,5 @@ func (s *Store) GetUserByID(ctx context.Context, userID string) (domain.User, er
 		return domain.User{}, fmt.Errorf("按 ID 查询用户失败: %w", mapNotFound(err))
 	}
 
-	return toUser(row.ID, row.Username, row.PasswordHash, row.LogoUrl, row.DisplayName, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil
+	return toUser(row.ID, row.Username, row.PasswordHash, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil
 }
