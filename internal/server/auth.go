@@ -12,15 +12,39 @@ import (
 )
 
 func registerAuthRoutes(api huma.API, app *App, auth huma.Middlewares) {
-	loginOp := operation(http.MethodPost, "/api/login", "login", "Auth", http.StatusBadRequest, http.StatusUnauthorized, http.StatusInternalServerError)
+	loginOp := operation(
+		http.MethodPost,
+		"/api/login",
+		"login",
+		"Auth",
+		http.StatusBadRequest,
+		http.StatusUnauthorized,
+		http.StatusInternalServerError,
+	)
 
 	loginOp.SkipValidateBody = true
 
 	huma.Register(api, loginOp, app.login)
 
-	huma.Register(api, operation(http.MethodPost, "/api/logout", "logout", "Auth", http.StatusInternalServerError), app.logout)
+	logoutOp := operation(
+		http.MethodPost,
+		"/api/logout",
+		"logout",
+		"Auth",
+		http.StatusInternalServerError,
+	)
 
-	huma.Register(api, authenticated(operation(http.MethodGet, "/api/me", "getCurrentUser", "Auth", http.StatusUnauthorized), auth), app.me)
+	huma.Register(api, logoutOp, app.logout)
+
+	meOp := operation(
+		http.MethodGet,
+		"/api/me",
+		"getCurrentUser",
+		"Auth",
+		http.StatusUnauthorized,
+	)
+
+	huma.Register(api, authenticated(meOp, auth), app.me)
 }
 
 func (a *App) login(ctx context.Context, input *loginInput) (*jsonBody[httpapi.LoginResponse], error) {

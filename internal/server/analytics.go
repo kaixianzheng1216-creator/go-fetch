@@ -12,11 +12,42 @@ import (
 )
 
 func registerAnalyticsRoutes(api huma.API, app *App, auth huma.Middlewares) {
-	huma.Register(api, authenticated(operation(http.MethodGet, "/api/websites/{websiteID}/stats", "websiteStats", "Analytics", http.StatusUnauthorized, http.StatusNotFound, http.StatusInternalServerError), auth), app.websiteStats)
+	statsOp := operation(
+		http.MethodGet,
+		"/api/websites/{websiteID}/stats",
+		"websiteStats",
+		"Analytics",
+		http.StatusUnauthorized,
+		http.StatusNotFound,
+		http.StatusInternalServerError,
+	)
 
-	huma.Register(api, authenticated(operation(http.MethodGet, "/api/websites/{websiteID}/pageviews", "websitePageviews", "Analytics", http.StatusUnauthorized, http.StatusNotFound, http.StatusInternalServerError), auth), app.websitePageviews)
+	huma.Register(api, authenticated(statsOp, auth), app.websiteStats)
 
-	huma.Register(api, authenticated(operation(http.MethodGet, "/api/websites/{websiteID}/metrics", "websiteMetrics", "Analytics", http.StatusBadRequest, http.StatusUnauthorized, http.StatusNotFound, http.StatusInternalServerError), auth), app.websiteMetrics)
+	pageviewsOp := operation(
+		http.MethodGet,
+		"/api/websites/{websiteID}/pageviews",
+		"websitePageviews",
+		"Analytics",
+		http.StatusUnauthorized,
+		http.StatusNotFound,
+		http.StatusInternalServerError,
+	)
+
+	huma.Register(api, authenticated(pageviewsOp, auth), app.websitePageviews)
+
+	metricsOp := operation(
+		http.MethodGet,
+		"/api/websites/{websiteID}/metrics",
+		"websiteMetrics",
+		"Analytics",
+		http.StatusBadRequest,
+		http.StatusUnauthorized,
+		http.StatusNotFound,
+		http.StatusInternalServerError,
+	)
+
+	huma.Register(api, authenticated(metricsOp, auth), app.websiteMetrics)
 }
 
 func (a *App) websiteStats(ctx context.Context, input *dateRangeInput) (*jsonBody[httpapi.WebsiteStats], error) {

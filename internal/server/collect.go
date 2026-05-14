@@ -13,7 +13,15 @@ import (
 )
 
 func registerCollectRoutes(api huma.API, app *App) {
-	collectOp := operation(http.MethodPost, "/api/collect", "collect", "Collection", http.StatusBadRequest, http.StatusInternalServerError)
+	collectOp := operation(
+		http.MethodPost,
+		"/api/collect",
+		"collect",
+		"Collection",
+		http.StatusBadRequest,
+		http.StatusInternalServerError,
+	)
+
 	collectOp.MaxBodyBytes = 256 * 1024
 	collectOp.SkipValidateBody = true
 

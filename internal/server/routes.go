@@ -7,7 +7,7 @@ import (
 func registerAPIRoutes(api huma.API, app *App) {
 	api.UseMiddleware(captureRequest)
 
-	auth := authMiddlewares(api, app)
+	auth := huma.Middlewares{app.requireHumaAuth(api)}
 	registerCollectRoutes(api, app)
 	registerAuthRoutes(api, app, auth)
 	registerWebsiteRoutes(api, app, auth)
@@ -26,13 +26,8 @@ func operation(method, path, operationID, tag string, errors ...int) huma.Operat
 
 func authenticated(op huma.Operation, middlewares huma.Middlewares) huma.Operation {
 	op.Security = []map[string][]string{{"sessionCookie": {}}}
-	op.Middlewares = append(op.Middlewares, middlewares...)
-	return op
-}
 
-func authMiddlewares(api huma.API, app *App) huma.Middlewares {
-	if app == nil {
-		return nil
-	}
-	return huma.Middlewares{app.requireHumaAuth(api)}
+	op.Middlewares = append(op.Middlewares, middlewares...)
+
+	return op
 }

@@ -11,7 +11,7 @@ import (
 func OpenAPIJSON() ([]byte, error) {
 	r := chi.NewRouter()
 	api := humachi.New(r, humaConfig())
-	registerAPIRoutes(api, nil)
+	registerAPIRoutes(api, &App{})
 	return json.MarshalIndent(api.OpenAPI(), "", "  ")
 }
 

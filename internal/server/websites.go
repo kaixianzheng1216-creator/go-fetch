@@ -11,20 +11,72 @@ import (
 )
 
 func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
-	huma.Register(api, authenticated(operation(http.MethodGet, "/api/websites", "listWebsites", "Websites", http.StatusUnauthorized, http.StatusInternalServerError), auth), app.listWebsites)
+	listOp := operation(
+		http.MethodGet,
+		"/api/websites",
+		"listWebsites",
+		"Websites",
+		http.StatusUnauthorized,
+		http.StatusInternalServerError,
+	)
 
-	createOp := authenticated(operation(http.MethodPost, "/api/websites", "createWebsite", "Websites", http.StatusBadRequest, http.StatusUnauthorized, http.StatusInternalServerError), auth)
+	huma.Register(api, authenticated(listOp, auth), app.listWebsites)
+
+	createOp := operation(
+		http.MethodPost,
+		"/api/websites",
+		"createWebsite",
+		"Websites",
+		http.StatusBadRequest,
+		http.StatusUnauthorized,
+		http.StatusInternalServerError,
+	)
+
+	createOp = authenticated(createOp, auth)
 	createOp.DefaultStatus = http.StatusCreated
 	createOp.SkipValidateBody = true
+
 	huma.Register(api, createOp, app.createWebsite)
 
-	huma.Register(api, authenticated(operation(http.MethodGet, "/api/websites/{websiteID}", "getWebsite", "Websites", http.StatusUnauthorized, http.StatusNotFound, http.StatusInternalServerError), auth), app.getWebsite)
+	getOp := operation(
+		http.MethodGet,
+		"/api/websites/{websiteID}",
+		"getWebsite",
+		"Websites",
+		http.StatusUnauthorized,
+		http.StatusNotFound,
+		http.StatusInternalServerError,
+	)
 
-	updateOp := authenticated(operation(http.MethodPatch, "/api/websites/{websiteID}", "updateWebsite", "Websites", http.StatusBadRequest, http.StatusUnauthorized, http.StatusNotFound, http.StatusInternalServerError), auth)
+	huma.Register(api, authenticated(getOp, auth), app.getWebsite)
+
+	updateOp := operation(
+		http.MethodPatch,
+		"/api/websites/{websiteID}",
+		"updateWebsite",
+		"Websites",
+		http.StatusBadRequest,
+		http.StatusUnauthorized,
+		http.StatusNotFound,
+		http.StatusInternalServerError,
+	)
+
+	updateOp = authenticated(updateOp, auth)
 	updateOp.SkipValidateBody = true
+
 	huma.Register(api, updateOp, app.updateWebsite)
 
-	huma.Register(api, authenticated(operation(http.MethodDelete, "/api/websites/{websiteID}", "deleteWebsite", "Websites", http.StatusUnauthorized, http.StatusNotFound, http.StatusInternalServerError), auth), app.deleteWebsite)
+	deleteOp := operation(
+		http.MethodDelete,
+		"/api/websites/{websiteID}",
+		"deleteWebsite",
+		"Websites",
+		http.StatusUnauthorized,
+		http.StatusNotFound,
+		http.StatusInternalServerError,
+	)
+
+	huma.Register(api, authenticated(deleteOp, auth), app.deleteWebsite)
 }
 
 func (a *App) listWebsites(ctx context.Context, _ *emptyInput) (*jsonBody[[]httpapi.Website], error) {
