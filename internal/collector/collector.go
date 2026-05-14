@@ -1,9 +1,6 @@
 package collector
 
 import (
-	"encoding/json"
-	"fmt"
-	"math"
 	"net"
 	"net/http"
 	"net/url"
@@ -37,16 +34,7 @@ const (
 	maxScreenLength     = 11
 	maxLanguageLength   = 35
 	maxDistinctIDLength = 50
-	maxDataValueLength  = 500
 )
-
-type FlatData struct {
-	Key         string
-	StringValue string
-	NumberValue *float64
-	DateValue   *time.Time
-	DataType    domain.EventDataType
-}
 
 func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Time) domain.EventInput {
 	userAgent := r.UserAgent()
@@ -186,96 +174,6 @@ func clientIP(r *http.Request) string {
 	}
 
 	return r.RemoteAddr
-}
-
-func FlattenData(data map[string]any) []FlatData {
-	var result []FlatData
-
-	var walk func(prefix string, value any)
-	walk = func(prefix string, value any) {
-		switch v := value.(type) {
-		case map[string]any:
-			for key, child := range v {
-				walk(joinKey(prefix, key), child)
-			}
-		case []any:
-			bytes, _ := json.Marshal(v)
-			result = append(result, FlatData{
-				Key:         prefix,
-				StringValue: truncate(string(bytes), maxDataValueLength),
-				DataType:    domain.EventDataTypeArray,
-			})
-		case float64:
-			if !math.IsNaN(v) && !math.IsInf(v, 0) {
-				n := v
-				result = append(result, FlatData{
-					Key:         prefix,
-					StringValue: fmt.Sprintf("%g", v),
-					NumberValue: &n,
-					DataType:    domain.EventDataTypeNumber,
-				})
-			}
-		case bool:
-			result = append(result, FlatData{
-				Key:         prefix,
-				StringValue: strconv.FormatBool(v),
-				DataType:    domain.EventDataTypeBoolean,
-			})
-		case string:
-			if dateValue, ok := parseDataTime(v); ok {
-				result = append(result, FlatData{
-					Key:         prefix,
-					StringValue: dateValue.UTC().Format(time.RFC3339Nano),
-					DateValue:   &dateValue,
-					DataType:    domain.EventDataTypeDate,
-				})
-				break
-			}
-
-			result = append(result, FlatData{
-				Key:         prefix,
-				StringValue: truncate(v, maxDataValueLength),
-				DataType:    domain.EventDataTypeString,
-			})
-		case nil:
-			result = append(result, FlatData{Key: prefix, DataType: domain.EventDataTypeString})
-		default:
-			result = append(result, FlatData{
-				Key:         prefix,
-				StringValue: truncate(fmt.Sprint(v), maxDataValueLength),
-				DataType:    domain.EventDataTypeString,
-			})
-		}
-	}
-
-	for key, value := range data {
-		walk(key, value)
-	}
-
-	return result
-}
-
-func parseDataTime(value string) (time.Time, bool) {
-	if !strings.Contains(value, "T") {
-		return time.Time{}, false
-	}
-
-	for _, layout := range []string{time.RFC3339Nano, "2006-01-02T15:04:05.000", "2006-01-02T15:04:05"} {
-		parsed, err := time.Parse(layout, value)
-		if err == nil {
-			return parsed.UTC(), true
-		}
-	}
-
-	return time.Time{}, false
-}
-
-func joinKey(prefix, key string) string {
-	if prefix == "" {
-		return key
-	}
-
-	return prefix + "." + key
 }
 
 func trimWWW(host string) string {

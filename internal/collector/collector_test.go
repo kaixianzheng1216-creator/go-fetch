@@ -82,7 +82,7 @@ func TestBuildEventInputCustomEvent(t *testing.T) {
 	if input.EventName != "signup" {
 		t.Fatalf("EventName = %q", input.EventName)
 	}
-	if len(FlattenData(input.Data)) != 1 {
+	if len(domain.FlattenEventData(input.Data)) != 1 {
 		t.Fatalf("expected flattened data")
 	}
 }
@@ -129,38 +129,6 @@ func TestBuildEventInputUsesRemoteAddrForFallbackSession(t *testing.T) {
 	secondInput := BuildEventInput(second, payload, now)
 	if firstInput.SessionID == secondInput.SessionID {
 		t.Fatalf("remote addr did not affect fallback session id")
-	}
-}
-
-func TestFlattenDataKeepsValueTypes(t *testing.T) {
-	data := map[string]any{
-		"plan":   "pro",
-		"paid":   true,
-		"amount": float64(12.5),
-		"items":  []any{"a", "b"},
-		"since":  "2026-05-14T12:30:00Z",
-	}
-
-	items := FlattenData(data)
-	byKey := make(map[string]FlatData, len(items))
-	for _, item := range items {
-		byKey[item.Key] = item
-	}
-
-	if byKey["plan"].DataType != domain.EventDataTypeString {
-		t.Fatalf("plan DataType = %d", byKey["plan"].DataType)
-	}
-	if byKey["paid"].DataType != domain.EventDataTypeBoolean {
-		t.Fatalf("paid DataType = %d", byKey["paid"].DataType)
-	}
-	if byKey["amount"].DataType != domain.EventDataTypeNumber || byKey["amount"].NumberValue == nil {
-		t.Fatalf("amount = %#v", byKey["amount"])
-	}
-	if byKey["items"].DataType != domain.EventDataTypeArray {
-		t.Fatalf("items DataType = %d", byKey["items"].DataType)
-	}
-	if byKey["since"].DataType != domain.EventDataTypeDate || byKey["since"].DateValue == nil {
-		t.Fatalf("since = %#v", byKey["since"])
 	}
 }
 
