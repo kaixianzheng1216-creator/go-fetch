@@ -10,7 +10,8 @@
 - 自定义事件采集：`window.goFetch.track(name, data)`
 - 统计看板：PV、访客、访问次数、跳出次数、平均访问时长
 - 维度排行：路径、来源、浏览器、自定义事件
-- Huma 生成 OpenAPI，前端通过 `openapi-typescript` 生成类型
+- Huma 生成 OpenAPI，基础请求体校验由 DTO tag 描述
+- 前端通过 `openapi-typescript` 生成 API 类型，并用 `openapi-fetch` 调用后端
 - React 管理前端构建后嵌入 Go 服务
 
 ## 技术栈
@@ -24,6 +25,8 @@
 - sqlc
 - goose
 - scs session
+- caarlos0/env
+- bcrypt
 - PostgreSQL 16
 
 前端：
@@ -44,7 +47,6 @@
 api/                         OpenAPI 生成入口和 openapi.json
 cmd/server/                  服务启动入口
 cmd/openapi/                 OpenAPI 文件生成命令
-internal/auth/               密码校验
 internal/collector/          采集数据解析和事件构建
 internal/config/             环境变量配置
 internal/domain/             业务模型和规则
@@ -100,6 +102,32 @@ http://localhost:8080/api/docs
 http://localhost:8080/openapi.json
 ```
 
+## API 契约
+
+成功响应直接返回业务数据，不额外包一层 `data`：
+
+```json
+{ "ok": true }
+```
+
+```json
+{ "id": "...", "name": "...", "domain": "...", "createdAt": "..." }
+```
+
+列表接口直接返回数组；后续如果加入分页，再扩展成 `{ "items": [], "nextCursor": "..." }`。
+
+错误响应使用 Huma 默认的 `application/problem+json`。Huma 自动生成的校验错误保持英文，项目自己返回的业务错误使用中文：
+
+```json
+{
+  "title": "Unprocessable Entity",
+  "status": 422,
+  "detail": "validation failed"
+}
+```
+
+无效 JSON 通常返回 `400 Bad Request`；缺少必填字段或字段格式不合法通常返回 `422 Unprocessable Entity`。基础字段校验写在 [internal/httpapi/types.go](internal/httpapi/types.go)，业务存在性和归属校验仍在 handler/store 中处理。
+
 ## 前端开发
 
 安装依赖并启动 Vite：
@@ -136,7 +164,11 @@ go run ./cmd/server
 在需要统计的网站中加入：
 
 ```html
-<script defer src="http://localhost:8080/script.js" data-website-id="YOUR_WEBSITE_ID"></script>
+<script
+  defer
+  src="http://localhost:8080/script.js"
+  data-website-id="YOUR_WEBSITE_ID"
+></script>
 ```
 
 如果脚本文件和采集 API 不在同一域名，可以显式指定采集端地址：
@@ -156,7 +188,7 @@ go run ./cmd/server
 window.goFetch.track("signup", {
   plan: "pro",
   source: "pricing",
-})
+});
 ```
 
 采集端点：
@@ -209,7 +241,7 @@ npm --prefix frontend run api:generate
 数据库 SQL 变更后重新生成 sqlc 代码：
 
 ```powershell
-sqlc generate
+go generate ./internal/store
 ```
 
 ## 数据模型
@@ -238,6 +270,9 @@ internal/store/query/store.sql
 ## 开发约定
 
 - 后端 API 变更后，先更新 OpenAPI，再更新前端类型。
+- HTTP DTO 的基础必填、长度、格式约束写在 `internal/httpapi/types.go`。
+- 受登录保护的接口通过 `authenticated(op, auth)` 标记 OpenAPI security 并挂载 Huma middleware。
+- Huma 自动校验错误保持默认英文；项目自定义业务错误、日志和内部错误链使用中文。
 - 前端 API 调用集中放在 `frontend/src/lib/api.ts`。
 - 业务查询 hook 放在对应 feature 目录中，例如 `frontend/src/features/websites/website-queries.ts`。
 - 采集字段长度和标准化规则集中在 `internal/collector/collector.go`。

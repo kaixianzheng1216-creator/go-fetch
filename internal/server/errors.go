@@ -14,8 +14,8 @@ func isStoreNotFound(err error) bool {
 
 func websiteLookupError(err error) error {
 	if isStoreNotFound(err) {
-		return huma.Error404NotFound("website not found")
+		return huma.Error404NotFound("网站不存在")
 	}
 
-	return huma.Error500InternalServerError("failed to load website")
+	return huma.Error500InternalServerError("加载网站失败")
 }

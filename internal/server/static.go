@@ -35,7 +35,7 @@ func (a *App) handleFrontend(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case strings.HasPrefix(r.URL.Path, apiPrefix):
-		writeProblemError(w, http.StatusNotFound, "not found")
+		writeProblemError(w, http.StatusNotFound, "未找到")
 		return
 	}
 
@@ -55,7 +55,7 @@ func writeProblemError(w http.ResponseWriter, status int, message string) {
 	w.WriteHeader(status)
 
 	_ = json.NewEncoder(w).Encode(huma.ErrorModel{
-		Title:  http.StatusText(status),
+		Title:  message,
 		Status: status,
 		Detail: message,
 	})

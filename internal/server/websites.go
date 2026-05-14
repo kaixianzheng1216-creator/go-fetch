@@ -82,7 +82,7 @@ func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
 func (a *App) listWebsites(ctx context.Context, _ *emptyInput) (*jsonBody[[]httpapi.Website], error) {
 	websites, err := a.store.ListWebsites(ctx, userFromContext(ctx).ID)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("failed to list websites")
+		return nil, huma.Error500InternalServerError("加载网站列表失败")
 	}
 
 	return &jsonBody[[]httpapi.Website]{Body: httpapi.WebsitesFromDomain(websites)}, nil
@@ -91,12 +91,12 @@ func (a *App) listWebsites(ctx context.Context, _ *emptyInput) (*jsonBody[[]http
 func (a *App) createWebsite(ctx context.Context, input *websiteBodyInput) (*jsonBody[httpapi.Website], error) {
 	request := normalizeWebsiteRequest(input.Body)
 	if request.Name == "" {
-		return nil, huma.Error400BadRequest("name is required")
+		return nil, huma.Error400BadRequest("名称不能为空")
 	}
 
 	website, err := a.store.CreateWebsite(ctx, userFromContext(ctx).ID, request.Name, request.Domain)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("failed to create website")
+		return nil, huma.Error500InternalServerError("创建网站失败")
 	}
 
 	return &jsonBody[httpapi.Website]{Body: httpapi.WebsiteFromDomain(website)}, nil
@@ -114,7 +114,7 @@ func (a *App) getWebsite(ctx context.Context, input *websitePathInput) (*jsonBod
 func (a *App) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*jsonBody[httpapi.Website], error) {
 	request := normalizeWebsiteRequest(input.Body)
 	if request.Name == "" {
-		return nil, huma.Error400BadRequest("name is required")
+		return nil, huma.Error400BadRequest("名称不能为空")
 	}
 
 	user := userFromContext(ctx)

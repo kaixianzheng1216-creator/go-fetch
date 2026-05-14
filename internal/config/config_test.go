@@ -70,7 +70,7 @@ func TestLoadRejectsEmptyRequiredValues(t *testing.T) {
 
 			_, err := Load()
 			if err == nil {
-				t.Fatal("expected error")
+				t.Fatal("期望返回错误")
 			}
 		})
 	}

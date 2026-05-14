@@ -97,9 +97,7 @@ export function WebsiteDetailPage() {
         />
         <ErrorBanner
           message={
-            dashboardQuery.error instanceof Error
-              ? dashboardQuery.error.message
-              : "Website not found"
+            dashboardQuery.error instanceof Error ? dashboardQuery.error.message : "网站不存在"
           }
         />
       </div>

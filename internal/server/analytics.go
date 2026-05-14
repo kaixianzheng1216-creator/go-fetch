@@ -58,7 +58,7 @@ func (a *App) websiteStats(ctx context.Context, input *dateRangeInput) (*jsonBod
 	start, end, _ := domain.DateRange(queryTimePtr(input.StartAt), queryTimePtr(input.EndAt), "")
 	stats, err := a.store.WebsiteStats(ctx, input.WebsiteID, start, end)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("failed to load stats")
+		return nil, huma.Error500InternalServerError("加载统计数据失败")
 	}
 
 	return &jsonBody[httpapi.WebsiteStats]{Body: httpapi.WebsiteStatsFromDomain(stats)}, nil
@@ -72,7 +72,7 @@ func (a *App) websitePageviews(ctx context.Context, input *pageviewsInput) (*jso
 	start, end, unit := domain.DateRange(queryTimePtr(input.StartAt), queryTimePtr(input.EndAt), string(input.Unit))
 	points, err := a.store.Pageviews(ctx, input.WebsiteID, start, end, unit)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("failed to load pageviews")
+		return nil, huma.Error500InternalServerError("加载浏览量数据失败")
 	}
 
 	return &jsonBody[[]httpapi.PageviewPoint]{Body: httpapi.PageviewPointsFromDomain(points)}, nil
@@ -100,7 +100,7 @@ func (a *App) websiteMetrics(ctx context.Context, input *metricsInput) (*jsonBod
 			return nil, huma.Error400BadRequest(err.Error())
 		}
 
-		return nil, huma.Error500InternalServerError("failed to load metrics")
+		return nil, huma.Error500InternalServerError("加载指标数据失败")
 	}
 
 	return &jsonBody[[]httpapi.MetricRow]{Body: httpapi.MetricRowsFromDomain(rows)}, nil

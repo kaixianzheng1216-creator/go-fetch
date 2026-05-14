@@ -50,18 +50,18 @@ func (a *App) login(ctx context.Context, input *loginInput) (*jsonBody[httpapi.L
 	user, err := a.store.GetUserByUsername(ctx, input.Body.Username)
 	if err != nil {
 		if isStoreNotFound(err) {
-			return nil, huma.Error401Unauthorized("incorrect username or password")
+			return nil, huma.Error401Unauthorized("用户名或密码不正确")
 		}
 
-		return nil, huma.Error500InternalServerError("failed to load user")
+		return nil, huma.Error500InternalServerError("加载用户失败")
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Body.Password)) != nil {
-		return nil, huma.Error401Unauthorized("incorrect username or password")
+		return nil, huma.Error401Unauthorized("用户名或密码不正确")
 	}
 
 	if err := a.startSession(ctx, user.ID); err != nil {
-		return nil, huma.Error500InternalServerError("failed to create session")
+		return nil, huma.Error500InternalServerError("创建登录会话失败")
 	}
 
 	return &jsonBody[httpapi.LoginResponse]{Body: httpapi.LoginResponse{User: httpapi.UserFromDomain(user)}}, nil
@@ -69,7 +69,7 @@ func (a *App) login(ctx context.Context, input *loginInput) (*jsonBody[httpapi.L
 
 func (a *App) logout(ctx context.Context, _ *emptyInput) (*jsonBody[httpapi.OK], error) {
 	if err := a.sessions.Destroy(ctx); err != nil {
-		return nil, huma.Error500InternalServerError("failed to destroy session")
+		return nil, huma.Error500InternalServerError("退出登录失败")
 	}
 
 	return &jsonBody[httpapi.OK]{Body: httpapi.OK{OK: true}}, nil

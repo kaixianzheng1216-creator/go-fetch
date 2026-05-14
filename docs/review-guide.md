@@ -7,12 +7,15 @@
 先确认当前代码能正常构建和测试。
 
 ```powershell
-go test ./...
-go vet ./...
+go test ./api ./cmd/... ./internal/...
+go vet ./api ./cmd/... ./internal/...
+golangci-lint run ./api ./cmd/... ./internal/...
 go build -o $env:TEMP\go-fetch-build-check.exe ./cmd/server
 npm --prefix frontend install
 npm --prefix frontend run build
 ```
+
+如果本地存在 `frontend/node_modules`，不要直接用 `go test ./...`，否则 Go 可能会扫描到 `node_modules` 中的 Go 文件。
 
 先读这些文件，建立项目全局印象：
 
@@ -57,7 +60,6 @@ Review 重点：
 1. `internal/server/auth.go`
 2. `internal/server/context.go`
 3. `internal/store/users.go`
-4. `internal/auth`
 
 Review 重点：
 
@@ -65,6 +67,7 @@ Review 重点：
 - session 是否只保存必要字段。
 - `/api/me` 是否依赖统一的登录态读取。
 - 首个管理员初始化逻辑是否清楚。
+- 密码 hash 和校验是否直接使用 `bcrypt`，避免只有一行代码的薄封装包。
 
 ### 网站 CRUD
 
@@ -93,6 +96,7 @@ Review 重点：
 Review 重点：
 
 - `/api/collect` 是否校验必要字段。
+- 基础请求体校验是否由 `internal/httpapi/types.go` 的 Huma tag 表达。
 - Bot UA 是否会被忽略。
 - URL、referrer、UTM、UA 解析是否集中。
 - `sessions` 和 `events` 的字段边界是否清晰。
@@ -158,12 +162,16 @@ Review 重点：
 - OpenAPI 是否由后端生成。
 - 前端 API 类型是否由 OpenAPI 生成。
 - API 响应结构是否稳定。
-- 错误响应是否统一。
+- 成功响应是否直接返回业务数据，不额外包一层 `data`。
+- 错误响应是否统一使用 Huma 默认的 `application/problem+json`。
+- Huma 自动校验错误是否保持默认英文，项目自定义业务错误是否使用中文，避免额外维护翻译层。
+- 无效 JSON 是否返回 `400`，缺少必填字段或字段格式不合法是否返回 `422`。
+- 受保护接口是否通过 `authenticated(op, auth)` 同时声明 OpenAPI security 和认证 middleware。
 
 生成命令：
 
 ```powershell
-go run ./cmd/openapi
+go generate ./api
 npm --prefix frontend run api:generate
 ```
 
@@ -201,6 +209,7 @@ npm --prefix frontend run build
 - 未登录 API 返回 401。
 - 未登录页面能正确重定向。
 - 登录失败不暴露用户是否存在。
+- session cookie 名称是否为 `go_fetch_session`，登录态是否存入 `app_sessions`，不要和采集侧 `sessions` 表混用。
 - 输入长度是否不会超过数据库字段长度。
 - 数据库迁移是否能在空库初始化。
 
@@ -221,7 +230,8 @@ rg -n "func Test" internal
 - 采集事件写入 `sessions/events/event_data`。
 - Bot UA 被忽略。
 - `browser/os/device/country` 指标从 `sessions` 查询。
-- 无效 JSON 或缺少必填字段返回 400。
+- 无效 JSON 返回 400。
+- 缺少必填字段或字段格式不合法返回 422。
 
 ## 9. Review 是否造轮子或过度设计
 
@@ -239,6 +249,7 @@ rg -n "func Test" internal
 - `internal/domain/rules.go`
 - `internal/store/mappers.go`
 - `internal/server/params.go`
+- `internal/server/routes.go`
 - `internal/httpapi/types.go`
 - `internal/collector/collector.go`
 
@@ -247,6 +258,7 @@ rg -n "func Test" internal
 - 能删除而不影响表达，就删。
 - 能用成熟库表达，就不要手写。
 - 能靠数据库、sqlc、OpenAPI 生成约束，就不要复制维护。
+- 只有一行标准库或成熟库调用的薄封装包，优先内联到真实使用处。
 - 业务边界可以保留，通用样板优先减少。
 
 ## 10. Review 输出模板

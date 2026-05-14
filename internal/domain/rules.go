@@ -100,7 +100,7 @@ const (
 	MaxMetricLimit     = 100
 )
 
-var ErrUnsupportedMetricType = errors.New("unsupported metric type")
+var ErrUnsupportedMetricType = errors.New("不支持的指标类型")
 
 func ParseMetricType(value string) (MetricType, bool) {
 	switch MetricType(value) {

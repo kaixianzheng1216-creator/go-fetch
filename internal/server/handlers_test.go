@@ -26,7 +26,7 @@ func TestRoutesRequireAuthReturnsJSONUnauthorized(t *testing.T) {
 	if contentType := rec.Header().Get("Content-Type"); contentType != "application/problem+json" {
 		t.Fatalf("Content-Type = %q", contentType)
 	}
-	if body := rec.Body.String(); !strings.Contains(body, `"detail":"unauthorized"`) {
+	if body := rec.Body.String(); !strings.Contains(body, `"detail":"未登录或登录已失效"`) {
 		t.Fatalf("body = %q", body)
 	}
 }
@@ -87,19 +87,19 @@ func TestRoutesServeHumaOpenAPI(t *testing.T) {
 
 	body := rec.Body.String()
 	if !strings.Contains(body, `"/api/websites/{websiteID}/metrics"`) {
-		t.Fatalf("OpenAPI body does not include metrics path")
+		t.Fatalf("OpenAPI 内容缺少指标接口路径")
 	}
 	if !strings.Contains(body, `"sessionCookie"`) {
-		t.Fatalf("OpenAPI body does not include session cookie security scheme")
+		t.Fatalf("OpenAPI 内容缺少 session cookie 安全方案")
 	}
 }
 
 func TestOpenAPIJSONIsGeneratedFromServerRoutes(t *testing.T) {
 	body, err := OpenAPIJSON()
 	if err != nil {
-		t.Fatalf("OpenAPIJSON error: %v", err)
+		t.Fatalf("生成 OpenAPI JSON 失败: %v", err)
 	}
 	if !strings.Contains(string(body), `"operationId": "websiteMetrics"`) {
-		t.Fatalf("OpenAPI output does not include websiteMetrics operation")
+		t.Fatalf("OpenAPI 输出缺少 websiteMetrics 操作")
 	}
 }
