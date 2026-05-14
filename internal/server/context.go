@@ -39,15 +39,18 @@ func withUser(ctx context.Context, user domain.User) context.Context {
 
 func userFromContext(ctx context.Context) domain.User {
 	user, _ := ctx.Value(userContextKey).(domain.User)
+
 	return user
 }
 
 func requestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(requestContextKey).(*http.Request)
+
 	return r
 }
 
 func captureRequest(ctx huma.Context, next func(huma.Context)) {
 	r, _ := humachi.Unwrap(ctx)
+
 	next(huma.WithContext(ctx, context.WithValue(ctx.Context(), requestContextKey, r)))
 }
