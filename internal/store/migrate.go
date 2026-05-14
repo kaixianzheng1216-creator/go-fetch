@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/store/migrations"
 
@@ -14,9 +15,13 @@ import (
 func Migrate(ctx context.Context, databaseURL string) error {
 	sqlDB, err := sql.Open("pgx", databaseURL)
 	if err != nil {
-		return fmt.Errorf("open migration database: %w", err)
+		return fmt.Errorf("create migration database handle: %w", err)
 	}
-	defer sqlDB.Close()
+	defer func() {
+		if err := sqlDB.Close(); err != nil {
+			slog.Warn("close migration database", "error", err)
+		}
+	}()
 
 	sqlDB.SetMaxOpenConns(1)
 
@@ -29,9 +34,22 @@ func Migrate(ctx context.Context, databaseURL string) error {
 		return fmt.Errorf("create migration provider: %w", err)
 	}
 
-	if _, err := provider.Up(ctx); err != nil {
+	results, err := provider.Up(ctx)
+	if err != nil {
 		return fmt.Errorf("run migrations: %w", err)
 	}
+
+	for _, result := range results {
+		slog.Info(
+			"migration applied",
+			"version", result.Source.Version,
+			"path", result.Source.Path,
+			"direction", result.Direction,
+			"duration", result.Duration,
+		)
+	}
+
+	slog.Info("migrations complete", "applied", len(results))
 
 	return nil
 }

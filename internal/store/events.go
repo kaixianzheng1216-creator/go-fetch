@@ -16,7 +16,9 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 	if err != nil {
 		return fmt.Errorf("begin save event transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
 
 	websiteUUID, err := uuid.Parse(input.WebsiteID)
 	if err != nil {
