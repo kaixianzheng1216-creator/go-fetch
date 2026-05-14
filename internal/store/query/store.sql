@@ -1,19 +1,35 @@
 -- name: CountUsers :one
-select count(*)::bigint from users;
+select count(*)::bigint from users where deleted_at is null;
 
 -- name: CreateUser :exec
-insert into users (id, username, password_hash)
-values (sqlc.arg(id)::uuid, sqlc.arg(username), sqlc.arg(password_hash));
+insert into users (id, username, password_hash, display_name)
+values (sqlc.arg(id)::uuid, sqlc.arg(username), sqlc.arg(password_hash), nullif(sqlc.arg(display_name)::text, ''));
 
 -- name: GetUserByUsername :one
-select id, username, password_hash, created_at
+select
+	id,
+	username,
+	password_hash,
+	coalesce(logo_url, '')::text as logo_url,
+	coalesce(display_name, '')::text as display_name,
+	created_at,
+	updated_at,
+	deleted_at
 from users
-where username = sqlc.arg(username);
+where username = sqlc.arg(username) and deleted_at is null;
 
 -- name: GetUserByID :one
-select id, username, password_hash, created_at
+select
+	id,
+	username,
+	password_hash,
+	coalesce(logo_url, '')::text as logo_url,
+	coalesce(display_name, '')::text as display_name,
+	created_at,
+	updated_at,
+	deleted_at
 from users
-where id = sqlc.arg(id)::uuid;
+where id = sqlc.arg(id)::uuid and deleted_at is null;
 
 -- name: ListWebsites :many
 select id, name, coalesce(domain, '')::text as domain, created_at

@@ -11,12 +11,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func toUser(userUUID uuid.UUID, username, passwordHash string, createdAt pgtype.Timestamptz) domain.User {
+func toUser(userUUID uuid.UUID, username, passwordHash, logoURL, displayName string, createdAt, updatedAt, deletedAt pgtype.Timestamptz) domain.User {
 	return domain.User{
 		ID:           userUUID.String(),
 		Username:     username,
 		PasswordHash: passwordHash,
+		LogoURL:      logoURL,
+		DisplayName:  displayName,
 		CreatedAt:    timeFrom(createdAt),
+		UpdatedAt:    optionalTimeFrom(updatedAt),
+		DeletedAt:    optionalTimeFrom(deletedAt),
 	}
 }
 
@@ -61,4 +65,12 @@ func timeFrom(value pgtype.Timestamptz) time.Time {
 	}
 
 	return value.Time
+}
+
+func optionalTimeFrom(value pgtype.Timestamptz) *time.Time {
+	if !value.Valid {
+		return nil
+	}
+
+	return &value.Time
 }

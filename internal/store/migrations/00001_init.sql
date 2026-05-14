@@ -3,13 +3,21 @@ create table if not exists users (
 	id uuid primary key,
 	username varchar(255) not null unique,
 	password_hash varchar(60) not null,
-	created_at timestamptz(6) default now()
+	logo_url varchar(2183),
+	display_name varchar(255),
+	created_at timestamptz(6) default now(),
+	updated_at timestamptz(6),
+	deleted_at timestamptz(6)
 );
 
 comment on column users.id is '用户 ID';
 comment on column users.username is '登录用户名';
 comment on column users.password_hash is '密码哈希';
+comment on column users.logo_url is '头像地址';
+comment on column users.display_name is '显示名称';
 comment on column users.created_at is '创建时间';
+comment on column users.updated_at is '更新时间';
+comment on column users.deleted_at is '软删除时间';
 
 create table if not exists websites (
 	id uuid primary key,

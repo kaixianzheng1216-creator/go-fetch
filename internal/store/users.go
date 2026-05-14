@@ -36,6 +36,7 @@ func (s *Store) EnsureAdmin(ctx context.Context, username, password string) erro
 		ID:           uuid.New(),
 		Username:     username,
 		PasswordHash: string(hash),
+		DisplayName:  username,
 	})
 }
 
@@ -46,7 +47,7 @@ func (s *Store) GetUserByUsername(ctx context.Context, username string) (domain.
 		return domain.User{}, mapNotFound(err)
 	}
 
-	return toUser(row.ID, row.Username, row.PasswordHash, row.CreatedAt), nil
+	return toUser(row.ID, row.Username, row.PasswordHash, row.LogoUrl, row.DisplayName, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil
 }
 
 func (s *Store) GetUserByID(ctx context.Context, userID string) (domain.User, error) {
@@ -62,5 +63,5 @@ func (s *Store) GetUserByID(ctx context.Context, userID string) (domain.User, er
 		return domain.User{}, mapNotFound(err)
 	}
 
-	return toUser(row.ID, row.Username, row.PasswordHash, row.CreatedAt), nil
+	return toUser(row.ID, row.Username, row.PasswordHash, row.LogoUrl, row.DisplayName, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil
 }

@@ -271,8 +271,16 @@ export interface components {
       visitors: number
     }
     User: {
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      deletedAt?: string
+      displayName?: string
       /** Format: uuid */
       id: string
+      logoUrl?: string
+      /** Format: date-time */
+      updatedAt?: string
       username: string
     }
     Website: {

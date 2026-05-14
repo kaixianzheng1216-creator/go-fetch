@@ -116,8 +116,16 @@ type User struct {
 	Username string `json:"username"`
 	// 密码哈希
 	PasswordHash string `json:"password_hash"`
+	// 头像地址
+	LogoUrl pgtype.Text `json:"logo_url"`
+	// 显示名称
+	DisplayName pgtype.Text `json:"display_name"`
 	// 创建时间
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	// 更新时间
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	// 软删除时间
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
 }
 
 type Website struct {

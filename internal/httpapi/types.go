@@ -9,8 +9,13 @@ import (
 )
 
 type User struct {
-	ID       string `json:"id" format:"uuid"`
-	Username string `json:"username"`
+	ID          string     `json:"id" format:"uuid"`
+	Username    string     `json:"username"`
+	LogoURL     string     `json:"logoUrl,omitempty"`
+	DisplayName string     `json:"displayName,omitempty"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
+	DeletedAt   *time.Time `json:"deletedAt,omitempty"`
 }
 
 type LoginRequest struct {
@@ -87,7 +92,15 @@ type OK struct {
 }
 
 func UserFromDomain(user domain.User) User {
-	return User{ID: user.ID, Username: user.Username}
+	return User{
+		ID:          user.ID,
+		Username:    user.Username,
+		LogoURL:     user.LogoURL,
+		DisplayName: user.DisplayName,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+		DeletedAt:   user.DeletedAt,
+	}
 }
 
 func WebsiteFromDomain(website domain.Website) Website {

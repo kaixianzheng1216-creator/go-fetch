@@ -224,8 +224,26 @@
       "User": {
         "additionalProperties": false,
         "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "deletedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
             "type": "string"
           },
           "username": {
@@ -234,7 +252,8 @@
         },
         "required": [
           "id",
-          "username"
+          "username",
+          "createdAt"
         ],
         "type": "object"
       },
