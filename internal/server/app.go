@@ -26,9 +26,9 @@ type App struct {
 	sessions     *scs.SessionManager
 }
 
-func New(store *store.Store, secureCookie bool) (*App, error) {
+func New(dataStore *store.Store, secureCookie bool) *App {
 	sessions := scs.New()
-	sessions.Store = pgxstore.NewWithConfig(store.Pool(), pgxstore.Config{
+	sessions.Store = pgxstore.NewWithConfig(dataStore.Pool(), pgxstore.Config{
 		TableName:       "app_sessions",
 		CleanUpInterval: 5 * time.Minute,
 	})
@@ -39,7 +39,7 @@ func New(store *store.Store, secureCookie bool) (*App, error) {
 	sessions.Cookie.SameSite = http.SameSiteLaxMode
 	sessions.Cookie.Secure = secureCookie
 
-	return &App{secureCookie: secureCookie, store: store, sessions: sessions}, nil
+	return &App{secureCookie: secureCookie, store: dataStore, sessions: sessions}
 }
 
 func (a *App) Routes() http.Handler {

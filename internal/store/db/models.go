@@ -12,40 +12,40 @@ import (
 )
 
 type AppSession struct {
-	// 会话令牌
+	// 令牌
 	Token string `json:"token"`
-	// 编码后的会话数据
+	// 数据
 	Data []byte `json:"data"`
-	// 会话过期时间
+	// 过期时间
 	Expiry time.Time `json:"expiry"`
 }
 
 type Event struct {
-	// 事件 ID
+	// ID
 	ID uuid.UUID `json:"id"`
-	// 网站 ID
+	// 网站
 	WebsiteID uuid.UUID `json:"website_id"`
-	// 访问会话 ID
+	// 会话
 	SessionID uuid.UUID `json:"session_id"`
-	// 访问 ID
+	// 访问
 	VisitID uuid.UUID `json:"visit_id"`
-	// 事件类型
+	// 类型
 	EventType int32 `json:"event_type"`
-	// 自定义事件名称
+	// 事件名
 	EventName pgtype.Text `json:"event_name"`
-	// 页面路径
+	// 路径
 	UrlPath string `json:"url_path"`
-	// URL 查询参数
+	// 查询参数
 	UrlQuery pgtype.Text `json:"url_query"`
-	// 来源页面路径
+	// 来源路径
 	ReferrerPath pgtype.Text `json:"referrer_path"`
-	// 来源页面查询参数
+	// 来源参数
 	ReferrerQuery pgtype.Text `json:"referrer_query"`
-	// 来源页面域名
+	// 来源域名
 	ReferrerDomain pgtype.Text `json:"referrer_domain"`
 	// 页面标题
 	PageTitle pgtype.Text `json:"page_title"`
-	// 页面主机名
+	// 主机名
 	Hostname pgtype.Text `json:"hostname"`
 	// UTM 来源
 	UtmSource pgtype.Text `json:"utm_source"`
@@ -57,18 +57,18 @@ type Event struct {
 	UtmContent pgtype.Text `json:"utm_content"`
 	// UTM 关键词
 	UtmTerm pgtype.Text `json:"utm_term"`
-	// 事件时间
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	// 创建时间
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type EventDatum struct {
-	// 事件数据 ID
+	// ID
 	ID uuid.UUID `json:"id"`
-	// 网站 ID
+	// 网站
 	WebsiteID uuid.UUID `json:"website_id"`
-	// 事件 ID
+	// 事件
 	EventID uuid.UUID `json:"event_id"`
-	// 数据键
+	// 键
 	DataKey string `json:"data_key"`
 	// 字符串值
 	StringValue pgtype.Text `json:"string_value"`
@@ -79,68 +79,68 @@ type EventDatum struct {
 	// 数据类型
 	DataType int32 `json:"data_type"`
 	// 创建时间
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Session struct {
-	// 访问会话 ID
+	// ID
 	ID uuid.UUID `json:"id"`
-	// 网站 ID
+	// 网站
 	WebsiteID uuid.UUID `json:"website_id"`
-	// 浏览器名称
+	// 浏览器
 	Browser pgtype.Text `json:"browser"`
 	// 操作系统
 	Os pgtype.Text `json:"os"`
-	// 设备类型
+	// 设备
 	Device pgtype.Text `json:"device"`
-	// 屏幕尺寸
+	// 屏幕
 	Screen pgtype.Text `json:"screen"`
-	// 浏览器语言
+	// 语言
 	Language pgtype.Text `json:"language"`
-	// 国家代码
+	// 国家
 	Country pgtype.Text `json:"country"`
-	// 地区代码
+	// 地区
 	Region pgtype.Text `json:"region"`
-	// 城市名称
+	// 城市
 	City pgtype.Text `json:"city"`
 	// 访客标识
 	DistinctID pgtype.Text `json:"distinct_id"`
-	// 会话创建时间
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	// 创建时间
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type User struct {
-	// 用户 ID
+	// ID
 	ID uuid.UUID `json:"id"`
-	// 登录用户名
+	// 用户名
 	Username string `json:"username"`
 	// 密码哈希
 	PasswordHash string `json:"password_hash"`
-	// 头像地址
+	// 头像
 	LogoUrl pgtype.Text `json:"logo_url"`
-	// 显示名称
+	// 显示名
 	DisplayName pgtype.Text `json:"display_name"`
 	// 创建时间
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	CreatedAt time.Time `json:"created_at"`
 	// 更新时间
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-	// 软删除时间
+	// 删除时间
 	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
 }
 
 type Website struct {
-	// 网站 ID
+	// ID
 	ID uuid.UUID `json:"id"`
-	// 所属用户 ID
-	UserID pgtype.UUID `json:"user_id"`
-	// 网站名称
+	// 用户
+	UserID uuid.UUID `json:"user_id"`
+	// 名称
 	Name string `json:"name"`
-	// 网站域名
+	// 域名
 	Domain pgtype.Text `json:"domain"`
 	// 创建时间
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	CreatedAt time.Time `json:"created_at"`
 	// 更新时间
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-	// 软删除时间
+	// 删除时间
 	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
 }

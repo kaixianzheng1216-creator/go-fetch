@@ -54,12 +54,13 @@ func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Ti
 	browser, osName, device := parseUserAgent(userAgent, payload.Screen)
 	pageURL := parseURL(payload.URL, payload)
 	refURL := parseURL(payload.Referrer, payload)
+	distinctID := truncate(payload.DistinctID, maxDistinctIDLength)
 	eventType := domain.EventTypePageView
 	if payload.Name != "" {
 		eventType = domain.EventTypeCustom
 	}
 
-	sessionID := stableUUID(payload.WebsiteID + "|" + clientIP + "|" + userAgent + "|" + now.UTC().Format(sessionWindowFormat))
+	sessionID := stableUUID(payload.WebsiteID + "|" + visitorIdentity(distinctID, clientIP, userAgent) + "|" + now.UTC().Format(sessionWindowFormat))
 	visitID := stableUUID(sessionID + "|" + strconv.FormatInt(now.Unix()/visitWindowSeconds, 10))
 
 	return domain.EventInput{
@@ -85,7 +86,7 @@ func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Ti
 		Device:         truncate(device, maxDeviceLength),
 		Screen:         truncate(payload.Screen, maxScreenLength),
 		Language:       truncate(payload.Language, maxLanguageLength),
-		DistinctID:     truncate(payload.DistinctID, maxDistinctIDLength),
+		DistinctID:     distinctID,
 		CreatedAt:      now,
 		Data:           payload.Data,
 	}
@@ -128,6 +129,14 @@ func pathWithHash(pageURL *url.URL) string {
 
 func stableUUID(value string) string {
 	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(value)).String()
+}
+
+func visitorIdentity(distinctID, clientIP, userAgent string) string {
+	if distinctID != "" {
+		return distinctID
+	}
+
+	return clientIP + "|" + userAgent
 }
 
 func IsBot(userAgent string) bool {
@@ -268,9 +277,18 @@ func trimWWW(host string) string {
 }
 
 func truncate(value string, max int) string {
-	if len(value) <= max {
-		return value
+	if max <= 0 {
+		return ""
 	}
 
-	return value[:max]
+	count := 0
+	for i := range value {
+		if count == max {
+			return value[:i]
+		}
+
+		count++
+	}
+
+	return value
 }

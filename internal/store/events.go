@@ -46,7 +46,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 		Region:     input.Region,
 		City:       input.City,
 		DistinctID: input.DistinctID,
-		CreatedAt:  pgTime(input.CreatedAt),
+		CreatedAt:  input.CreatedAt,
 	}); err != nil {
 		return fmt.Errorf("insert session: %w", err)
 	}
@@ -71,7 +71,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 		UtmCampaign:    input.UTMCampaign,
 		UtmContent:     input.UTMContent,
 		UtmTerm:        input.UTMTerm,
-		CreatedAt:      pgTime(input.CreatedAt),
+		CreatedAt:      input.CreatedAt,
 	}); err != nil {
 		return fmt.Errorf("insert event: %w", err)
 	}
@@ -86,7 +86,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 			NumberValue: pgNumeric(item.NumberValue),
 			DateValue:   pgOptionalTime(item.DateValue),
 			DataType:    int32(item.DataType),
-			CreatedAt:   pgTime(input.CreatedAt),
+			CreatedAt:   input.CreatedAt,
 		}); err != nil {
 			return fmt.Errorf("insert event data: %w", err)
 		}

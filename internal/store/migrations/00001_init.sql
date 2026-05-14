@@ -6,7 +6,7 @@ create table if not exists users
     password_hash varchar(60)  not null,
     logo_url      varchar(2183),
     display_name  varchar(255),
-    created_at    timestamptz default now(),
+    created_at    timestamptz not null default now(),
     updated_at    timestamptz,
     deleted_at    timestamptz
 );
@@ -23,10 +23,10 @@ comment on column users.deleted_at is '删除时间';
 create table if not exists websites
 (
     id         uuid primary key,
-    user_id    uuid references users (id) on delete cascade,
+    user_id    uuid not null references users (id) on delete cascade,
     name       varchar(100) not null,
     domain     varchar(500),
-    created_at timestamptz default now(),
+    created_at timestamptz not null default now(),
     updated_at timestamptz,
     deleted_at timestamptz
 );
@@ -52,7 +52,7 @@ create table if not exists sessions
     region      varchar(20),
     city        varchar(50),
     distinct_id varchar(50),
-    created_at  timestamptz default now()
+    created_at  timestamptz not null default now()
 );
 
 comment on column sessions.id is 'ID';
@@ -88,7 +88,7 @@ create table if not exists events
     utm_campaign    varchar(255),
     utm_content     varchar(255),
     utm_term        varchar(255),
-    created_at      timestamptz default now()
+    created_at      timestamptz not null default now()
 );
 
 comment on column events.id is 'ID';
@@ -121,7 +121,7 @@ create table if not exists event_data
     number_value decimal(19, 4),
     date_value   timestamptz,
     data_type    integer      not null,
-    created_at   timestamptz default now()
+    created_at   timestamptz not null default now()
 );
 
 comment on column event_data.id is 'ID';
@@ -144,3 +144,12 @@ create table if not exists app_sessions
 comment on column app_sessions.token is '令牌';
 comment on column app_sessions.data is '数据';
 comment on column app_sessions.expiry is '过期时间';
+
+create index if not exists websites_user_idx on websites (user_id) where deleted_at is null;
+create index if not exists events_website_type_created_idx on events (website_id, event_type, created_at);
+create index if not exists events_website_session_created_idx on events (website_id, session_id, created_at);
+create index if not exists events_website_visit_created_idx on events (website_id, visit_id, created_at);
+create index if not exists events_website_path_created_idx on events (website_id, url_path, created_at);
+create index if not exists events_website_event_created_idx on events (website_id, event_name, created_at);
+create index if not exists event_data_event_idx on event_data (event_id);
+create index if not exists app_sessions_expiry_idx on app_sessions (expiry);

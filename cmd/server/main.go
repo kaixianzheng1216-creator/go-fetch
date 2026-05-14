@@ -28,13 +28,13 @@ func main() {
 
 	ctx := context.Background()
 
-	if err := run(ctx, logger, cfg); err != nil {
+	if err := run(ctx, cfg); err != nil {
 		logger.Error("application error", "error", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, logger *slog.Logger, cfg config.Config) error {
+func run(ctx context.Context, cfg config.Config) error {
 	if err := store.Migrate(ctx, cfg.DatabaseURL); err != nil {
 		return fmt.Errorf("migrate database: %w", err)
 	}
@@ -49,21 +49,21 @@ func run(ctx context.Context, logger *slog.Logger, cfg config.Config) error {
 		return fmt.Errorf("ensure admin: %w", err)
 	}
 
-	app, err := server.New(db, cfg.Production)
-	if err != nil {
-		return fmt.Errorf("create server: %w", err)
-	}
+	app := server.New(db, cfg.Production)
 
 	srv := &http.Server{
-		Addr:         cfg.ListenAddr,
-		Handler:      app.Routes(),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		Addr:              cfg.ListenAddr,
+		Handler:           app.Routes(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 
+	slog.Info("server starting", "addr", srv.Addr)
+
 	if err := srv.ListenAndServe(); err != nil {
-		return fmt.Errorf("server error: %w", err)
+		return fmt.Errorf("listen http: %w", err)
 	}
 
 	return nil

@@ -9,9 +9,18 @@ import (
 var assets embed.FS
 
 var (
-	staticFS, _ = fs.Sub(assets, "static")
-	distFS, _   = fs.Sub(assets, "dist")
+	staticFS = mustSubFS("static")
+	distFS   = mustSubFS("dist")
 )
+
+func mustSubFS(dir string) fs.FS {
+	subFS, err := fs.Sub(assets, dir)
+	if err != nil {
+		panic("embed " + dir + ": " + err.Error())
+	}
+
+	return subFS
+}
 
 func StaticFS() fs.FS {
 	return staticFS

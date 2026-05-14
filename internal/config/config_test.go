@@ -61,3 +61,13 @@ func TestLoadOverrides(t *testing.T) {
 		t.Fatal("Production = false")
 	}
 }
+
+func TestLoadRejectsDefaultPasswordInProduction(t *testing.T) {
+	t.Setenv("ADMIN_PASSWORD", "change-me")
+	t.Setenv("PRODUCTION", "true")
+
+	_, err := Load()
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}

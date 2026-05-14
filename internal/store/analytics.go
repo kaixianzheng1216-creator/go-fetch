@@ -19,8 +19,8 @@ func (s *Store) WebsiteStats(ctx context.Context, websiteID string, start, end t
 
 	row, err := s.queries.WebsiteStats(ctx, storedb.WebsiteStatsParams{
 		WebsiteID:         websiteUUID,
-		StartAt:           pgTime(start),
-		EndAt:             pgTime(end),
+		StartAt:           start,
+		EndAt:             end,
 		PageviewEventType: int32(domain.EventTypePageView),
 	})
 	if err != nil {
@@ -51,8 +51,8 @@ func (s *Store) Pageviews(ctx context.Context, websiteID string, start, end time
 	rows, err := s.queries.Pageviews(ctx, storedb.PageviewsParams{
 		Bucket:            domain.DateTruncUnit(unit),
 		WebsiteID:         websiteUUID,
-		StartAt:           pgTime(start),
-		EndAt:             pgTime(end),
+		StartAt:           start,
+		EndAt:             end,
 		PageviewEventType: int32(domain.EventTypePageView),
 	})
 	if err != nil {
@@ -88,8 +88,8 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 		rows, err := s.queries.SessionMetrics(ctx, storedb.SessionMetricsParams{
 			Metric:     string(metric),
 			WebsiteID:  websiteUUID,
-			StartAt:    pgTime(start),
-			EndAt:      pgTime(end),
+			StartAt:    start,
+			EndAt:      end,
 			EventType:  int32(metric.EventType()),
 			LimitCount: int32(limit),
 		})
@@ -112,8 +112,8 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 	rows, err := s.queries.EventMetrics(ctx, storedb.EventMetricsParams{
 		Metric:     string(metric),
 		WebsiteID:  websiteUUID,
-		StartAt:    pgTime(start),
-		EndAt:      pgTime(end),
+		StartAt:    start,
+		EndAt:      end,
 		EventType:  int32(metric.EventType()),
 		LimitCount: int32(limit),
 	})

@@ -4,6 +4,7 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 )
@@ -68,6 +69,29 @@ func TestBuildEventInputCustomEvent(t *testing.T) {
 	}
 }
 
+func TestBuildEventInputUsesDistinctIDForSession(t *testing.T) {
+	req := httptest.NewRequest("POST", "/api/collect", nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 Chrome/120.0")
+
+	now := time.Date(2026, 5, 12, 12, 0, 0, 0, time.UTC)
+	payload := domain.CollectPayload{
+		WebsiteID: "11111111-1111-1111-1111-111111111111",
+		URL:       "https://example.com/",
+	}
+
+	first := BuildEventInput(req, payload, now)
+	second := BuildEventInput(req, payload, now)
+	if first.SessionID != second.SessionID {
+		t.Fatalf("same fallback identity produced different session ids")
+	}
+
+	payload.DistinctID = "visitor-1"
+	identified := BuildEventInput(req, payload, now)
+	if identified.SessionID == first.SessionID {
+		t.Fatalf("distinct id did not affect session id")
+	}
+}
+
 func TestFlattenDataKeepsValueTypes(t *testing.T) {
 	data := map[string]any{
 		"plan":   "pro",
@@ -97,5 +121,17 @@ func TestFlattenDataKeepsValueTypes(t *testing.T) {
 	}
 	if byKey["since"].DataType != domain.EventDataTypeDate || byKey["since"].DateValue == nil {
 		t.Fatalf("since = %#v", byKey["since"])
+	}
+}
+
+func TestTruncateKeepsUTF8Boundary(t *testing.T) {
+	got := truncate("你好世界", 3)
+
+	if got != "你好世" {
+		t.Fatalf("truncate = %q", got)
+	}
+
+	if !utf8.ValidString(got) {
+		t.Fatalf("truncate returned invalid UTF-8: %q", got)
 	}
 }

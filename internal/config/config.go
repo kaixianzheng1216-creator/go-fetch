@@ -20,5 +20,9 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("parse config: %w", err)
 	}
 
+	if cfg.Production && cfg.AdminPassword == "change-me" {
+		return Config{}, fmt.Errorf("ADMIN_PASSWORD must be changed when PRODUCTION=true")
+	}
+
 	return cfg, nil
 }

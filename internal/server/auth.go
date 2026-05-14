@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -64,7 +65,7 @@ func (a *App) me(ctx context.Context, _ *emptyInput) (*jsonBody[httpapi.User], e
 
 func (a *App) startSession(ctx context.Context, userID string) error {
 	if err := a.sessions.RenewToken(ctx); err != nil {
-		return err
+		return fmt.Errorf("renew session token: %w", err)
 	}
 
 	a.sessions.Put(ctx, sessionUserIDKey, userID)

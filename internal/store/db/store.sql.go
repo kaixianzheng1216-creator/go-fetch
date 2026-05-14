@@ -60,10 +60,10 @@ type CreateWebsiteParams struct {
 }
 
 type CreateWebsiteRow struct {
-	ID        uuid.UUID          `json:"id"`
-	Name      string             `json:"name"`
-	Domain    string             `json:"domain"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (q *Queries) CreateWebsite(ctx context.Context, arg CreateWebsiteParams) (CreateWebsiteRow, error) {
@@ -122,12 +122,12 @@ limit $6
 `
 
 type EventMetricsParams struct {
-	Metric     string             `json:"metric"`
-	WebsiteID  uuid.UUID          `json:"website_id"`
-	StartAt    pgtype.Timestamptz `json:"start_at"`
-	EndAt      pgtype.Timestamptz `json:"end_at"`
-	EventType  int32              `json:"event_type"`
-	LimitCount int32              `json:"limit_count"`
+	Metric     string    `json:"metric"`
+	WebsiteID  uuid.UUID `json:"website_id"`
+	StartAt    time.Time `json:"start_at"`
+	EndAt      time.Time `json:"end_at"`
+	EventType  int32     `json:"event_type"`
+	LimitCount int32     `json:"limit_count"`
 }
 
 type EventMetricsRow struct {
@@ -183,7 +183,7 @@ type GetUserByIDRow struct {
 	PasswordHash string             `json:"password_hash"`
 	LogoUrl      string             `json:"logo_url"`
 	DisplayName  string             `json:"display_name"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	CreatedAt    time.Time          `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 	DeletedAt    pgtype.Timestamptz `json:"deleted_at"`
 }
@@ -224,7 +224,7 @@ type GetUserByUsernameRow struct {
 	PasswordHash string             `json:"password_hash"`
 	LogoUrl      string             `json:"logo_url"`
 	DisplayName  string             `json:"display_name"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	CreatedAt    time.Time          `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 	DeletedAt    pgtype.Timestamptz `json:"deleted_at"`
 }
@@ -257,10 +257,10 @@ type GetWebsiteParams struct {
 }
 
 type GetWebsiteRow struct {
-	ID        uuid.UUID          `json:"id"`
-	Name      string             `json:"name"`
-	Domain    string             `json:"domain"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (q *Queries) GetWebsite(ctx context.Context, arg GetWebsiteParams) (GetWebsiteRow, error) {
@@ -282,10 +282,10 @@ where id = $1::uuid and deleted_at is null
 `
 
 type GetWebsiteForCollectionRow struct {
-	ID        uuid.UUID          `json:"id"`
-	Name      string             `json:"name"`
-	Domain    string             `json:"domain"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (q *Queries) GetWebsiteForCollection(ctx context.Context, id uuid.UUID) (GetWebsiteForCollectionRow, error) {
@@ -319,25 +319,25 @@ values (
 `
 
 type InsertEventParams struct {
-	ID             uuid.UUID          `json:"id"`
-	WebsiteID      uuid.UUID          `json:"website_id"`
-	SessionID      uuid.UUID          `json:"session_id"`
-	VisitID        uuid.UUID          `json:"visit_id"`
-	EventType      int32              `json:"event_type"`
-	EventName      string             `json:"event_name"`
-	UrlPath        string             `json:"url_path"`
-	UrlQuery       string             `json:"url_query"`
-	ReferrerPath   string             `json:"referrer_path"`
-	ReferrerQuery  string             `json:"referrer_query"`
-	ReferrerDomain string             `json:"referrer_domain"`
-	PageTitle      string             `json:"page_title"`
-	Hostname       string             `json:"hostname"`
-	UtmSource      string             `json:"utm_source"`
-	UtmMedium      string             `json:"utm_medium"`
-	UtmCampaign    string             `json:"utm_campaign"`
-	UtmContent     string             `json:"utm_content"`
-	UtmTerm        string             `json:"utm_term"`
-	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	ID             uuid.UUID `json:"id"`
+	WebsiteID      uuid.UUID `json:"website_id"`
+	SessionID      uuid.UUID `json:"session_id"`
+	VisitID        uuid.UUID `json:"visit_id"`
+	EventType      int32     `json:"event_type"`
+	EventName      string    `json:"event_name"`
+	UrlPath        string    `json:"url_path"`
+	UrlQuery       string    `json:"url_query"`
+	ReferrerPath   string    `json:"referrer_path"`
+	ReferrerQuery  string    `json:"referrer_query"`
+	ReferrerDomain string    `json:"referrer_domain"`
+	PageTitle      string    `json:"page_title"`
+	Hostname       string    `json:"hostname"`
+	UtmSource      string    `json:"utm_source"`
+	UtmMedium      string    `json:"utm_medium"`
+	UtmCampaign    string    `json:"utm_campaign"`
+	UtmContent     string    `json:"utm_content"`
+	UtmTerm        string    `json:"utm_term"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) error {
@@ -385,7 +385,7 @@ type InsertEventDataParams struct {
 	NumberValue pgtype.Numeric     `json:"number_value"`
 	DateValue   pgtype.Timestamptz `json:"date_value"`
 	DataType    int32              `json:"data_type"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	CreatedAt   time.Time          `json:"created_at"`
 }
 
 func (q *Queries) InsertEventData(ctx context.Context, arg InsertEventDataParams) error {
@@ -418,18 +418,18 @@ on conflict (id) do nothing
 `
 
 type InsertSessionParams struct {
-	ID         uuid.UUID          `json:"id"`
-	WebsiteID  uuid.UUID          `json:"website_id"`
-	Browser    string             `json:"browser"`
-	Os         string             `json:"os"`
-	Device     string             `json:"device"`
-	Screen     string             `json:"screen"`
-	Language   string             `json:"language"`
-	Country    string             `json:"country"`
-	Region     string             `json:"region"`
-	City       string             `json:"city"`
-	DistinctID string             `json:"distinct_id"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	ID         uuid.UUID `json:"id"`
+	WebsiteID  uuid.UUID `json:"website_id"`
+	Browser    string    `json:"browser"`
+	Os         string    `json:"os"`
+	Device     string    `json:"device"`
+	Screen     string    `json:"screen"`
+	Language   string    `json:"language"`
+	Country    string    `json:"country"`
+	Region     string    `json:"region"`
+	City       string    `json:"city"`
+	DistinctID string    `json:"distinct_id"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) error {
@@ -458,10 +458,10 @@ order by name
 `
 
 type ListWebsitesRow struct {
-	ID        uuid.UUID          `json:"id"`
-	Name      string             `json:"name"`
-	Domain    string             `json:"domain"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (q *Queries) ListWebsites(ctx context.Context, userID uuid.UUID) ([]ListWebsitesRow, error) {
@@ -503,11 +503,11 @@ order by time
 `
 
 type PageviewsParams struct {
-	Bucket            string             `json:"bucket"`
-	WebsiteID         uuid.UUID          `json:"website_id"`
-	StartAt           pgtype.Timestamptz `json:"start_at"`
-	EndAt             pgtype.Timestamptz `json:"end_at"`
-	PageviewEventType int32              `json:"pageview_event_type"`
+	Bucket            string    `json:"bucket"`
+	WebsiteID         uuid.UUID `json:"website_id"`
+	StartAt           time.Time `json:"start_at"`
+	EndAt             time.Time `json:"end_at"`
+	PageviewEventType int32     `json:"pageview_event_type"`
 }
 
 type PageviewsRow struct {
@@ -564,12 +564,12 @@ limit $6
 `
 
 type SessionMetricsParams struct {
-	Metric     string             `json:"metric"`
-	WebsiteID  uuid.UUID          `json:"website_id"`
-	StartAt    pgtype.Timestamptz `json:"start_at"`
-	EndAt      pgtype.Timestamptz `json:"end_at"`
-	EventType  int32              `json:"event_type"`
-	LimitCount int32              `json:"limit_count"`
+	Metric     string    `json:"metric"`
+	WebsiteID  uuid.UUID `json:"website_id"`
+	StartAt    time.Time `json:"start_at"`
+	EndAt      time.Time `json:"end_at"`
+	EventType  int32     `json:"event_type"`
+	LimitCount int32     `json:"limit_count"`
 }
 
 type SessionMetricsRow struct {
@@ -655,10 +655,10 @@ from visits
 `
 
 type WebsiteStatsParams struct {
-	WebsiteID         uuid.UUID          `json:"website_id"`
-	StartAt           pgtype.Timestamptz `json:"start_at"`
-	EndAt             pgtype.Timestamptz `json:"end_at"`
-	PageviewEventType int32              `json:"pageview_event_type"`
+	WebsiteID         uuid.UUID `json:"website_id"`
+	StartAt           time.Time `json:"start_at"`
+	EndAt             time.Time `json:"end_at"`
+	PageviewEventType int32     `json:"pageview_event_type"`
 }
 
 type WebsiteStatsRow struct {
