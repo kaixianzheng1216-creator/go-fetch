@@ -19,13 +19,17 @@ const (
 
 func (a *App) currentUser(ctx context.Context) (domain.User, bool) {
 	userID := a.sessions.GetString(ctx, sessionUserIDKey)
+
 	if userID == "" {
 		return domain.User{}, false
 	}
+
 	user, err := a.store.GetUserByID(ctx, userID)
+
 	if err != nil {
 		return domain.User{}, false
 	}
+
 	return user, true
 }
 
