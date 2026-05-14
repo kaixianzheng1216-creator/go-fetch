@@ -19,11 +19,11 @@ func registerCollectRoutes(api huma.API, app *App) {
 		"collect",
 		"Collection",
 		http.StatusBadRequest,
+		http.StatusUnprocessableEntity,
 		http.StatusInternalServerError,
 	)
 
 	collectOp.MaxBodyBytes = 256 * 1024
-	collectOp.SkipValidateBody = true
 
 	huma.Register(api, collectOp, app.collect)
 }
@@ -35,9 +35,6 @@ func (a *App) collect(ctx context.Context, input *collectInput) (*jsonBody[httpa
 	}
 
 	input.Body.Type = httpapi.CollectionType(collectionType)
-	if input.Body.Payload.WebsiteID == "" || input.Body.Payload.URL == "" {
-		return nil, huma.Error400BadRequest("website and url are required")
-	}
 
 	payload := httpapi.CollectPayloadToDomain(input.Body.Payload)
 	if _, err := a.store.GetWebsiteForCollection(ctx, payload.WebsiteID); err != nil {

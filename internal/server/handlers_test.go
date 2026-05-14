@@ -37,6 +37,34 @@ func TestRoutesInvalidJSONReturnsProblemDetails(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	testApp().Routes().ServeHTTP(rec, req)
 
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d", rec.Code)
+	}
+	if body := rec.Body.String(); !strings.Contains(body, `"status":400`) {
+		t.Fatalf("body = %q", body)
+	}
+}
+
+func TestRoutesValidateLoginBody(t *testing.T) {
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/login", strings.NewReader(`{}`))
+	req.Header.Set("Content-Type", "application/json")
+	testApp().Routes().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("status = %d", rec.Code)
+	}
+	if body := rec.Body.String(); !strings.Contains(body, `"detail":"validation failed"`) {
+		t.Fatalf("body = %q", body)
+	}
+}
+
+func TestRoutesValidateCollectBody(t *testing.T) {
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/collect", strings.NewReader(`{"payload":{}}`))
+	req.Header.Set("Content-Type", "application/json")
+	testApp().Routes().ServeHTTP(rec, req)
+
 	if rec.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("status = %d", rec.Code)
 	}

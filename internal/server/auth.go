@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	authpkg "github.com/kaixianzheng1216-creator/go-fetch/internal/auth"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 
 	"github.com/danielgtaylor/huma/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func registerAuthRoutes(api huma.API, app *App, auth huma.Middlewares) {
@@ -19,10 +19,9 @@ func registerAuthRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		"Auth",
 		http.StatusBadRequest,
 		http.StatusUnauthorized,
+		http.StatusUnprocessableEntity,
 		http.StatusInternalServerError,
 	)
-
-	loginOp.SkipValidateBody = true
 
 	huma.Register(api, loginOp, app.login)
 
@@ -48,10 +47,6 @@ func registerAuthRoutes(api huma.API, app *App, auth huma.Middlewares) {
 }
 
 func (a *App) login(ctx context.Context, input *loginInput) (*jsonBody[httpapi.LoginResponse], error) {
-	if input.Body.Username == "" || input.Body.Password == "" {
-		return nil, huma.Error400BadRequest("username and password are required")
-	}
-
 	user, err := a.store.GetUserByUsername(ctx, input.Body.Username)
 	if err != nil {
 		if isStoreNotFound(err) {
@@ -61,7 +56,7 @@ func (a *App) login(ctx context.Context, input *loginInput) (*jsonBody[httpapi.L
 		return nil, huma.Error500InternalServerError("failed to load user")
 	}
 
-	if !authpkg.CheckPassword(user.PasswordHash, input.Body.Password) {
+	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Body.Password)) != nil {
 		return nil, huma.Error401Unauthorized("incorrect username or password")
 	}
 

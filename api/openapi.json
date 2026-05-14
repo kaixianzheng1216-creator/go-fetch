@@ -28,6 +28,7 @@
             "type": "string"
           },
           "url": {
+            "minLength": 1,
             "type": "string"
           },
           "website": {
@@ -135,10 +136,12 @@
         "additionalProperties": false,
         "properties": {
           "password": {
+            "minLength": 1,
             "type": "string",
             "writeOnly": true
           },
           "username": {
+            "minLength": 1,
             "type": "string"
           }
         },

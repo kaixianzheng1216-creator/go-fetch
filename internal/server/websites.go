@@ -29,12 +29,12 @@ func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		"Websites",
 		http.StatusBadRequest,
 		http.StatusUnauthorized,
+		http.StatusUnprocessableEntity,
 		http.StatusInternalServerError,
 	)
 
 	createOp = authenticated(createOp, auth)
 	createOp.DefaultStatus = http.StatusCreated
-	createOp.SkipValidateBody = true
 
 	huma.Register(api, createOp, app.createWebsite)
 
@@ -58,11 +58,11 @@ func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		http.StatusBadRequest,
 		http.StatusUnauthorized,
 		http.StatusNotFound,
+		http.StatusUnprocessableEntity,
 		http.StatusInternalServerError,
 	)
 
 	updateOp = authenticated(updateOp, auth)
-	updateOp.SkipValidateBody = true
 
 	huma.Register(api, updateOp, app.updateWebsite)
 

@@ -19,8 +19,8 @@ type User struct {
 }
 
 type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password" writeOnly:"true"`
+	Username string `json:"username" required:"true" minLength:"1"`
+	Password string `json:"password" required:"true" minLength:"1" writeOnly:"true"`
 }
 
 type LoginResponse struct {
@@ -35,7 +35,7 @@ type Website struct {
 }
 
 type WebsiteRequest struct {
-	Name   string `json:"name" minLength:"1" maxLength:"100"`
+	Name   string `json:"name" required:"true" minLength:"1" maxLength:"100"`
 	Domain string `json:"domain,omitempty" maxLength:"500"`
 }
 
@@ -63,7 +63,7 @@ type MetricRow struct {
 
 type CollectRequest struct {
 	Type    CollectionType `json:"type,omitempty"`
-	Payload CollectPayload `json:"payload"`
+	Payload CollectPayload `json:"payload" required:"true"`
 }
 
 type CollectionType string
@@ -76,8 +76,8 @@ func (CollectionType) Schema(huma.Registry) *huma.Schema {
 }
 
 type CollectPayload struct {
-	WebsiteID  string         `json:"website" format:"uuid"`
-	URL        string         `json:"url"`
+	WebsiteID  string         `json:"website" required:"true" format:"uuid"`
+	URL        string         `json:"url" required:"true" minLength:"1"`
 	Referrer   string         `json:"referrer,omitempty"`
 	Title      string         `json:"title,omitempty"`
 	Screen     string         `json:"screen,omitempty"`
