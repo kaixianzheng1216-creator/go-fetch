@@ -109,11 +109,11 @@ type loginInput struct {
 	Body LoginRequest
 }
 
-type websiteBodyInput struct {
+type websiteInput struct {
 	Body WebsiteRequest
 }
 
-type websitePathInput struct {
+type websiteIDInput struct {
 	WebsiteID string `path:"websiteID" format:"uuid"`
 }
 
@@ -126,7 +126,7 @@ type collectInput struct {
 	Body CollectRequest
 }
 
-type dateRangeInput struct {
+type statsInput struct {
 	WebsiteID string `path:"websiteID" format:"uuid"`
 	StartAt   int64  `query:"startAt"`
 	EndAt     int64  `query:"endAt"`
@@ -179,7 +179,7 @@ func (metricLimit) Schema(huma.Registry) *huma.Schema {
 	}
 }
 
-func queryTimePtr(value int64) *int64 {
+func optionalTimeParam(value int64) *int64 {
 	if value == 0 {
 		return nil
 	}
@@ -194,7 +194,7 @@ func enumValues(values []string) []any {
 	return result
 }
 
-func UserFromDomain(user domain.User) User {
+func toUser(user domain.User) User {
 	return User{
 		ID:        user.ID,
 		Username:  user.Username,
@@ -204,7 +204,7 @@ func UserFromDomain(user domain.User) User {
 	}
 }
 
-func WebsiteFromDomain(website domain.Website) Website {
+func toWebsite(website domain.Website) Website {
 	return Website{
 		ID:        website.ID,
 		Name:      website.Name,
@@ -213,16 +213,16 @@ func WebsiteFromDomain(website domain.Website) Website {
 	}
 }
 
-func WebsitesFromDomain(websites []domain.Website) []Website {
+func toWebsites(websites []domain.Website) []Website {
 	result := make([]Website, 0, len(websites))
 	for _, website := range websites {
-		result = append(result, WebsiteFromDomain(website))
+		result = append(result, toWebsite(website))
 	}
 
 	return result
 }
 
-func WebsiteStatsFromDomain(stats domain.WebsiteStats) WebsiteStats {
+func toWebsiteStats(stats domain.WebsiteStats) WebsiteStats {
 	return WebsiteStats{
 		Pageviews:       stats.Pageviews,
 		Visitors:        stats.Visitors,
@@ -233,7 +233,7 @@ func WebsiteStatsFromDomain(stats domain.WebsiteStats) WebsiteStats {
 	}
 }
 
-func PageviewPointFromDomain(point domain.PageviewPoint) PageviewPoint {
+func toPageviewPoint(point domain.PageviewPoint) PageviewPoint {
 	return PageviewPoint{
 		Time:     point.Time,
 		Label:    point.Label,
@@ -242,16 +242,16 @@ func PageviewPointFromDomain(point domain.PageviewPoint) PageviewPoint {
 	}
 }
 
-func PageviewPointsFromDomain(points []domain.PageviewPoint) []PageviewPoint {
+func toPageviewPoints(points []domain.PageviewPoint) []PageviewPoint {
 	result := make([]PageviewPoint, 0, len(points))
 	for _, point := range points {
-		result = append(result, PageviewPointFromDomain(point))
+		result = append(result, toPageviewPoint(point))
 	}
 
 	return result
 }
 
-func MetricRowFromDomain(row domain.MetricRow) MetricRow {
+func toMetricRow(row domain.MetricRow) MetricRow {
 	return MetricRow{
 		Name:     row.Name,
 		Views:    row.Views,
@@ -259,16 +259,16 @@ func MetricRowFromDomain(row domain.MetricRow) MetricRow {
 	}
 }
 
-func MetricRowsFromDomain(rows []domain.MetricRow) []MetricRow {
+func toMetricRows(rows []domain.MetricRow) []MetricRow {
 	result := make([]MetricRow, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, MetricRowFromDomain(row))
+		result = append(result, toMetricRow(row))
 	}
 
 	return result
 }
 
-func CollectPayloadToDomain(payload CollectPayload) domain.CollectPayload {
+func toCollectPayload(payload CollectPayload) domain.CollectPayload {
 	return domain.CollectPayload{
 		WebsiteID:  payload.WebsiteID,
 		URL:        payload.URL,

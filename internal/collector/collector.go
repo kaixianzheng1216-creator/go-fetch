@@ -50,17 +50,17 @@ type FlatData struct {
 
 func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Time) domain.EventInput {
 	userAgent := r.UserAgent()
-	clientIP := clientIP(r)
+	ip := clientIP(r)
 	browser, osName, device := parseUserAgent(userAgent, payload.Screen)
 	pageURL := parsePageURL(payload.URL, payload.WebsiteID)
-	refURL := parseReferrerURL(payload.Referrer, pageURL)
+	referrerURL := parseReferrerURL(payload.Referrer, pageURL)
 	distinctID := truncate(payload.DistinctID, maxDistinctIDLength)
 	eventType := domain.EventTypePageView
 	if payload.Name != "" {
 		eventType = domain.EventTypeCustom
 	}
 
-	sessionID := stableUUID(payload.WebsiteID + "|" + visitorIdentity(distinctID, clientIP, userAgent) + "|" + now.UTC().Format(sessionWindowFormat))
+	sessionID := stableUUID(payload.WebsiteID + "|" + visitorIdentity(distinctID, ip, userAgent) + "|" + now.UTC().Format(sessionWindowFormat))
 	visitID := stableUUID(sessionID + "|" + strconv.FormatInt(now.Unix()/visitWindowSeconds, 10))
 
 	return domain.EventInput{
@@ -71,9 +71,9 @@ func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Ti
 		EventName:      truncate(payload.Name, maxEventNameLength),
 		URLPath:        truncate(pathWithHash(pageURL), maxURLPartLength),
 		URLQuery:       truncate(pageURL.RawQuery, maxURLPartLength),
-		ReferrerPath:   truncate(refURL.Path, maxURLPartLength),
-		ReferrerQuery:  truncate(refURL.RawQuery, maxURLPartLength),
-		ReferrerDomain: truncate(trimWWW(refURL.Hostname()), maxURLPartLength),
+		ReferrerPath:   truncate(referrerURL.Path, maxURLPartLength),
+		ReferrerQuery:  truncate(referrerURL.RawQuery, maxURLPartLength),
+		ReferrerDomain: truncate(trimWWW(referrerURL.Hostname()), maxURLPartLength),
 		PageTitle:      truncate(payload.Title, maxPageTitleLength),
 		Hostname:       truncate(pageURL.Hostname(), maxHostnameLength),
 		UTMSource:      truncate(pageURL.Query().Get("utm_source"), maxUTMValueLength),
@@ -92,13 +92,13 @@ func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Ti
 	}
 }
 
-func parsePageURL(raw, fallbackHost string) *url.URL {
+func parsePageURL(rawURL, fallbackHost string) *url.URL {
 	base := &url.URL{Scheme: defaultURLScheme, Host: fallbackHost}
-	if raw == "" {
+	if rawURL == "" {
 		return &url.URL{Scheme: base.Scheme, Host: base.Host, Path: defaultURLPath}
 	}
 
-	parsedURL, err := url.Parse(raw)
+	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return &url.URL{Scheme: base.Scheme, Host: base.Host, Path: defaultURLPath}
 	}
@@ -106,13 +106,13 @@ func parsePageURL(raw, fallbackHost string) *url.URL {
 	return base.ResolveReference(parsedURL)
 }
 
-func parseReferrerURL(raw string, pageURL *url.URL) *url.URL {
-	if raw == "" {
+func parseReferrerURL(rawURL string, pageURL *url.URL) *url.URL {
+	if rawURL == "" {
 		return &url.URL{}
 	}
 
 	base := &url.URL{Scheme: defaultURLScheme, Host: pageURL.Host}
-	parsedURL, err := url.Parse(raw)
+	parsedURL, err := url.Parse(rawURL)
 	if err != nil {
 		return &url.URL{}
 	}
@@ -149,28 +149,28 @@ func IsBot(userAgent string) bool {
 	return useragent.Parse(userAgent).Bot
 }
 
-func parseUserAgent(ua, screen string) (browser, osName, device string) {
-	parsed := useragent.Parse(ua)
+func parseUserAgent(userAgent, screen string) (browser, osName, device string) {
+	agent := useragent.Parse(userAgent)
 
-	browser = parsed.Name
-	if browser == "" || parsed.IsUnknown() {
+	browser = agent.Name
+	if browser == "" || agent.IsUnknown() {
 		browser = "Unknown"
 	}
 
-	osName = parsed.OS
+	osName = agent.OS
 	if osName == "" {
 		osName = "Unknown"
 	}
 
 	switch {
-	case parsed.Mobile:
+	case agent.Mobile:
 		device = "mobile"
-	case parsed.Tablet:
+	case agent.Tablet:
 		device = "tablet"
 	default:
 		device = "desktop"
 		if width, _, ok := strings.Cut(screen, "x"); ok {
-			if n, err := strconv.Atoi(width); err == nil && n <= laptopMaxScreenWidth {
+			if screenWidth, err := strconv.Atoi(width); err == nil && screenWidth <= laptopMaxScreenWidth {
 				device = "laptop"
 			}
 		}

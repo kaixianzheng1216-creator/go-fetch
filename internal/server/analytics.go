@@ -11,7 +11,7 @@ import (
 )
 
 func registerAnalyticsRoutes(api huma.API, app *App, auth huma.Middlewares) {
-	statsOp := operation(
+	statsOp := newOperation(
 		http.MethodGet,
 		"/api/websites/{websiteID}/stats",
 		"websiteStats",
@@ -21,9 +21,9 @@ func registerAnalyticsRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, authenticated(statsOp, auth), app.websiteStats)
+	huma.Register(api, withAuth(statsOp, auth), app.websiteStats)
 
-	pageviewsOp := operation(
+	pageviewsOp := newOperation(
 		http.MethodGet,
 		"/api/websites/{websiteID}/pageviews",
 		"websitePageviews",
@@ -33,9 +33,9 @@ func registerAnalyticsRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, authenticated(pageviewsOp, auth), app.websitePageviews)
+	huma.Register(api, withAuth(pageviewsOp, auth), app.websitePageviews)
 
-	metricsOp := operation(
+	metricsOp := newOperation(
 		http.MethodGet,
 		"/api/websites/{websiteID}/metrics",
 		"websiteMetrics",
@@ -46,47 +46,47 @@ func registerAnalyticsRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, authenticated(metricsOp, auth), app.websiteMetrics)
+	huma.Register(api, withAuth(metricsOp, auth), app.websiteMetrics)
 }
 
-func (a *App) websiteStats(ctx context.Context, input *dateRangeInput) (*jsonBody[WebsiteStats], error) {
-	if err := a.requireOwnedWebsite(ctx, input.WebsiteID); err != nil {
+func (a *App) websiteStats(ctx context.Context, input *statsInput) (*jsonBody[WebsiteStats], error) {
+	if err := a.requireWebsiteAccess(ctx, input.WebsiteID); err != nil {
 		return nil, err
 	}
 
-	start, end, _ := domain.DateRange(queryTimePtr(input.StartAt), queryTimePtr(input.EndAt), "")
+	start, end, _ := domain.DateRange(optionalTimeParam(input.StartAt), optionalTimeParam(input.EndAt), "")
 	stats, err := a.store.WebsiteStats(ctx, input.WebsiteID, start, end)
 	if err != nil {
 		return nil, huma.Error500InternalServerError("加载统计数据失败")
 	}
 
-	response := WebsiteStatsFromDomain(stats)
+	response := toWebsiteStats(stats)
 
 	return jsonResponse(response), nil
 }
 
 func (a *App) websitePageviews(ctx context.Context, input *pageviewsInput) (*jsonBody[[]PageviewPoint], error) {
-	if err := a.requireOwnedWebsite(ctx, input.WebsiteID); err != nil {
+	if err := a.requireWebsiteAccess(ctx, input.WebsiteID); err != nil {
 		return nil, err
 	}
 
-	start, end, unit := domain.DateRange(queryTimePtr(input.StartAt), queryTimePtr(input.EndAt), string(input.Unit))
+	start, end, unit := domain.DateRange(optionalTimeParam(input.StartAt), optionalTimeParam(input.EndAt), string(input.Unit))
 	points, err := a.store.Pageviews(ctx, input.WebsiteID, start, end, unit)
 	if err != nil {
 		return nil, huma.Error500InternalServerError("加载浏览量数据失败")
 	}
 
-	response := PageviewPointsFromDomain(points)
+	response := toPageviewPoints(points)
 
 	return jsonResponse(response), nil
 }
 
 func (a *App) websiteMetrics(ctx context.Context, input *metricsInput) (*jsonBody[[]MetricRow], error) {
-	if err := a.requireOwnedWebsite(ctx, input.WebsiteID); err != nil {
+	if err := a.requireWebsiteAccess(ctx, input.WebsiteID); err != nil {
 		return nil, err
 	}
 
-	start, end, _ := domain.DateRange(queryTimePtr(input.StartAt), queryTimePtr(input.EndAt), "")
+	start, end, _ := domain.DateRange(optionalTimeParam(input.StartAt), optionalTimeParam(input.EndAt), "")
 	metric, ok := domain.ParseMetricType(string(input.Type))
 	if !ok {
 		return nil, huma.Error400BadRequest(domain.ErrUnsupportedMetricType.Error())
@@ -106,12 +106,12 @@ func (a *App) websiteMetrics(ctx context.Context, input *metricsInput) (*jsonBod
 		return nil, huma.Error500InternalServerError("加载指标数据失败")
 	}
 
-	response := MetricRowsFromDomain(rows)
+	response := toMetricRows(rows)
 
 	return jsonResponse(response), nil
 }
 
-func (a *App) requireOwnedWebsite(ctx context.Context, websiteID string) error {
+func (a *App) requireWebsiteAccess(ctx context.Context, websiteID string) error {
 	if _, err := a.store.GetWebsite(ctx, userFromContext(ctx).ID, websiteID); err != nil {
 		return websiteLookupError(err)
 	}

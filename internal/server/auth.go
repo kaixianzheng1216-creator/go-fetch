@@ -10,7 +10,7 @@ import (
 )
 
 func registerAuthRoutes(api huma.API, app *App, auth huma.Middlewares) {
-	loginOp := operation(
+	loginOp := newOperation(
 		http.MethodPost,
 		"/api/login",
 		"login",
@@ -23,7 +23,7 @@ func registerAuthRoutes(api huma.API, app *App, auth huma.Middlewares) {
 
 	huma.Register(api, loginOp, app.login)
 
-	logoutOp := operation(
+	logoutOp := newOperation(
 		http.MethodPost,
 		"/api/logout",
 		"logout",
@@ -33,7 +33,7 @@ func registerAuthRoutes(api huma.API, app *App, auth huma.Middlewares) {
 
 	huma.Register(api, logoutOp, app.logout)
 
-	meOp := operation(
+	meOp := newOperation(
 		http.MethodGet,
 		"/api/me",
 		"getCurrentUser",
@@ -41,13 +41,13 @@ func registerAuthRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		http.StatusUnauthorized,
 	)
 
-	huma.Register(api, authenticated(meOp, auth), app.me)
+	huma.Register(api, withAuth(meOp, auth), app.me)
 }
 
 func (a *App) login(ctx context.Context, input *loginInput) (*jsonBody[LoginResponse], error) {
 	user, err := a.store.GetUserByUsername(ctx, input.Body.Username)
 	if err != nil {
-		if isStoreNotFound(err) {
+		if isNotFound(err) {
 			return nil, huma.Error401Unauthorized("用户名或密码不正确")
 		}
 
@@ -63,7 +63,7 @@ func (a *App) login(ctx context.Context, input *loginInput) (*jsonBody[LoginResp
 	}
 
 	response := LoginResponse{
-		User: UserFromDomain(user),
+		User: toUser(user),
 	}
 
 	return jsonResponse(response), nil
@@ -78,7 +78,7 @@ func (a *App) logout(ctx context.Context, _ *emptyInput) (*jsonBody[OK], error) 
 }
 
 func (a *App) me(ctx context.Context, _ *emptyInput) (*jsonBody[User], error) {
-	response := UserFromDomain(userFromContext(ctx))
+	response := toUser(userFromContext(ctx))
 
 	return jsonResponse(response), nil
 }
@@ -91,24 +91,4 @@ func (a *App) startSession(ctx context.Context, userID string) error {
 	a.sessions.Put(ctx, sessionUserIDKey, userID)
 
 	return nil
-}
-
-func (a *App) requireHumaAuth(api huma.API) func(huma.Context, func(huma.Context)) {
-	return func(ctx huma.Context, next func(huma.Context)) {
-		user, ok, err := a.currentUser(ctx.Context())
-
-		if err != nil {
-			_ = huma.WriteErr(api, ctx, http.StatusInternalServerError, "加载当前用户失败")
-
-			return
-		}
-
-		if !ok {
-			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "未登录或登录已失效")
-
-			return
-		}
-
-		next(huma.WithContext(ctx, withUser(ctx.Context(), user)))
-	}
 }

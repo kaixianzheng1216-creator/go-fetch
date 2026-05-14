@@ -9,7 +9,7 @@ import (
 )
 
 func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
-	listOp := operation(
+	listOp := newOperation(
 		http.MethodGet,
 		"/api/websites",
 		"listWebsites",
@@ -18,9 +18,9 @@ func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, authenticated(listOp, auth), app.listWebsites)
+	huma.Register(api, withAuth(listOp, auth), app.listWebsites)
 
-	createOp := operation(
+	createOp := newOperation(
 		http.MethodPost,
 		"/api/websites",
 		"createWebsite",
@@ -31,12 +31,12 @@ func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	createOp = authenticated(createOp, auth)
+	createOp = withAuth(createOp, auth)
 	createOp.DefaultStatus = http.StatusCreated
 
 	huma.Register(api, createOp, app.createWebsite)
 
-	getOp := operation(
+	getOp := newOperation(
 		http.MethodGet,
 		"/api/websites/{websiteID}",
 		"getWebsite",
@@ -46,9 +46,9 @@ func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, authenticated(getOp, auth), app.getWebsite)
+	huma.Register(api, withAuth(getOp, auth), app.getWebsite)
 
-	updateOp := operation(
+	updateOp := newOperation(
 		http.MethodPatch,
 		"/api/websites/{websiteID}",
 		"updateWebsite",
@@ -60,11 +60,11 @@ func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	updateOp = authenticated(updateOp, auth)
+	updateOp = withAuth(updateOp, auth)
 
 	huma.Register(api, updateOp, app.updateWebsite)
 
-	deleteOp := operation(
+	deleteOp := newOperation(
 		http.MethodDelete,
 		"/api/websites/{websiteID}",
 		"deleteWebsite",
@@ -74,7 +74,7 @@ func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, authenticated(deleteOp, auth), app.deleteWebsite)
+	huma.Register(api, withAuth(deleteOp, auth), app.deleteWebsite)
 }
 
 func (a *App) listWebsites(ctx context.Context, _ *emptyInput) (*jsonBody[[]Website], error) {
@@ -83,12 +83,12 @@ func (a *App) listWebsites(ctx context.Context, _ *emptyInput) (*jsonBody[[]Webs
 		return nil, huma.Error500InternalServerError("加载网站列表失败")
 	}
 
-	response := WebsitesFromDomain(websites)
+	response := toWebsites(websites)
 
 	return jsonResponse(response), nil
 }
 
-func (a *App) createWebsite(ctx context.Context, input *websiteBodyInput) (*jsonBody[Website], error) {
+func (a *App) createWebsite(ctx context.Context, input *websiteInput) (*jsonBody[Website], error) {
 	request := normalizeWebsiteRequest(input.Body)
 	if request.Name == "" {
 		return nil, huma.Error400BadRequest("名称不能为空")
@@ -99,18 +99,18 @@ func (a *App) createWebsite(ctx context.Context, input *websiteBodyInput) (*json
 		return nil, huma.Error500InternalServerError("创建网站失败")
 	}
 
-	response := WebsiteFromDomain(website)
+	response := toWebsite(website)
 
 	return jsonResponse(response), nil
 }
 
-func (a *App) getWebsite(ctx context.Context, input *websitePathInput) (*jsonBody[Website], error) {
+func (a *App) getWebsite(ctx context.Context, input *websiteIDInput) (*jsonBody[Website], error) {
 	website, err := a.store.GetWebsite(ctx, userFromContext(ctx).ID, input.WebsiteID)
 	if err != nil {
 		return nil, websiteLookupError(err)
 	}
 
-	response := WebsiteFromDomain(website)
+	response := toWebsite(website)
 
 	return jsonResponse(response), nil
 }
@@ -131,12 +131,12 @@ func (a *App) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*js
 		return nil, websiteLookupError(err)
 	}
 
-	response := WebsiteFromDomain(website)
+	response := toWebsite(website)
 
 	return jsonResponse(response), nil
 }
 
-func (a *App) deleteWebsite(ctx context.Context, input *websitePathInput) (*jsonBody[OK], error) {
+func (a *App) deleteWebsite(ctx context.Context, input *websiteIDInput) (*jsonBody[OK], error) {
 	if err := a.store.DeleteWebsite(ctx, userFromContext(ctx).ID, input.WebsiteID); err != nil {
 		return nil, websiteLookupError(err)
 	}

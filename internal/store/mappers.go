@@ -11,9 +11,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func toUser(userUUID uuid.UUID, username, passwordHash string, createdAt time.Time, updatedAt, deletedAt pgtype.Timestamptz) domain.User {
+func toUser(id uuid.UUID, username, passwordHash string, createdAt time.Time, updatedAt, deletedAt pgtype.Timestamptz) domain.User {
 	return domain.User{
-		ID:           userUUID.String(),
+		ID:           id.String(),
 		Username:     username,
 		PasswordHash: passwordHash,
 		CreatedAt:    createdAt,
@@ -22,11 +22,11 @@ func toUser(userUUID uuid.UUID, username, passwordHash string, createdAt time.Ti
 	}
 }
 
-func toWebsite(websiteUUID uuid.UUID, name, websiteDomain string, createdAt time.Time) domain.Website {
+func toWebsite(id uuid.UUID, name, domainName string, createdAt time.Time) domain.Website {
 	return domain.Website{
-		ID:        websiteUUID.String(),
+		ID:        id.String(),
 		Name:      name,
-		Domain:    websiteDomain,
+		Domain:    domainName,
 		CreatedAt: createdAt,
 	}
 }

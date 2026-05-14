@@ -12,7 +12,7 @@ import (
 )
 
 func registerCollectRoutes(api huma.API, app *App) {
-	collectOp := operation(
+	collectOp := newOperation(
 		http.MethodPost,
 		"/api/collect",
 		"collect",
@@ -35,9 +35,9 @@ func (a *App) collect(ctx context.Context, input *collectInput) (*jsonBody[OK], 
 
 	input.Body.Type = CollectionType(collectionType)
 
-	payload := CollectPayloadToDomain(input.Body.Payload)
+	payload := toCollectPayload(input.Body.Payload)
 	if _, err := a.store.GetWebsiteForCollection(ctx, payload.WebsiteID); err != nil {
-		if isStoreNotFound(err) {
+		if isNotFound(err) {
 			return nil, huma.Error400BadRequest("网站不存在")
 		}
 

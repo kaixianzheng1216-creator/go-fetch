@@ -8,12 +8,12 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
-func isStoreNotFound(err error) bool {
+func isNotFound(err error) bool {
 	return errors.Is(err, store.ErrNotFound)
 }
 
 func websiteLookupError(err error) error {
-	if isStoreNotFound(err) {
+	if isNotFound(err) {
 		return huma.Error404NotFound("网站不存在")
 	}
 

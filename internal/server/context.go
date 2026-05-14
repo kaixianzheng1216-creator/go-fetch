@@ -5,9 +5,6 @@ import (
 	"net/http"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-
-	"github.com/danielgtaylor/huma/v2"
-	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 )
 
 type contextKey string
@@ -27,7 +24,7 @@ func (a *App) currentUser(ctx context.Context) (domain.User, bool, error) {
 	user, err := a.store.GetUserByID(ctx, userID)
 
 	if err != nil {
-		if isStoreNotFound(err) {
+		if isNotFound(err) {
 			return domain.User{}, false, nil
 		}
 
@@ -51,16 +48,4 @@ func requestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(requestContextKey).(*http.Request)
 
 	return r
-}
-
-func captureRequest(ctx huma.Context, next func(huma.Context)) {
-	request, _ := humachi.Unwrap(ctx)
-
-	if request == nil {
-		next(ctx)
-
-		return
-	}
-
-	next(huma.WithContext(ctx, context.WithValue(ctx.Context(), requestContextKey, request)))
 }

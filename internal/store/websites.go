@@ -29,7 +29,7 @@ func (s *Store) ListWebsites(ctx context.Context, userID string) ([]domain.Websi
 	return websites, nil
 }
 
-func (s *Store) CreateWebsite(ctx context.Context, userID, name, websiteDomain string) (domain.Website, error) {
+func (s *Store) CreateWebsite(ctx context.Context, userID, name, domainName string) (domain.Website, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
 		return domain.Website{}, fmt.Errorf("解析用户 ID 失败: %w", err)
@@ -39,7 +39,7 @@ func (s *Store) CreateWebsite(ctx context.Context, userID, name, websiteDomain s
 		ID:     uuid.New(),
 		UserID: userUUID,
 		Name:   name,
-		Domain: websiteDomain,
+		Domain: domainName,
 	})
 	if err != nil {
 		return domain.Website{}, fmt.Errorf("创建网站失败: %w", err)
@@ -81,7 +81,7 @@ func (s *Store) GetWebsiteForCollection(ctx context.Context, websiteID string) (
 	return toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt), nil
 }
 
-func (s *Store) UpdateWebsite(ctx context.Context, userID, websiteID, name, websiteDomain string) error {
+func (s *Store) UpdateWebsite(ctx context.Context, userID, websiteID, name, domainName string) error {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
 		return fmt.Errorf("解析用户 ID 失败: %w", err)
@@ -96,7 +96,7 @@ func (s *Store) UpdateWebsite(ctx context.Context, userID, websiteID, name, webs
 		ID:     websiteUUID,
 		UserID: userUUID,
 		Name:   name,
-		Domain: websiteDomain,
+		Domain: domainName,
 	})
 	if err != nil {
 		return fmt.Errorf("更新网站失败: %w", err)
