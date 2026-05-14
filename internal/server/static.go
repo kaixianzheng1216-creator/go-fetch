@@ -16,7 +16,6 @@ func (a *App) handleFrontendAsset(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) handleScript(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
-	w.Header().Set("Cache-Control", "public, max-age=3600")
 	http.ServeFileFS(w, r, web.StaticFS(), "script.js")
 }
 
@@ -38,7 +37,6 @@ func (a *App) handleFrontend(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-cache")
 	_, _ = w.Write(html)
 }
 

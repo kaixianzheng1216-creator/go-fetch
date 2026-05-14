@@ -42,11 +42,3 @@ func (s *Store) Close() {
 func (s *Store) Pool() *pgxpool.Pool {
 	return s.db
 }
-
-func (s *Store) Ping(ctx context.Context) error {
-	if err := s.db.Ping(ctx); err != nil {
-		return fmt.Errorf("ping database: %w", err)
-	}
-
-	return nil
-}

@@ -3,10 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"log/slog"
+	"log"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/server"
@@ -16,21 +14,13 @@ import (
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
-		slog.Error("failed to load config", "error", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	if cfg.Production {
-		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	}
-	slog.SetDefault(logger)
 
 	ctx := context.Background()
 
 	if err := run(ctx, cfg); err != nil {
-		logger.Error("application error", "error", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
 
@@ -49,18 +39,12 @@ func run(ctx context.Context, cfg config.Config) error {
 		return fmt.Errorf("ensure admin: %w", err)
 	}
 
-	app := server.New(db, cfg.Production)
+	app := server.New(db)
 
 	srv := &http.Server{
-		Addr:              cfg.ListenAddr,
-		Handler:           app.Routes(),
-		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       5 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       120 * time.Second,
+		Addr:    cfg.ListenAddr,
+		Handler: app.Routes(),
 	}
-
-	slog.Info("server starting", "addr", srv.Addr)
 
 	if err := srv.ListenAndServe(); err != nil {
 		return fmt.Errorf("listen http: %w", err)

@@ -67,14 +67,11 @@ DATABASE_URL=postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disabl
 LISTEN_ADDR=:8080
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-me
-PRODUCTION=false
 ```
 
 需要改数据库、端口或管理员账号时，再用环境变量覆盖对应默认值。
 
-生产环境可设置 `PRODUCTION=true`，用于切换 JSON 日志并启用 Secure Cookie；本地运行不用设置。
-
-`ADMIN_PASSWORD` 用于第一次启动时创建初始管理员；数据库已有用户后不会重置密码。生产环境必须覆盖默认密码。
+`ADMIN_PASSWORD` 用于第一次启动时创建初始管理员；数据库已有用户后不会重置密码。
 
 ## 本地启动
 
@@ -94,13 +91,6 @@ go run ./cmd/server
 
 ```text
 http://localhost:8080
-```
-
-健康检查：
-
-```text
-GET /healthz
-GET /readyz
 ```
 
 API 文档：

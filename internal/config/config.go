@@ -12,7 +12,6 @@ type Config struct {
 	ListenAddr    string `env:"LISTEN_ADDR" envDefault:":8080"`
 	AdminUsername string `env:"ADMIN_USERNAME" envDefault:"admin"`
 	AdminPassword string `env:"ADMIN_PASSWORD" envDefault:"change-me"`
-	Production    bool   `env:"PRODUCTION"`
 }
 
 func Load() (Config, error) {
@@ -35,10 +34,6 @@ func Load() (Config, error) {
 
 	if strings.TrimSpace(cfg.AdminPassword) == "" {
 		return Config{}, fmt.Errorf("ADMIN_PASSWORD must not be empty")
-	}
-
-	if cfg.Production && cfg.AdminPassword == "change-me" {
-		return Config{}, fmt.Errorf("ADMIN_PASSWORD must be changed when PRODUCTION=true")
 	}
 
 	return cfg, nil

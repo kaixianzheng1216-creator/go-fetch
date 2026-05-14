@@ -8,7 +8,6 @@ func registerAPIRoutes(api huma.API, app *App) {
 	api.UseMiddleware(captureRequest)
 
 	auth := authMiddlewares(api, app)
-	registerHealthRoutes(api, app)
 	registerCollectRoutes(api, app)
 	registerAuthRoutes(api, app, auth)
 	registerWebsiteRoutes(api, app, auth)

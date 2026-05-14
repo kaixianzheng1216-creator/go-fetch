@@ -45,25 +45,6 @@ func TestRoutesInvalidJSONReturnsProblemDetails(t *testing.T) {
 	}
 }
 
-func TestRoutesHealthAndSecurityHeaders(t *testing.T) {
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
-	testApp().Routes().ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d", rec.Code)
-	}
-	if contentType := rec.Header().Get("Content-Type"); contentType != "application/json" {
-		t.Fatalf("Content-Type = %q", contentType)
-	}
-	if nosniff := rec.Header().Get("X-Content-Type-Options"); nosniff != "nosniff" {
-		t.Fatalf("X-Content-Type-Options = %q", nosniff)
-	}
-	if frameOptions := rec.Header().Get("X-Frame-Options"); frameOptions != "DENY" {
-		t.Fatalf("X-Frame-Options = %q", frameOptions)
-	}
-}
-
 func TestRoutesServeHumaOpenAPI(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/openapi.json", nil)

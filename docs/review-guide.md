@@ -201,10 +201,7 @@ npm --prefix frontend run build
 - 未登录 API 返回 401。
 - 未登录页面能正确重定向。
 - 登录失败不暴露用户是否存在。
-- 生产环境 cookie 是否启用安全策略。
-- `/api/collect` 是否限流。
 - 输入长度是否不会超过数据库字段长度。
-- 错误日志是否够定位问题，但不泄露密码、cookie、token。
 - 数据库迁移是否能在空库初始化。
 
 ## 8. Review 测试覆盖
@@ -293,4 +290,3 @@ README
 -> frontend/src/features
 -> tests
 ```
-

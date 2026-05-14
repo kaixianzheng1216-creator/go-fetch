@@ -4,21 +4,18 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	authpkg "github.com/kaixianzheng1216-creator/go-fetch/internal/auth"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/go-chi/httprate"
 )
 
 func registerAuthRoutes(api huma.API, app *App, auth huma.Middlewares) {
 	loginOp := operation(http.MethodPost, "/api/login", "login", "Auth", http.StatusBadRequest, http.StatusUnauthorized, http.StatusInternalServerError)
+
 	loginOp.SkipValidateBody = true
-	if app != nil {
-		loginOp.Middlewares = append(loginOp.Middlewares, adaptHTTPMiddleware(httprate.LimitByRealIP(10, time.Minute)))
-	}
+
 	huma.Register(api, loginOp, app.login)
 
 	huma.Register(api, operation(http.MethodPost, "/api/logout", "logout", "Auth", http.StatusInternalServerError), app.logout)

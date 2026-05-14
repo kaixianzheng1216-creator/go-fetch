@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/httplog/v3"
 )
 
 const (
@@ -21,39 +19,42 @@ const (
 )
 
 type App struct {
-	secureCookie bool
-	store        *store.Store
-	sessions     *scs.SessionManager
+	store    *store.Store
+	sessions *scs.SessionManager
 }
 
-func New(dataStore *store.Store, secureCookie bool) *App {
+func New(dataStore *store.Store) *App {
+	return &App{
+		store:    dataStore,
+		sessions: newSessionManager(dataStore),
+	}
+}
+
+func newSessionManager(dataStore *store.Store) *scs.SessionManager {
 	sessions := scs.New()
+
 	sessions.Store = pgxstore.NewWithConfig(dataStore.Pool(), pgxstore.Config{
 		TableName:       "app_sessions",
 		CleanUpInterval: 5 * time.Minute,
 	})
-	sessions.Cookie.Name = sessionCookieName
-	sessions.Cookie.Secure = secureCookie
 
-	return &App{secureCookie: secureCookie, store: dataStore, sessions: sessions}
+	sessions.Cookie.Name = sessionCookieName
+
+	return sessions
 }
 
 func (a *App) Routes() http.Handler {
 	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
+
 	r.Use(middleware.RealIP)
-	r.Use(httplog.RequestLogger(slog.Default(), &httplog.Options{Level: slog.LevelInfo, Schema: httplog.SchemaECS}))
-	r.Use(middleware.Recoverer)
-	r.Use(limitRequestBody(1 << 20))
-	r.Use(middleware.Timeout(30 * time.Second))
 	r.Use(a.sessions.LoadAndSave)
-	r.Use(a.secureHeaders().Handler)
 
 	api := humachi.New(r, humaConfig())
 	registerAPIRoutes(api, a)
 
-	r.With(middleware.SetHeader("Cache-Control", "public, max-age=31536000, immutable")).Get("/assets/*", a.handleFrontendAsset)
+	r.Get("/assets/*", a.handleFrontendAsset)
 	r.Get("/script.js", a.handleScript)
 	r.Get("/*", a.handleFrontend)
+
 	return r
 }

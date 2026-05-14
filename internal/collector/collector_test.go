@@ -110,6 +110,28 @@ func TestBuildEventInputUsesDistinctIDForSession(t *testing.T) {
 	}
 }
 
+func TestBuildEventInputUsesRemoteAddrForFallbackSession(t *testing.T) {
+	now := time.Date(2026, 5, 12, 12, 0, 0, 0, time.UTC)
+	payload := domain.CollectPayload{
+		WebsiteID: "11111111-1111-1111-1111-111111111111",
+		URL:       "https://example.com/",
+	}
+
+	first := httptest.NewRequest("POST", "/api/collect", nil)
+	first.Header.Set("User-Agent", "Mozilla/5.0 Chrome/120.0")
+	first.RemoteAddr = "203.0.113.10:1234"
+
+	second := httptest.NewRequest("POST", "/api/collect", nil)
+	second.Header.Set("User-Agent", "Mozilla/5.0 Chrome/120.0")
+	second.RemoteAddr = "203.0.113.11:1234"
+
+	firstInput := BuildEventInput(first, payload, now)
+	secondInput := BuildEventInput(second, payload, now)
+	if firstInput.SessionID == secondInput.SessionID {
+		t.Fatalf("remote addr did not affect fallback session id")
+	}
+}
+
 func TestFlattenDataKeepsValueTypes(t *testing.T) {
 	data := map[string]any{
 		"plan":   "pro",

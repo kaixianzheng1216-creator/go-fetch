@@ -10,16 +10,12 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/go-chi/httprate"
 )
 
 func registerCollectRoutes(api huma.API, app *App) {
 	collectOp := operation(http.MethodPost, "/api/collect", "collect", "Collection", http.StatusBadRequest, http.StatusInternalServerError)
 	collectOp.MaxBodyBytes = 256 * 1024
 	collectOp.SkipValidateBody = true
-	if app != nil {
-		collectOp.Middlewares = append(collectOp.Middlewares, adaptHTTPMiddleware(httprate.LimitByRealIP(120, time.Minute)))
-	}
 
 	huma.Register(api, collectOp, app.collect)
 }

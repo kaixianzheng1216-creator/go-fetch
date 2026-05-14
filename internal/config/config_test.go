@@ -23,10 +23,6 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.AdminPassword != "change-me" {
 		t.Fatalf("AdminPassword = %q", cfg.AdminPassword)
 	}
-
-	if cfg.Production {
-		t.Fatal("Production = true")
-	}
 }
 
 func TestLoadOverrides(t *testing.T) {
@@ -34,7 +30,6 @@ func TestLoadOverrides(t *testing.T) {
 	t.Setenv("LISTEN_ADDR", ":3000")
 	t.Setenv("ADMIN_USERNAME", "root")
 	t.Setenv("ADMIN_PASSWORD", "secret")
-	t.Setenv("PRODUCTION", "true")
 
 	cfg, err := Load()
 	if err != nil {
@@ -55,20 +50,6 @@ func TestLoadOverrides(t *testing.T) {
 
 	if cfg.AdminPassword != "secret" {
 		t.Fatalf("AdminPassword = %q", cfg.AdminPassword)
-	}
-
-	if !cfg.Production {
-		t.Fatal("Production = false")
-	}
-}
-
-func TestLoadRejectsDefaultPasswordInProduction(t *testing.T) {
-	t.Setenv("ADMIN_PASSWORD", "change-me")
-	t.Setenv("PRODUCTION", "true")
-
-	_, err := Load()
-	if err == nil {
-		t.Fatal("expected error")
 	}
 }
 
