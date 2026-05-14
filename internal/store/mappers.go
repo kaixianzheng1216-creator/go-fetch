@@ -1,6 +1,8 @@
 package store
 
 import (
+	"math"
+	"math/big"
 	"time"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
@@ -9,35 +11,54 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func toUser(userUUID uuid.UUID, username, passwordHash string, createdAt time.Time) domain.User {
+func toUser(userUUID uuid.UUID, username, passwordHash string, createdAt pgtype.Timestamptz) domain.User {
 	return domain.User{
 		ID:           userUUID.String(),
 		Username:     username,
 		PasswordHash: passwordHash,
-		CreatedAt:    createdAt,
+		CreatedAt:    timeFrom(createdAt),
 	}
 }
 
-func toWebsite(websiteUUID uuid.UUID, name, websiteDomain string, createdAt time.Time) domain.Website {
+func toWebsite(websiteUUID uuid.UUID, name, websiteDomain string, createdAt pgtype.Timestamptz) domain.Website {
 	return domain.Website{
 		ID:        websiteUUID.String(),
 		Name:      name,
 		Domain:    websiteDomain,
-		CreatedAt: createdAt,
+		CreatedAt: timeFrom(createdAt),
 	}
 }
 
-func pgFloat(value *float64) pgtype.Float8 {
+func pgNumeric(value *float64) pgtype.Numeric {
 	if value == nil {
-		return pgtype.Float8{}
+		return pgtype.Numeric{}
 	}
-	return pgtype.Float8{Float64: *value, Valid: true}
+
+	scaled := math.Round(*value * 10000)
+
+	return pgtype.Numeric{
+		Int:   big.NewInt(int64(scaled)),
+		Exp:   -4,
+		Valid: true,
+	}
 }
 
-func pgTime(value *time.Time) pgtype.Timestamptz {
+func pgTime(value time.Time) pgtype.Timestamptz {
+	return pgtype.Timestamptz{Time: value, Valid: true}
+}
+
+func pgOptionalTime(value *time.Time) pgtype.Timestamptz {
 	if value == nil {
 		return pgtype.Timestamptz{}
 	}
 
 	return pgtype.Timestamptz{Time: *value, Valid: true}
+}
+
+func timeFrom(value pgtype.Timestamptz) time.Time {
+	if !value.Valid {
+		return time.Time{}
+	}
+
+	return value.Time
 }

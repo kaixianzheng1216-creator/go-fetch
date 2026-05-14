@@ -131,6 +131,15 @@ func (m MetricType) EventType() EventType {
 	return EventTypePageView
 }
 
+func (m MetricType) IsSessionDimension() bool {
+	switch m {
+	case MetricTypeBrowser, MetricTypeOS, MetricTypeDevice, MetricTypeCountry:
+		return true
+	default:
+		return false
+	}
+}
+
 func NormalizeMetricLimit(limit int) int {
 	if limit <= 0 || limit > MaxMetricLimit {
 		return DefaultMetricLimit

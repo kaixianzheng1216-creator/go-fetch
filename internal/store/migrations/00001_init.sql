@@ -2,8 +2,8 @@
 create table if not exists users (
 	id uuid primary key,
 	username varchar(255) not null unique,
-	password_hash varchar(100) not null,
-	created_at timestamptz not null default now()
+	password_hash varchar(60) not null,
+	created_at timestamptz(6) default now()
 );
 
 comment on column users.id is '用户 ID';
@@ -13,12 +13,12 @@ comment on column users.created_at is '创建时间';
 
 create table if not exists websites (
 	id uuid primary key,
-	user_id uuid not null references users(id) on delete cascade,
+	user_id uuid references users(id) on delete cascade,
 	name varchar(100) not null,
 	domain varchar(500),
-	created_at timestamptz not null default now(),
-	updated_at timestamptz,
-	deleted_at timestamptz
+	created_at timestamptz(6) default now(),
+	updated_at timestamptz(6),
+	deleted_at timestamptz(6)
 );
 
 comment on column websites.id is '网站 ID';
@@ -32,16 +32,16 @@ comment on column websites.deleted_at is '软删除时间';
 create table if not exists sessions (
 	id uuid primary key,
 	website_id uuid not null references websites(id) on delete cascade,
-	browser varchar(40),
-	os varchar(40),
-	device varchar(40),
-	screen varchar(20),
+	browser varchar(20),
+	os varchar(20),
+	device varchar(20),
+	screen varchar(11),
 	language varchar(35),
 	country char(2),
 	region varchar(20),
 	city varchar(50),
 	distinct_id varchar(50),
-	created_at timestamptz not null default now()
+	created_at timestamptz(6) default now()
 );
 
 comment on column sessions.id is '访问会话 ID';
@@ -76,13 +76,7 @@ create table if not exists events (
 	utm_campaign varchar(255),
 	utm_content varchar(255),
 	utm_term varchar(255),
-	browser varchar(40),
-	os varchar(40),
-	device varchar(40),
-	screen varchar(20),
-	language varchar(35),
-	country char(2),
-	created_at timestamptz not null default now()
+	created_at timestamptz(6) default now()
 );
 
 comment on column events.id is '事件 ID';
@@ -103,12 +97,6 @@ comment on column events.utm_medium is 'UTM 媒介';
 comment on column events.utm_campaign is 'UTM 活动';
 comment on column events.utm_content is 'UTM 内容';
 comment on column events.utm_term is 'UTM 关键词';
-comment on column events.browser is '浏览器快照';
-comment on column events.os is '操作系统快照';
-comment on column events.device is '设备类型快照';
-comment on column events.screen is '屏幕尺寸快照';
-comment on column events.language is '语言快照';
-comment on column events.country is '国家代码快照';
 comment on column events.created_at is '事件时间';
 
 create table if not exists event_data (
@@ -117,10 +105,10 @@ create table if not exists event_data (
 	event_id uuid not null references events(id) on delete cascade,
 	data_key varchar(500) not null,
 	string_value varchar(500),
-	number_value double precision,
-	date_value timestamptz,
+	number_value decimal(19,4),
+	date_value timestamptz(6),
 	data_type integer not null,
-	created_at timestamptz not null default now()
+	created_at timestamptz(6) default now()
 );
 
 comment on column event_data.id is '事件数据 ID';

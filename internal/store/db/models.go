@@ -57,20 +57,8 @@ type Event struct {
 	UtmContent pgtype.Text `json:"utm_content"`
 	// UTM 关键词
 	UtmTerm pgtype.Text `json:"utm_term"`
-	// 浏览器快照
-	Browser pgtype.Text `json:"browser"`
-	// 操作系统快照
-	Os pgtype.Text `json:"os"`
-	// 设备类型快照
-	Device pgtype.Text `json:"device"`
-	// 屏幕尺寸快照
-	Screen pgtype.Text `json:"screen"`
-	// 语言快照
-	Language pgtype.Text `json:"language"`
-	// 国家代码快照
-	Country pgtype.Text `json:"country"`
 	// 事件时间
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type EventDatum struct {
@@ -85,13 +73,13 @@ type EventDatum struct {
 	// 字符串值
 	StringValue pgtype.Text `json:"string_value"`
 	// 数值
-	NumberValue pgtype.Float8 `json:"number_value"`
+	NumberValue pgtype.Numeric `json:"number_value"`
 	// 日期值
 	DateValue pgtype.Timestamptz `json:"date_value"`
 	// 数据类型
 	DataType int32 `json:"data_type"`
 	// 创建时间
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Session struct {
@@ -118,7 +106,7 @@ type Session struct {
 	// 访客标识
 	DistinctID pgtype.Text `json:"distinct_id"`
 	// 会话创建时间
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type User struct {
@@ -129,20 +117,20 @@ type User struct {
 	// 密码哈希
 	PasswordHash string `json:"password_hash"`
 	// 创建时间
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Website struct {
 	// 网站 ID
 	ID uuid.UUID `json:"id"`
 	// 所属用户 ID
-	UserID uuid.UUID `json:"user_id"`
+	UserID pgtype.UUID `json:"user_id"`
 	// 网站名称
 	Name string `json:"name"`
 	// 网站域名
 	Domain pgtype.Text `json:"domain"`
 	// 创建时间
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	// 更新时间
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 	// 软删除时间

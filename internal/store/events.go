@@ -45,7 +45,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 		Region:     input.Region,
 		City:       input.City,
 		DistinctID: input.DistinctID,
-		CreatedAt:  input.CreatedAt,
+		CreatedAt:  pgTime(input.CreatedAt),
 	}); err != nil {
 		return err
 	}
@@ -70,13 +70,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 		UtmCampaign:    input.UTMCampaign,
 		UtmContent:     input.UTMContent,
 		UtmTerm:        input.UTMTerm,
-		Browser:        input.Browser,
-		Os:             input.OS,
-		Device:         input.Device,
-		Screen:         input.Screen,
-		Language:       input.Language,
-		Country:        input.Country,
-		CreatedAt:      input.CreatedAt,
+		CreatedAt:      pgTime(input.CreatedAt),
 	}); err != nil {
 		return err
 	}
@@ -88,10 +82,10 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 			EventID:     eventID,
 			DataKey:     item.Key,
 			StringValue: item.StringValue,
-			NumberValue: pgFloat(item.NumberValue),
-			DateValue:   pgTime(item.DateValue),
+			NumberValue: pgNumeric(item.NumberValue),
+			DateValue:   pgOptionalTime(item.DateValue),
 			DataType:    int32(item.DataType),
-			CreatedAt:   input.CreatedAt,
+			CreatedAt:   pgTime(input.CreatedAt),
 		}); err != nil {
 			return err
 		}

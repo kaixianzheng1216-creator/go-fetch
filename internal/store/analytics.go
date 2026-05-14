@@ -18,8 +18,8 @@ func (s *Store) WebsiteStats(ctx context.Context, websiteID string, start, end t
 
 	row, err := s.queries.WebsiteStats(ctx, storedb.WebsiteStatsParams{
 		WebsiteID:         websiteUUID,
-		StartAt:           start,
-		EndAt:             end,
+		StartAt:           pgTime(start),
+		EndAt:             pgTime(end),
 		PageviewEventType: int32(domain.EventTypePageView),
 	})
 	if err != nil {
@@ -50,8 +50,8 @@ func (s *Store) Pageviews(ctx context.Context, websiteID string, start, end time
 	rows, err := s.queries.Pageviews(ctx, storedb.PageviewsParams{
 		Bucket:            domain.DateTruncUnit(unit),
 		WebsiteID:         websiteUUID,
-		StartAt:           start,
-		EndAt:             end,
+		StartAt:           pgTime(start),
+		EndAt:             pgTime(end),
 		PageviewEventType: int32(domain.EventTypePageView),
 	})
 	if err != nil {
@@ -83,11 +83,36 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 		return nil, err
 	}
 
-	rows, err := s.queries.Metrics(ctx, storedb.MetricsParams{
+	if metric.IsSessionDimension() {
+		rows, err := s.queries.SessionMetrics(ctx, storedb.SessionMetricsParams{
+			Metric:     string(metric),
+			WebsiteID:  websiteUUID,
+			StartAt:    pgTime(start),
+			EndAt:      pgTime(end),
+			EventType:  int32(metric.EventType()),
+			LimitCount: int32(limit),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		metrics := make([]domain.MetricRow, 0, len(rows))
+		for _, row := range rows {
+			metrics = append(metrics, domain.MetricRow{
+				Name:     row.Name,
+				Views:    row.Views,
+				Visitors: row.Visitors,
+			})
+		}
+
+		return metrics, nil
+	}
+
+	rows, err := s.queries.EventMetrics(ctx, storedb.EventMetricsParams{
 		Metric:     string(metric),
 		WebsiteID:  websiteUUID,
-		StartAt:    start,
-		EndAt:      end,
+		StartAt:    pgTime(start),
+		EndAt:      pgTime(end),
 		EventType:  int32(metric.EventType()),
 		LimitCount: int32(limit),
 	})

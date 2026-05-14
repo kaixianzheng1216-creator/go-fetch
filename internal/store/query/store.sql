@@ -63,8 +63,7 @@ on conflict (id) do nothing;
 insert into events (
 	id, website_id, session_id, visit_id, event_type, event_name, url_path, url_query,
 	referrer_path, referrer_query, referrer_domain, page_title, hostname, utm_source, utm_medium,
-	utm_campaign, utm_content, utm_term, browser, os, device, screen, language,
-	country, created_at
+	utm_campaign, utm_content, utm_term, created_at
 )
 values (
 	sqlc.arg(id)::uuid, sqlc.arg(website_id)::uuid, sqlc.arg(session_id)::uuid,
@@ -74,9 +73,7 @@ values (
 	nullif(sqlc.arg(page_title)::text, ''), nullif(sqlc.arg(hostname)::text, ''), nullif(sqlc.arg(utm_source)::text, ''),
 	nullif(sqlc.arg(utm_medium)::text, ''), nullif(sqlc.arg(utm_campaign)::text, ''),
 	nullif(sqlc.arg(utm_content)::text, ''), nullif(sqlc.arg(utm_term)::text, ''),
-	nullif(sqlc.arg(browser)::text, ''), nullif(sqlc.arg(os)::text, ''), nullif(sqlc.arg(device)::text, ''),
-	nullif(sqlc.arg(screen)::text, ''), nullif(sqlc.arg(language)::text, ''),
-	nullif(sqlc.arg(country)::text, ''), sqlc.arg(created_at)
+	sqlc.arg(created_at)
 );
 
 -- name: InsertEventData :exec
@@ -123,15 +120,11 @@ where website_id = sqlc.arg(website_id)::uuid
 group by time
 order by time;
 
--- name: Metrics :many
+-- name: EventMetrics :many
 select
 	coalesce(nullif(case sqlc.arg(metric)::text
 		when 'path' then url_path
 		when 'referrer' then referrer_domain
-		when 'browser' then browser
-		when 'os' then os
-		when 'device' then device
-		when 'country' then country
 		when 'event' then event_name
 		else ''
 	end, ''), '(none)')::text as name,
@@ -141,6 +134,26 @@ from events
 where website_id = sqlc.arg(website_id)::uuid
   and created_at between sqlc.arg(start_at) and sqlc.arg(end_at)
   and event_type = sqlc.arg(event_type)
+group by name
+order by views desc
+limit sqlc.arg(limit_count);
+
+-- name: SessionMetrics :many
+select
+	coalesce(nullif(case sqlc.arg(metric)::text
+		when 'browser' then sessions.browser
+		when 'os' then sessions.os
+		when 'device' then sessions.device
+		when 'country' then sessions.country
+		else ''
+	end, ''), '(none)')::text as name,
+	count(*)::bigint as views,
+	count(distinct events.session_id)::bigint as visitors
+from events
+join sessions on sessions.id = events.session_id and sessions.website_id = events.website_id
+where events.website_id = sqlc.arg(website_id)::uuid
+  and events.created_at between sqlc.arg(start_at) and sqlc.arg(end_at)
+  and events.event_type = sqlc.arg(event_type)
 group by name
 order by views desc
 limit sqlc.arg(limit_count);

@@ -54,10 +54,10 @@ type CreateWebsiteParams struct {
 }
 
 type CreateWebsiteRow struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Domain    string    `json:"domain"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        uuid.UUID          `json:"id"`
+	Name      string             `json:"name"`
+	Domain    string             `json:"domain"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) CreateWebsite(ctx context.Context, arg CreateWebsiteParams) (CreateWebsiteRow, error) {
@@ -94,6 +94,67 @@ func (q *Queries) DeleteWebsite(ctx context.Context, arg DeleteWebsiteParams) (i
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const eventMetrics = `-- name: EventMetrics :many
+select
+	coalesce(nullif(case $1::text
+		when 'path' then url_path
+		when 'referrer' then referrer_domain
+		when 'event' then event_name
+		else ''
+	end, ''), '(none)')::text as name,
+	count(*)::bigint as views,
+	count(distinct session_id)::bigint as visitors
+from events
+where website_id = $2::uuid
+  and created_at between $3 and $4
+  and event_type = $5
+group by name
+order by views desc
+limit $6
+`
+
+type EventMetricsParams struct {
+	Metric     string             `json:"metric"`
+	WebsiteID  uuid.UUID          `json:"website_id"`
+	StartAt    pgtype.Timestamptz `json:"start_at"`
+	EndAt      pgtype.Timestamptz `json:"end_at"`
+	EventType  int32              `json:"event_type"`
+	LimitCount int32              `json:"limit_count"`
+}
+
+type EventMetricsRow struct {
+	Name     string `json:"name"`
+	Views    int64  `json:"views"`
+	Visitors int64  `json:"visitors"`
+}
+
+func (q *Queries) EventMetrics(ctx context.Context, arg EventMetricsParams) ([]EventMetricsRow, error) {
+	rows, err := q.db.Query(ctx, eventMetrics,
+		arg.Metric,
+		arg.WebsiteID,
+		arg.StartAt,
+		arg.EndAt,
+		arg.EventType,
+		arg.LimitCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []EventMetricsRow
+	for rows.Next() {
+		var i EventMetricsRow
+		if err := rows.Scan(&i.Name, &i.Views, &i.Visitors); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getUserByID = `-- name: GetUserByID :one
@@ -144,10 +205,10 @@ type GetWebsiteParams struct {
 }
 
 type GetWebsiteRow struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Domain    string    `json:"domain"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        uuid.UUID          `json:"id"`
+	Name      string             `json:"name"`
+	Domain    string             `json:"domain"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) GetWebsite(ctx context.Context, arg GetWebsiteParams) (GetWebsiteRow, error) {
@@ -169,10 +230,10 @@ where id = $1::uuid and deleted_at is null
 `
 
 type GetWebsiteForCollectionRow struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Domain    string    `json:"domain"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        uuid.UUID          `json:"id"`
+	Name      string             `json:"name"`
+	Domain    string             `json:"domain"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) GetWebsiteForCollection(ctx context.Context, id uuid.UUID) (GetWebsiteForCollectionRow, error) {
@@ -191,8 +252,7 @@ const insertEvent = `-- name: InsertEvent :exec
 insert into events (
 	id, website_id, session_id, visit_id, event_type, event_name, url_path, url_query,
 	referrer_path, referrer_query, referrer_domain, page_title, hostname, utm_source, utm_medium,
-	utm_campaign, utm_content, utm_term, browser, os, device, screen, language,
-	country, created_at
+	utm_campaign, utm_content, utm_term, created_at
 )
 values (
 	$1::uuid, $2::uuid, $3::uuid,
@@ -202,38 +262,30 @@ values (
 	nullif($12::text, ''), nullif($13::text, ''), nullif($14::text, ''),
 	nullif($15::text, ''), nullif($16::text, ''),
 	nullif($17::text, ''), nullif($18::text, ''),
-	nullif($19::text, ''), nullif($20::text, ''), nullif($21::text, ''),
-	nullif($22::text, ''), nullif($23::text, ''),
-	nullif($24::text, ''), $25
+	$19
 )
 `
 
 type InsertEventParams struct {
-	ID             uuid.UUID `json:"id"`
-	WebsiteID      uuid.UUID `json:"website_id"`
-	SessionID      uuid.UUID `json:"session_id"`
-	VisitID        uuid.UUID `json:"visit_id"`
-	EventType      int32     `json:"event_type"`
-	EventName      string    `json:"event_name"`
-	UrlPath        string    `json:"url_path"`
-	UrlQuery       string    `json:"url_query"`
-	ReferrerPath   string    `json:"referrer_path"`
-	ReferrerQuery  string    `json:"referrer_query"`
-	ReferrerDomain string    `json:"referrer_domain"`
-	PageTitle      string    `json:"page_title"`
-	Hostname       string    `json:"hostname"`
-	UtmSource      string    `json:"utm_source"`
-	UtmMedium      string    `json:"utm_medium"`
-	UtmCampaign    string    `json:"utm_campaign"`
-	UtmContent     string    `json:"utm_content"`
-	UtmTerm        string    `json:"utm_term"`
-	Browser        string    `json:"browser"`
-	Os             string    `json:"os"`
-	Device         string    `json:"device"`
-	Screen         string    `json:"screen"`
-	Language       string    `json:"language"`
-	Country        string    `json:"country"`
-	CreatedAt      time.Time `json:"created_at"`
+	ID             uuid.UUID          `json:"id"`
+	WebsiteID      uuid.UUID          `json:"website_id"`
+	SessionID      uuid.UUID          `json:"session_id"`
+	VisitID        uuid.UUID          `json:"visit_id"`
+	EventType      int32              `json:"event_type"`
+	EventName      string             `json:"event_name"`
+	UrlPath        string             `json:"url_path"`
+	UrlQuery       string             `json:"url_query"`
+	ReferrerPath   string             `json:"referrer_path"`
+	ReferrerQuery  string             `json:"referrer_query"`
+	ReferrerDomain string             `json:"referrer_domain"`
+	PageTitle      string             `json:"page_title"`
+	Hostname       string             `json:"hostname"`
+	UtmSource      string             `json:"utm_source"`
+	UtmMedium      string             `json:"utm_medium"`
+	UtmCampaign    string             `json:"utm_campaign"`
+	UtmContent     string             `json:"utm_content"`
+	UtmTerm        string             `json:"utm_term"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) error {
@@ -256,12 +308,6 @@ func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) error 
 		arg.UtmCampaign,
 		arg.UtmContent,
 		arg.UtmTerm,
-		arg.Browser,
-		arg.Os,
-		arg.Device,
-		arg.Screen,
-		arg.Language,
-		arg.Country,
 		arg.CreatedAt,
 	)
 	return err
@@ -284,10 +330,10 @@ type InsertEventDataParams struct {
 	EventID     uuid.UUID          `json:"event_id"`
 	DataKey     string             `json:"data_key"`
 	StringValue string             `json:"string_value"`
-	NumberValue pgtype.Float8      `json:"number_value"`
+	NumberValue pgtype.Numeric     `json:"number_value"`
 	DateValue   pgtype.Timestamptz `json:"date_value"`
 	DataType    int32              `json:"data_type"`
-	CreatedAt   time.Time          `json:"created_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) InsertEventData(ctx context.Context, arg InsertEventDataParams) error {
@@ -320,18 +366,18 @@ on conflict (id) do nothing
 `
 
 type InsertSessionParams struct {
-	ID         uuid.UUID `json:"id"`
-	WebsiteID  uuid.UUID `json:"website_id"`
-	Browser    string    `json:"browser"`
-	Os         string    `json:"os"`
-	Device     string    `json:"device"`
-	Screen     string    `json:"screen"`
-	Language   string    `json:"language"`
-	Country    string    `json:"country"`
-	Region     string    `json:"region"`
-	City       string    `json:"city"`
-	DistinctID string    `json:"distinct_id"`
-	CreatedAt  time.Time `json:"created_at"`
+	ID         uuid.UUID          `json:"id"`
+	WebsiteID  uuid.UUID          `json:"website_id"`
+	Browser    string             `json:"browser"`
+	Os         string             `json:"os"`
+	Device     string             `json:"device"`
+	Screen     string             `json:"screen"`
+	Language   string             `json:"language"`
+	Country    string             `json:"country"`
+	Region     string             `json:"region"`
+	City       string             `json:"city"`
+	DistinctID string             `json:"distinct_id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) error {
@@ -360,10 +406,10 @@ order by name
 `
 
 type ListWebsitesRow struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Domain    string    `json:"domain"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        uuid.UUID          `json:"id"`
+	Name      string             `json:"name"`
+	Domain    string             `json:"domain"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) ListWebsites(ctx context.Context, userID uuid.UUID) ([]ListWebsitesRow, error) {
@@ -391,71 +437,6 @@ func (q *Queries) ListWebsites(ctx context.Context, userID uuid.UUID) ([]ListWeb
 	return items, nil
 }
 
-const metrics = `-- name: Metrics :many
-select
-	coalesce(nullif(case $1::text
-		when 'path' then url_path
-		when 'referrer' then referrer_domain
-		when 'browser' then browser
-		when 'os' then os
-		when 'device' then device
-		when 'country' then country
-		when 'event' then event_name
-		else ''
-	end, ''), '(none)')::text as name,
-	count(*)::bigint as views,
-	count(distinct session_id)::bigint as visitors
-from events
-where website_id = $2::uuid
-  and created_at between $3 and $4
-  and event_type = $5
-group by name
-order by views desc
-limit $6
-`
-
-type MetricsParams struct {
-	Metric     string    `json:"metric"`
-	WebsiteID  uuid.UUID `json:"website_id"`
-	StartAt    time.Time `json:"start_at"`
-	EndAt      time.Time `json:"end_at"`
-	EventType  int32     `json:"event_type"`
-	LimitCount int32     `json:"limit_count"`
-}
-
-type MetricsRow struct {
-	Name     string `json:"name"`
-	Views    int64  `json:"views"`
-	Visitors int64  `json:"visitors"`
-}
-
-func (q *Queries) Metrics(ctx context.Context, arg MetricsParams) ([]MetricsRow, error) {
-	rows, err := q.db.Query(ctx, metrics,
-		arg.Metric,
-		arg.WebsiteID,
-		arg.StartAt,
-		arg.EndAt,
-		arg.EventType,
-		arg.LimitCount,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []MetricsRow
-	for rows.Next() {
-		var i MetricsRow
-		if err := rows.Scan(&i.Name, &i.Views, &i.Visitors); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const pageviews = `-- name: Pageviews :many
 select
 	date_trunc($1::text, created_at)::timestamptz as time,
@@ -470,11 +451,11 @@ order by time
 `
 
 type PageviewsParams struct {
-	Bucket            string    `json:"bucket"`
-	WebsiteID         uuid.UUID `json:"website_id"`
-	StartAt           time.Time `json:"start_at"`
-	EndAt             time.Time `json:"end_at"`
-	PageviewEventType int32     `json:"pageview_event_type"`
+	Bucket            string             `json:"bucket"`
+	WebsiteID         uuid.UUID          `json:"website_id"`
+	StartAt           pgtype.Timestamptz `json:"start_at"`
+	EndAt             pgtype.Timestamptz `json:"end_at"`
+	PageviewEventType int32              `json:"pageview_event_type"`
 }
 
 type PageviewsRow struct {
@@ -499,6 +480,69 @@ func (q *Queries) Pageviews(ctx context.Context, arg PageviewsParams) ([]Pagevie
 	for rows.Next() {
 		var i PageviewsRow
 		if err := rows.Scan(&i.Time, &i.Views, &i.Visitors); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const sessionMetrics = `-- name: SessionMetrics :many
+select
+	coalesce(nullif(case $1::text
+		when 'browser' then sessions.browser
+		when 'os' then sessions.os
+		when 'device' then sessions.device
+		when 'country' then sessions.country
+		else ''
+	end, ''), '(none)')::text as name,
+	count(*)::bigint as views,
+	count(distinct events.session_id)::bigint as visitors
+from events
+join sessions on sessions.id = events.session_id and sessions.website_id = events.website_id
+where events.website_id = $2::uuid
+  and events.created_at between $3 and $4
+  and events.event_type = $5
+group by name
+order by views desc
+limit $6
+`
+
+type SessionMetricsParams struct {
+	Metric     string             `json:"metric"`
+	WebsiteID  uuid.UUID          `json:"website_id"`
+	StartAt    pgtype.Timestamptz `json:"start_at"`
+	EndAt      pgtype.Timestamptz `json:"end_at"`
+	EventType  int32              `json:"event_type"`
+	LimitCount int32              `json:"limit_count"`
+}
+
+type SessionMetricsRow struct {
+	Name     string `json:"name"`
+	Views    int64  `json:"views"`
+	Visitors int64  `json:"visitors"`
+}
+
+func (q *Queries) SessionMetrics(ctx context.Context, arg SessionMetricsParams) ([]SessionMetricsRow, error) {
+	rows, err := q.db.Query(ctx, sessionMetrics,
+		arg.Metric,
+		arg.WebsiteID,
+		arg.StartAt,
+		arg.EndAt,
+		arg.EventType,
+		arg.LimitCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SessionMetricsRow
+	for rows.Next() {
+		var i SessionMetricsRow
+		if err := rows.Scan(&i.Name, &i.Views, &i.Visitors); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -559,10 +603,10 @@ from visits
 `
 
 type WebsiteStatsParams struct {
-	WebsiteID         uuid.UUID `json:"website_id"`
-	StartAt           time.Time `json:"start_at"`
-	EndAt             time.Time `json:"end_at"`
-	PageviewEventType int32     `json:"pageview_event_type"`
+	WebsiteID         uuid.UUID          `json:"website_id"`
+	StartAt           pgtype.Timestamptz `json:"start_at"`
+	EndAt             pgtype.Timestamptz `json:"end_at"`
+	PageviewEventType int32              `json:"pageview_event_type"`
 }
 
 type WebsiteStatsRow struct {

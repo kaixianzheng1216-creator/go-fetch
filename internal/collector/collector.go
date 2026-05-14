@@ -31,7 +31,10 @@ const (
 	maxPageTitleLength  = 500
 	maxHostnameLength   = 100
 	maxUTMValueLength   = 255
-	maxScreenLength     = 20
+	maxBrowserLength    = 20
+	maxOSLength         = 20
+	maxDeviceLength     = 20
+	maxScreenLength     = 11
 	maxLanguageLength   = 35
 	maxDistinctIDLength = 50
 	maxDataValueLength  = 500
@@ -77,9 +80,9 @@ func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Ti
 		UTMCampaign:    truncate(pageURL.Query().Get("utm_campaign"), maxUTMValueLength),
 		UTMContent:     truncate(pageURL.Query().Get("utm_content"), maxUTMValueLength),
 		UTMTerm:        truncate(pageURL.Query().Get("utm_term"), maxUTMValueLength),
-		Browser:        browser,
-		OS:             osName,
-		Device:         device,
+		Browser:        truncate(browser, maxBrowserLength),
+		OS:             truncate(osName, maxOSLength),
+		Device:         truncate(device, maxDeviceLength),
 		Screen:         truncate(payload.Screen, maxScreenLength),
 		Language:       truncate(payload.Language, maxLanguageLength),
 		DistinctID:     truncate(payload.DistinctID, maxDistinctIDLength),
