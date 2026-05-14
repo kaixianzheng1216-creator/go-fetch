@@ -50,8 +50,7 @@ cmd/openapi/                 OpenAPI 文件生成命令
 internal/collector/          采集数据解析和事件构建
 internal/config/             环境变量配置
 internal/domain/             业务模型和规则
-internal/httpapi/            HTTP DTO 和 domain 映射
-internal/server/             路由、处理器、中间件、静态资源服务
+internal/server/             路由、处理器、中间件、DTO、session、静态资源服务
 internal/store/              PostgreSQL 访问、迁移、sqlc 查询封装
 internal/web/static/         追踪脚本 script.js
 internal/web/dist/           前端构建产物，供 Go embed 使用
@@ -126,7 +125,7 @@ http://localhost:8080/openapi.json
 }
 ```
 
-无效 JSON 通常返回 `400 Bad Request`；缺少必填字段或字段格式不合法通常返回 `422 Unprocessable Entity`。基础字段校验按业务写在 `internal/httpapi/*.go` 的 DTO tag 中，业务存在性和归属校验仍在 handler/store 中处理。
+无效 JSON 通常返回 `400 Bad Request`；缺少必填字段或字段格式不合法通常返回 `422 Unprocessable Entity`。基础字段校验写在 `internal/server/dto.go` 的 DTO tag 中，业务存在性和归属校验仍在 handler/store 中处理。
 
 ## 前端开发
 
@@ -270,7 +269,7 @@ internal/store/query/store.sql
 ## 开发约定
 
 - 后端 API 变更后，先更新 OpenAPI，再更新前端类型。
-- HTTP DTO 的基础必填、长度、格式约束按业务写在 `internal/httpapi/*.go`。
+- HTTP DTO 的基础必填、长度、格式约束写在 `internal/server/dto.go`。
 - 受登录保护的接口通过 `authenticated(op, auth)` 标记 OpenAPI security 并挂载 Huma middleware。
 - Huma 自动校验错误保持默认英文；项目自定义业务错误、日志和内部错误链使用中文。
 - 前端 API 调用集中放在 `frontend/src/lib/api.ts`。

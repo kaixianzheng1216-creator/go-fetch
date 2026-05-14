@@ -7,7 +7,6 @@ import (
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/collector"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 
 	"github.com/danielgtaylor/huma/v2"
 )
@@ -28,15 +27,15 @@ func registerCollectRoutes(api huma.API, app *App) {
 	huma.Register(api, collectOp, app.collect)
 }
 
-func (a *App) collect(ctx context.Context, input *collectInput) (*jsonBody[httpapi.OK], error) {
+func (a *App) collect(ctx context.Context, input *collectInput) (*jsonBody[OK], error) {
 	collectionType, ok := domain.ParseCollectionType(string(input.Body.Type))
 	if !ok {
 		return nil, huma.Error400BadRequest("不支持的采集类型")
 	}
 
-	input.Body.Type = httpapi.CollectionType(collectionType)
+	input.Body.Type = CollectionType(collectionType)
 
-	payload := httpapi.CollectPayloadToDomain(input.Body.Payload)
+	payload := CollectPayloadToDomain(input.Body.Payload)
 	if _, err := a.store.GetWebsiteForCollection(ctx, payload.WebsiteID); err != nil {
 		if isStoreNotFound(err) {
 			return nil, huma.Error400BadRequest("网站不存在")
@@ -51,12 +50,12 @@ func (a *App) collect(ctx context.Context, input *collectInput) (*jsonBody[httpa
 	}
 
 	if collector.IsBot(r.UserAgent()) {
-		return &jsonBody[httpapi.OK]{Body: httpapi.OK{OK: true}}, nil
+		return &jsonBody[OK]{Body: OK{OK: true}}, nil
 	}
 
 	if err := a.store.SaveEvent(ctx, collector.BuildEventInput(r, payload, time.Now())); err != nil {
 		return nil, huma.Error500InternalServerError("保存事件失败")
 	}
 
-	return &jsonBody[httpapi.OK]{Body: httpapi.OK{OK: true}}, nil
+	return &jsonBody[OK]{Body: OK{OK: true}}, nil
 }

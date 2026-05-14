@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 
 	"github.com/danielgtaylor/huma/v2"
 )
@@ -50,7 +49,7 @@ func registerAnalyticsRoutes(api huma.API, app *App, auth huma.Middlewares) {
 	huma.Register(api, authenticated(metricsOp, auth), app.websiteMetrics)
 }
 
-func (a *App) websiteStats(ctx context.Context, input *dateRangeInput) (*jsonBody[httpapi.WebsiteStats], error) {
+func (a *App) websiteStats(ctx context.Context, input *dateRangeInput) (*jsonBody[WebsiteStats], error) {
 	if err := a.requireOwnedWebsite(ctx, input.WebsiteID); err != nil {
 		return nil, err
 	}
@@ -61,10 +60,10 @@ func (a *App) websiteStats(ctx context.Context, input *dateRangeInput) (*jsonBod
 		return nil, huma.Error500InternalServerError("加载统计数据失败")
 	}
 
-	return &jsonBody[httpapi.WebsiteStats]{Body: httpapi.WebsiteStatsFromDomain(stats)}, nil
+	return &jsonBody[WebsiteStats]{Body: WebsiteStatsFromDomain(stats)}, nil
 }
 
-func (a *App) websitePageviews(ctx context.Context, input *pageviewsInput) (*jsonBody[[]httpapi.PageviewPoint], error) {
+func (a *App) websitePageviews(ctx context.Context, input *pageviewsInput) (*jsonBody[[]PageviewPoint], error) {
 	if err := a.requireOwnedWebsite(ctx, input.WebsiteID); err != nil {
 		return nil, err
 	}
@@ -75,10 +74,10 @@ func (a *App) websitePageviews(ctx context.Context, input *pageviewsInput) (*jso
 		return nil, huma.Error500InternalServerError("加载浏览量数据失败")
 	}
 
-	return &jsonBody[[]httpapi.PageviewPoint]{Body: httpapi.PageviewPointsFromDomain(points)}, nil
+	return &jsonBody[[]PageviewPoint]{Body: PageviewPointsFromDomain(points)}, nil
 }
 
-func (a *App) websiteMetrics(ctx context.Context, input *metricsInput) (*jsonBody[[]httpapi.MetricRow], error) {
+func (a *App) websiteMetrics(ctx context.Context, input *metricsInput) (*jsonBody[[]MetricRow], error) {
 	if err := a.requireOwnedWebsite(ctx, input.WebsiteID); err != nil {
 		return nil, err
 	}
@@ -103,7 +102,7 @@ func (a *App) websiteMetrics(ctx context.Context, input *metricsInput) (*jsonBod
 		return nil, huma.Error500InternalServerError("加载指标数据失败")
 	}
 
-	return &jsonBody[[]httpapi.MetricRow]{Body: httpapi.MetricRowsFromDomain(rows)}, nil
+	return &jsonBody[[]MetricRow]{Body: MetricRowsFromDomain(rows)}, nil
 }
 
 func (a *App) requireOwnedWebsite(ctx context.Context, websiteID string) error {

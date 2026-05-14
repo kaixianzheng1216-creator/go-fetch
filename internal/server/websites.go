@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
-
 	"github.com/danielgtaylor/huma/v2"
 )
 
@@ -79,16 +77,16 @@ func registerWebsiteRoutes(api huma.API, app *App, auth huma.Middlewares) {
 	huma.Register(api, authenticated(deleteOp, auth), app.deleteWebsite)
 }
 
-func (a *App) listWebsites(ctx context.Context, _ *emptyInput) (*jsonBody[[]httpapi.Website], error) {
+func (a *App) listWebsites(ctx context.Context, _ *emptyInput) (*jsonBody[[]Website], error) {
 	websites, err := a.store.ListWebsites(ctx, userFromContext(ctx).ID)
 	if err != nil {
 		return nil, huma.Error500InternalServerError("加载网站列表失败")
 	}
 
-	return &jsonBody[[]httpapi.Website]{Body: httpapi.WebsitesFromDomain(websites)}, nil
+	return &jsonBody[[]Website]{Body: WebsitesFromDomain(websites)}, nil
 }
 
-func (a *App) createWebsite(ctx context.Context, input *websiteBodyInput) (*jsonBody[httpapi.Website], error) {
+func (a *App) createWebsite(ctx context.Context, input *websiteBodyInput) (*jsonBody[Website], error) {
 	request := normalizeWebsiteRequest(input.Body)
 	if request.Name == "" {
 		return nil, huma.Error400BadRequest("名称不能为空")
@@ -99,19 +97,19 @@ func (a *App) createWebsite(ctx context.Context, input *websiteBodyInput) (*json
 		return nil, huma.Error500InternalServerError("创建网站失败")
 	}
 
-	return &jsonBody[httpapi.Website]{Body: httpapi.WebsiteFromDomain(website)}, nil
+	return &jsonBody[Website]{Body: WebsiteFromDomain(website)}, nil
 }
 
-func (a *App) getWebsite(ctx context.Context, input *websitePathInput) (*jsonBody[httpapi.Website], error) {
+func (a *App) getWebsite(ctx context.Context, input *websitePathInput) (*jsonBody[Website], error) {
 	website, err := a.store.GetWebsite(ctx, userFromContext(ctx).ID, input.WebsiteID)
 	if err != nil {
 		return nil, websiteLookupError(err)
 	}
 
-	return &jsonBody[httpapi.Website]{Body: httpapi.WebsiteFromDomain(website)}, nil
+	return &jsonBody[Website]{Body: WebsiteFromDomain(website)}, nil
 }
 
-func (a *App) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*jsonBody[httpapi.Website], error) {
+func (a *App) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*jsonBody[Website], error) {
 	request := normalizeWebsiteRequest(input.Body)
 	if request.Name == "" {
 		return nil, huma.Error400BadRequest("名称不能为空")
@@ -127,18 +125,18 @@ func (a *App) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*js
 		return nil, websiteLookupError(err)
 	}
 
-	return &jsonBody[httpapi.Website]{Body: httpapi.WebsiteFromDomain(website)}, nil
+	return &jsonBody[Website]{Body: WebsiteFromDomain(website)}, nil
 }
 
-func (a *App) deleteWebsite(ctx context.Context, input *websitePathInput) (*jsonBody[httpapi.OK], error) {
+func (a *App) deleteWebsite(ctx context.Context, input *websitePathInput) (*jsonBody[OK], error) {
 	if err := a.store.DeleteWebsite(ctx, userFromContext(ctx).ID, input.WebsiteID); err != nil {
 		return nil, websiteLookupError(err)
 	}
 
-	return &jsonBody[httpapi.OK]{Body: httpapi.OK{OK: true}}, nil
+	return &jsonBody[OK]{Body: OK{OK: true}}, nil
 }
 
-func normalizeWebsiteRequest(request httpapi.WebsiteRequest) httpapi.WebsiteRequest {
+func normalizeWebsiteRequest(request WebsiteRequest) WebsiteRequest {
 	request.Name = strings.TrimSpace(request.Name)
 	request.Domain = strings.TrimSpace(request.Domain)
 	return request

@@ -8,9 +8,6 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/danielgtaylor/huma/v2/adapters/humachi"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 )
 
 const (
@@ -46,24 +43,4 @@ func newSessionManager(dataStore *store.Store) *scs.SessionManager {
 	sessions.Lifetime = 24 * time.Hour
 
 	return sessions
-}
-
-func (a *App) Routes() http.Handler {
-	r := chi.NewRouter()
-
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(30 * time.Second))
-	r.Use(a.sessions.LoadAndSave)
-
-	api := humachi.New(r, humaConfig())
-	registerAPIRoutes(api, a)
-
-	r.Get("/assets/*", a.handleFrontendAsset)
-	r.Get("/script.js", a.handleScript)
-	r.Get("/*", a.handleFrontend)
-
-	return r
 }
