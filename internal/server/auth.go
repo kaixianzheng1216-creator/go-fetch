@@ -78,7 +78,9 @@ func (a *App) logout(ctx context.Context, _ *emptyInput) (*jsonBody[OK], error) 
 }
 
 func (a *App) me(ctx context.Context, _ *emptyInput) (*jsonBody[User], error) {
-	return jsonResponse(UserFromDomain(userFromContext(ctx))), nil
+	response := UserFromDomain(userFromContext(ctx))
+
+	return jsonResponse(response), nil
 }
 
 func (a *App) startSession(ctx context.Context, userID string) error {

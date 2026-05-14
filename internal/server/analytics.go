@@ -60,7 +60,9 @@ func (a *App) websiteStats(ctx context.Context, input *dateRangeInput) (*jsonBod
 		return nil, huma.Error500InternalServerError("加载统计数据失败")
 	}
 
-	return jsonResponse(WebsiteStatsFromDomain(stats)), nil
+	response := WebsiteStatsFromDomain(stats)
+
+	return jsonResponse(response), nil
 }
 
 func (a *App) websitePageviews(ctx context.Context, input *pageviewsInput) (*jsonBody[[]PageviewPoint], error) {
@@ -74,7 +76,9 @@ func (a *App) websitePageviews(ctx context.Context, input *pageviewsInput) (*jso
 		return nil, huma.Error500InternalServerError("加载浏览量数据失败")
 	}
 
-	return jsonResponse(PageviewPointsFromDomain(points)), nil
+	response := PageviewPointsFromDomain(points)
+
+	return jsonResponse(response), nil
 }
 
 func (a *App) websiteMetrics(ctx context.Context, input *metricsInput) (*jsonBody[[]MetricRow], error) {
@@ -102,7 +106,9 @@ func (a *App) websiteMetrics(ctx context.Context, input *metricsInput) (*jsonBod
 		return nil, huma.Error500InternalServerError("加载指标数据失败")
 	}
 
-	return jsonResponse(MetricRowsFromDomain(rows)), nil
+	response := MetricRowsFromDomain(rows)
+
+	return jsonResponse(response), nil
 }
 
 func (a *App) requireOwnedWebsite(ctx context.Context, websiteID string) error {

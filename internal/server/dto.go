@@ -98,7 +98,9 @@ func jsonResponse[T any](body T) *jsonBody[T] {
 }
 
 func okResponse() *jsonBody[OK] {
-	return jsonResponse(OK{OK: true})
+	response := OK{OK: true}
+
+	return jsonResponse(response)
 }
 
 type emptyInput struct{}

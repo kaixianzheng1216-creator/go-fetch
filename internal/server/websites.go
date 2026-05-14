@@ -83,7 +83,9 @@ func (a *App) listWebsites(ctx context.Context, _ *emptyInput) (*jsonBody[[]Webs
 		return nil, huma.Error500InternalServerError("加载网站列表失败")
 	}
 
-	return jsonResponse(WebsitesFromDomain(websites)), nil
+	response := WebsitesFromDomain(websites)
+
+	return jsonResponse(response), nil
 }
 
 func (a *App) createWebsite(ctx context.Context, input *websiteBodyInput) (*jsonBody[Website], error) {
@@ -97,7 +99,9 @@ func (a *App) createWebsite(ctx context.Context, input *websiteBodyInput) (*json
 		return nil, huma.Error500InternalServerError("创建网站失败")
 	}
 
-	return jsonResponse(WebsiteFromDomain(website)), nil
+	response := WebsiteFromDomain(website)
+
+	return jsonResponse(response), nil
 }
 
 func (a *App) getWebsite(ctx context.Context, input *websitePathInput) (*jsonBody[Website], error) {
@@ -106,7 +110,9 @@ func (a *App) getWebsite(ctx context.Context, input *websitePathInput) (*jsonBod
 		return nil, websiteLookupError(err)
 	}
 
-	return jsonResponse(WebsiteFromDomain(website)), nil
+	response := WebsiteFromDomain(website)
+
+	return jsonResponse(response), nil
 }
 
 func (a *App) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*jsonBody[Website], error) {
@@ -125,7 +131,9 @@ func (a *App) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*js
 		return nil, websiteLookupError(err)
 	}
 
-	return jsonResponse(WebsiteFromDomain(website)), nil
+	response := WebsiteFromDomain(website)
+
+	return jsonResponse(response), nil
 }
 
 func (a *App) deleteWebsite(ctx context.Context, input *websitePathInput) (*jsonBody[OK], error) {
