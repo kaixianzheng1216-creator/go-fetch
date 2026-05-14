@@ -2,13 +2,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
@@ -29,8 +26,7 @@ func main() {
 	}
 	slog.SetDefault(logger)
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
+	ctx := context.Background()
 
 	if err := run(ctx, logger, cfg); err != nil {
 		logger.Error("application error", "error", err)
@@ -66,23 +62,9 @@ func run(ctx context.Context, logger *slog.Logger, cfg config.Config) error {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	go func() {
-		<-ctx.Done()
-		logger.Info("shutting down")
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		if err := srv.Shutdown(shutdownCtx); err != nil {
-			logger.Error("shutdown error", "error", err)
-		}
-	}()
-
-	logger.Info("server starting", "addr", srv.Addr)
-	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-		return fmt.Errorf("listen error: %w", err)
+	if err := srv.ListenAndServe(); err != nil {
+		return fmt.Errorf("server error: %w", err)
 	}
 
-	logger.Info("server stopped")
 	return nil
 }
