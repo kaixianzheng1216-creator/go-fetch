@@ -122,7 +122,7 @@ export function LoginPage() {
               </div>
               {login.error && (
                 <ErrorBanner
-                  message={login.error instanceof Error ? login.error.message : "Login failed"}
+                  message={login.error instanceof Error ? login.error.message : "登录失败"}
                 />
               )}
               <Button type="submit" disabled={login.isPending}>

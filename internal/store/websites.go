@@ -13,12 +13,12 @@ import (
 func (s *Store) ListWebsites(ctx context.Context, userID string) ([]domain.Website, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, fmt.Errorf("parse user id: %w", err)
+		return nil, fmt.Errorf("解析用户 ID 失败: %w", err)
 	}
 
 	rows, err := s.queries.ListWebsites(ctx, userUUID)
 	if err != nil {
-		return nil, fmt.Errorf("list websites: %w", err)
+		return nil, fmt.Errorf("查询网站列表失败: %w", err)
 	}
 
 	websites := make([]domain.Website, 0, len(rows))
@@ -32,7 +32,7 @@ func (s *Store) ListWebsites(ctx context.Context, userID string) ([]domain.Websi
 func (s *Store) CreateWebsite(ctx context.Context, userID, name, websiteDomain string) (domain.Website, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("parse user id: %w", err)
+		return domain.Website{}, fmt.Errorf("解析用户 ID 失败: %w", err)
 	}
 
 	row, err := s.queries.CreateWebsite(ctx, storedb.CreateWebsiteParams{
@@ -42,7 +42,7 @@ func (s *Store) CreateWebsite(ctx context.Context, userID, name, websiteDomain s
 		Domain: websiteDomain,
 	})
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("create website: %w", err)
+		return domain.Website{}, fmt.Errorf("创建网站失败: %w", err)
 	}
 
 	return toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt), nil
@@ -51,17 +51,17 @@ func (s *Store) CreateWebsite(ctx context.Context, userID, name, websiteDomain s
 func (s *Store) GetWebsite(ctx context.Context, userID, websiteID string) (domain.Website, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("parse user id: %w", err)
+		return domain.Website{}, fmt.Errorf("解析用户 ID 失败: %w", err)
 	}
 
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("parse website id: %w", err)
+		return domain.Website{}, fmt.Errorf("解析网站 ID 失败: %w", err)
 	}
 
 	row, err := s.queries.GetWebsite(ctx, storedb.GetWebsiteParams{ID: websiteUUID, UserID: userUUID})
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("get website: %w", mapNotFound(err))
+		return domain.Website{}, fmt.Errorf("查询网站失败: %w", mapNotFound(err))
 	}
 
 	return toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt), nil
@@ -70,12 +70,12 @@ func (s *Store) GetWebsite(ctx context.Context, userID, websiteID string) (domai
 func (s *Store) GetWebsiteForCollection(ctx context.Context, websiteID string) (domain.Website, error) {
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("parse website id: %w", err)
+		return domain.Website{}, fmt.Errorf("解析网站 ID 失败: %w", err)
 	}
 
 	row, err := s.queries.GetWebsiteForCollection(ctx, websiteUUID)
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("get website for collection: %w", mapNotFound(err))
+		return domain.Website{}, fmt.Errorf("查询采集网站失败: %w", mapNotFound(err))
 	}
 
 	return toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt), nil
@@ -84,12 +84,12 @@ func (s *Store) GetWebsiteForCollection(ctx context.Context, websiteID string) (
 func (s *Store) UpdateWebsite(ctx context.Context, userID, websiteID, name, websiteDomain string) error {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return fmt.Errorf("parse user id: %w", err)
+		return fmt.Errorf("解析用户 ID 失败: %w", err)
 	}
 
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
-		return fmt.Errorf("parse website id: %w", err)
+		return fmt.Errorf("解析网站 ID 失败: %w", err)
 	}
 
 	rows, err := s.queries.UpdateWebsite(ctx, storedb.UpdateWebsiteParams{
@@ -99,7 +99,7 @@ func (s *Store) UpdateWebsite(ctx context.Context, userID, websiteID, name, webs
 		Domain: websiteDomain,
 	})
 	if err != nil {
-		return fmt.Errorf("update website: %w", err)
+		return fmt.Errorf("更新网站失败: %w", err)
 	}
 
 	if rows == 0 {
@@ -112,17 +112,17 @@ func (s *Store) UpdateWebsite(ctx context.Context, userID, websiteID, name, webs
 func (s *Store) DeleteWebsite(ctx context.Context, userID, websiteID string) error {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return fmt.Errorf("parse user id: %w", err)
+		return fmt.Errorf("解析用户 ID 失败: %w", err)
 	}
 
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
-		return fmt.Errorf("parse website id: %w", err)
+		return fmt.Errorf("解析网站 ID 失败: %w", err)
 	}
 
 	rows, err := s.queries.DeleteWebsite(ctx, storedb.DeleteWebsiteParams{ID: websiteUUID, UserID: userUUID})
 	if err != nil {
-		return fmt.Errorf("delete website: %w", err)
+		return fmt.Errorf("删除网站失败: %w", err)
 	}
 
 	if rows == 0 {

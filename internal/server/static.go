@@ -41,7 +41,7 @@ func (a *App) handleFrontend(w http.ResponseWriter, r *http.Request) {
 
 	indexHTML, err := web.IndexHTML()
 	if err != nil {
-		http.Error(w, "frontend build not found", http.StatusInternalServerError)
+		http.Error(w, "前端构建产物不存在", http.StatusInternalServerError)
 		return
 	}
 

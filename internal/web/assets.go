@@ -16,7 +16,7 @@ var (
 func mustSubFS(dir string) fs.FS {
 	subFS, err := fs.Sub(assets, dir)
 	if err != nil {
-		panic("embed " + dir + ": " + err.Error())
+		panic("嵌入资源 " + dir + " 失败: " + err.Error())
 	}
 
 	return subFS

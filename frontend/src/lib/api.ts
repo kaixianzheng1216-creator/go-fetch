@@ -37,11 +37,11 @@ async function unwrap<T>(request: Promise<ApiResult<T>>): Promise<T> {
   if (error) {
     throw new ApiError(
       response.status,
-      error.detail ?? error.error?.message ?? error.message ?? error.title ?? response.statusText,
+      error.detail ?? error.error?.message ?? error.message ?? error.title ?? "请求失败",
     )
   }
   if (data === undefined) {
-    throw new ApiError(response.status, response.statusText)
+    throw new ApiError(response.status, "请求失败")
   }
   return data
 }

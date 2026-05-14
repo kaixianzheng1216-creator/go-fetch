@@ -17,23 +17,23 @@ type Config struct {
 func Load() (Config, error) {
 	var cfg Config
 	if err := env.Parse(&cfg); err != nil {
-		return Config{}, fmt.Errorf("parse config: %w", err)
+		return Config{}, fmt.Errorf("解析配置失败: %w", err)
 	}
 
 	if strings.TrimSpace(cfg.DatabaseURL) == "" {
-		return Config{}, fmt.Errorf("DATABASE_URL must not be empty")
+		return Config{}, fmt.Errorf("DATABASE_URL 不能为空")
 	}
 
 	if strings.TrimSpace(cfg.ListenAddr) == "" {
-		return Config{}, fmt.Errorf("LISTEN_ADDR must not be empty")
+		return Config{}, fmt.Errorf("LISTEN_ADDR 不能为空")
 	}
 
 	if strings.TrimSpace(cfg.AdminUsername) == "" {
-		return Config{}, fmt.Errorf("ADMIN_USERNAME must not be empty")
+		return Config{}, fmt.Errorf("ADMIN_USERNAME 不能为空")
 	}
 
 	if strings.TrimSpace(cfg.AdminPassword) == "" {
-		return Config{}, fmt.Errorf("ADMIN_PASSWORD must not be empty")
+		return Config{}, fmt.Errorf("ADMIN_PASSWORD 不能为空")
 	}
 
 	return cfg, nil

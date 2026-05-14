@@ -13,7 +13,7 @@ $goFiles = Get-ChildItem -Path $root -Recurse -Filter "*.go" -File |
 if ($goFiles.Count -gt 0) {
   $unformatted = gofmt -l @goFiles
   if ($unformatted) {
-    Write-Error "Go files need gofmt:`n$($unformatted -join "`n")"
+    Write-Error "以下 Go 文件需要执行 gofmt：`n$($unformatted -join "`n")"
   }
 }
 
