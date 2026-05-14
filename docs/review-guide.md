@@ -96,7 +96,7 @@ Review 重点：
 Review 重点：
 
 - `/api/collect` 是否校验必要字段。
-- 基础请求体校验是否由 `internal/httpapi/types.go` 的 Huma tag 表达。
+- 基础请求体校验是否由 `internal/httpapi/*.go` 的 Huma tag 表达。
 - Bot UA 是否会被忽略。
 - URL、referrer、UTM、UA 解析是否集中。
 - `sessions` 和 `events` 的字段边界是否清晰。
@@ -150,7 +150,7 @@ Review 重点：
 
 核心文件：
 
-- `internal/httpapi/types.go`
+- `internal/httpapi/*.go`
 - `internal/server/inputs.go`
 - `api/openapi.json`
 - `frontend/src/lib/api-types.ts`
@@ -250,7 +250,7 @@ rg -n "func Test" internal
 - `internal/store/mappers.go`
 - `internal/server/params.go`
 - `internal/server/routes.go`
-- `internal/httpapi/types.go`
+- `internal/httpapi/*.go`
 - `internal/collector/collector.go`
 
 判断标准：
@@ -297,7 +297,7 @@ README
 -> internal/server/auth.go
 -> internal/server/collect.go
 -> internal/server/analytics.go
--> internal/httpapi/types.go
+-> internal/httpapi/*.go
 -> frontend/src/lib/api.ts
 -> frontend/src/features
 -> tests
