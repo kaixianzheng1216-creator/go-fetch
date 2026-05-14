@@ -16,8 +16,10 @@ import (
 )
 
 const (
-	sessionCookieName = "go_fetch_session"
-	sessionUserIDKey  = "user_id"
+	maxRequestBodyBytes  = 1 << 20
+	sessionCookieName    = "go_fetch_session"
+	sessionUserIDKey     = "user_id"
+	staticAssetCacheRule = "public, max-age=31536000, immutable"
 )
 
 type App struct {
@@ -48,14 +50,16 @@ func (a *App) Routes() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(httplog.RequestLogger(slog.Default(), &httplog.Options{Level: slog.LevelInfo, Schema: httplog.SchemaECS}))
 	r.Use(middleware.Recoverer)
+	r.Use(limitRequestBody(maxRequestBodyBytes))
 	r.Use(middleware.Timeout(30 * time.Second))
+	r.Use(a.sessions.LoadAndSave)
 	r.Use(a.secureHeaders().Handler)
 
 	api := humachi.New(r, humaConfig())
 	registerAPIRoutes(api, a)
 
-	r.Get("/assets/*", a.handleFrontendAsset)
+	r.With(middleware.SetHeader("Cache-Control", staticAssetCacheRule)).Get("/assets/*", a.handleFrontendAsset)
 	r.Get("/script.js", a.handleScript)
 	r.Get("/*", a.handleFrontend)
-	return a.sessions.LoadAndSave(r)
+	return r
 }

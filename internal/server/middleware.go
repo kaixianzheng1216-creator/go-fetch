@@ -20,6 +20,12 @@ func (a *App) secureHeaders() *secure.Secure {
 	})
 }
 
+func limitRequestBody(bytes int64) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.MaxBytesHandler(next, bytes)
+	}
+}
+
 func adaptHTTPMiddleware(mw func(http.Handler) http.Handler) func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {
 		r, w := humachi.Unwrap(ctx)
