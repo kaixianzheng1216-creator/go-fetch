@@ -47,6 +47,24 @@ func TestBuildEventInputParsesURLAndUTM(t *testing.T) {
 	}
 }
 
+func TestBuildEventInputLeavesEmptyReferrerEmpty(t *testing.T) {
+	req := httptest.NewRequest("POST", "/api/collect", nil)
+	payload := domain.CollectPayload{
+		WebsiteID: "11111111-1111-1111-1111-111111111111",
+		URL:       "https://example.com/docs",
+	}
+
+	input := BuildEventInput(req, payload, time.Date(2026, 5, 12, 12, 0, 0, 0, time.UTC))
+
+	if input.ReferrerPath != "" {
+		t.Fatalf("ReferrerPath = %q", input.ReferrerPath)
+	}
+
+	if input.ReferrerDomain != "" {
+		t.Fatalf("ReferrerDomain = %q", input.ReferrerDomain)
+	}
+}
+
 func TestBuildEventInputCustomEvent(t *testing.T) {
 	req := httptest.NewRequest("POST", "/api/collect", nil)
 	payload := domain.CollectPayload{

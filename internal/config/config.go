@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/caarlos0/env/v11"
 )
@@ -18,6 +19,22 @@ func Load() (Config, error) {
 	var cfg Config
 	if err := env.Parse(&cfg); err != nil {
 		return Config{}, fmt.Errorf("parse config: %w", err)
+	}
+
+	if strings.TrimSpace(cfg.DatabaseURL) == "" {
+		return Config{}, fmt.Errorf("DATABASE_URL must not be empty")
+	}
+
+	if strings.TrimSpace(cfg.ListenAddr) == "" {
+		return Config{}, fmt.Errorf("LISTEN_ADDR must not be empty")
+	}
+
+	if strings.TrimSpace(cfg.AdminUsername) == "" {
+		return Config{}, fmt.Errorf("ADMIN_USERNAME must not be empty")
+	}
+
+	if strings.TrimSpace(cfg.AdminPassword) == "" {
+		return Config{}, fmt.Errorf("ADMIN_PASSWORD must not be empty")
 	}
 
 	if cfg.Production && cfg.AdminPassword == "change-me" {

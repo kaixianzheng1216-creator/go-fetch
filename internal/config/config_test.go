@@ -71,3 +71,26 @@ func TestLoadRejectsDefaultPasswordInProduction(t *testing.T) {
 		t.Fatal("expected error")
 	}
 }
+
+func TestLoadRejectsEmptyRequiredValues(t *testing.T) {
+	tests := []struct {
+		name string
+		key  string
+	}{
+		{name: "database URL", key: "DATABASE_URL"},
+		{name: "listen addr", key: "LISTEN_ADDR"},
+		{name: "admin username", key: "ADMIN_USERNAME"},
+		{name: "admin password", key: "ADMIN_PASSWORD"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv(tt.key, " ")
+
+			_, err := Load()
+			if err == nil {
+				t.Fatal("expected error")
+			}
+		})
+	}
+}

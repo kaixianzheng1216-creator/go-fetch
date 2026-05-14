@@ -52,8 +52,8 @@ func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Ti
 	userAgent := r.UserAgent()
 	clientIP := clientIP(r)
 	browser, osName, device := parseUserAgent(userAgent, payload.Screen)
-	pageURL := parseURL(payload.URL, payload)
-	refURL := parseURL(payload.Referrer, payload)
+	pageURL := parsePageURL(payload.URL, payload.WebsiteID)
+	refURL := parseReferrerURL(payload.Referrer, pageURL)
 	distinctID := truncate(payload.DistinctID, maxDistinctIDLength)
 	eventType := domain.EventTypePageView
 	if payload.Name != "" {
@@ -92,16 +92,8 @@ func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Ti
 	}
 }
 
-func parseURL(raw string, payload domain.CollectPayload) *url.URL {
-	baseHost := payload.WebsiteID
-	if payload.URL != "" {
-		if parsedURL, err := url.Parse(payload.URL); err == nil && parsedURL.Host != "" {
-			baseHost = parsedURL.Host
-		}
-	}
-
-	base := &url.URL{Scheme: defaultURLScheme, Host: baseHost}
-
+func parsePageURL(raw, fallbackHost string) *url.URL {
+	base := &url.URL{Scheme: defaultURLScheme, Host: fallbackHost}
 	if raw == "" {
 		return &url.URL{Scheme: base.Scheme, Host: base.Host, Path: defaultURLPath}
 	}
@@ -109,6 +101,20 @@ func parseURL(raw string, payload domain.CollectPayload) *url.URL {
 	parsedURL, err := url.Parse(raw)
 	if err != nil {
 		return &url.URL{Scheme: base.Scheme, Host: base.Host, Path: defaultURLPath}
+	}
+
+	return base.ResolveReference(parsedURL)
+}
+
+func parseReferrerURL(raw string, pageURL *url.URL) *url.URL {
+	if raw == "" {
+		return &url.URL{}
+	}
+
+	base := &url.URL{Scheme: defaultURLScheme, Host: pageURL.Host}
+	parsedURL, err := url.Parse(raw)
+	if err != nil {
+		return &url.URL{}
 	}
 
 	return base.ResolveReference(parsedURL)

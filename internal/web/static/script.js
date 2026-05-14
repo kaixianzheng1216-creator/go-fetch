@@ -33,20 +33,19 @@
 
   function send(name, data) {
     if (!website) return;
+    var body = JSON.stringify({ type: "event", payload: payload(name, data) });
+
     try {
       navigator.sendBeacon && !data
         ? navigator.sendBeacon(
             endpoint,
-            JSON.stringify({ type: "event", payload: payload(name, data) }),
+            new Blob([body], { type: "application/json" }),
           )
         : fetch(endpoint, {
             method: "POST",
             keepalive: true,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: "event",
-              payload: payload(name, data),
-            }),
+            body: body,
           });
     } catch (_) {}
   }
@@ -76,7 +75,8 @@
     };
   }
 
-  window.goFetch = window.goFetch || { track: track };
+  window.goFetch = window.goFetch || {};
+  window.goFetch.track = track;
   hook("pushState");
   hook("replaceState");
   window.addEventListener("popstate", function () {
