@@ -50,12 +50,12 @@ func (a *App) collect(ctx context.Context, input *collectInput) (*jsonBody[OK], 
 	}
 
 	if collector.IsBot(r.UserAgent()) {
-		return &jsonBody[OK]{Body: OK{OK: true}}, nil
+		return okResponse(), nil
 	}
 
 	if err := a.store.SaveEvent(ctx, collector.BuildEventInput(r, payload, time.Now())); err != nil {
 		return nil, huma.Error500InternalServerError("保存事件失败")
 	}
 
-	return &jsonBody[OK]{Body: OK{OK: true}}, nil
+	return okResponse(), nil
 }

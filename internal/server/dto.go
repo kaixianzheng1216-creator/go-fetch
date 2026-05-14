@@ -93,14 +93,18 @@ type jsonBody[T any] struct {
 	Body T
 }
 
+func jsonResponse[T any](body T) *jsonBody[T] {
+	return &jsonBody[T]{Body: body}
+}
+
+func okResponse() *jsonBody[OK] {
+	return jsonResponse(OK{OK: true})
+}
+
 type emptyInput struct{}
 
 type loginInput struct {
 	Body LoginRequest
-}
-
-type collectInput struct {
-	Body CollectRequest
 }
 
 type websiteBodyInput struct {
@@ -114,6 +118,10 @@ type websitePathInput struct {
 type updateWebsiteInput struct {
 	WebsiteID string `path:"websiteID" format:"uuid"`
 	Body      WebsiteRequest
+}
+
+type collectInput struct {
+	Body CollectRequest
 }
 
 type dateRangeInput struct {
@@ -174,6 +182,14 @@ func queryTimePtr(value int64) *int64 {
 		return nil
 	}
 	return &value
+}
+
+func enumValues(values []string) []any {
+	result := make([]any, 0, len(values))
+	for _, value := range values {
+		result = append(result, value)
+	}
+	return result
 }
 
 func UserFromDomain(user domain.User) User {
@@ -262,12 +278,4 @@ func CollectPayloadToDomain(payload CollectPayload) domain.CollectPayload {
 		Name:       payload.Name,
 		Data:       payload.Data,
 	}
-}
-
-func enumValues(values []string) []any {
-	result := make([]any, 0, len(values))
-	for _, value := range values {
-		result = append(result, value)
-	}
-	return result
 }

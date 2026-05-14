@@ -62,7 +62,11 @@ func (a *App) login(ctx context.Context, input *loginInput) (*jsonBody[LoginResp
 		return nil, huma.Error500InternalServerError("创建登录会话失败")
 	}
 
-	return &jsonBody[LoginResponse]{Body: LoginResponse{User: UserFromDomain(user)}}, nil
+	response := LoginResponse{
+		User: UserFromDomain(user),
+	}
+
+	return jsonResponse(response), nil
 }
 
 func (a *App) logout(ctx context.Context, _ *emptyInput) (*jsonBody[OK], error) {
@@ -70,11 +74,11 @@ func (a *App) logout(ctx context.Context, _ *emptyInput) (*jsonBody[OK], error) 
 		return nil, huma.Error500InternalServerError("退出登录失败")
 	}
 
-	return &jsonBody[OK]{Body: OK{OK: true}}, nil
+	return okResponse(), nil
 }
 
 func (a *App) me(ctx context.Context, _ *emptyInput) (*jsonBody[User], error) {
-	return &jsonBody[User]{Body: UserFromDomain(userFromContext(ctx))}, nil
+	return jsonResponse(UserFromDomain(userFromContext(ctx))), nil
 }
 
 func (a *App) startSession(ctx context.Context, userID string) error {
