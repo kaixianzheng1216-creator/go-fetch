@@ -81,7 +81,9 @@ func run(ctx context.Context, logger *slog.Logger, production bool) error {
 	defer cancel()
 
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		srv.Close()
+		if closeErr := srv.Close(); closeErr != nil {
+			return fmt.Errorf("server shutdown: %w, force close: %v", err, closeErr)
+		}
 		return fmt.Errorf("server shutdown: %w", err)
 	}
 
