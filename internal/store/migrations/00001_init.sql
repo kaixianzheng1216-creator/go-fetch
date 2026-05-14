@@ -138,12 +138,3 @@ create table if not exists app_sessions (
 comment on column app_sessions.token is '会话令牌';
 comment on column app_sessions.data is '编码后的会话数据';
 comment on column app_sessions.expiry is '会话过期时间';
-
-create index if not exists websites_user_idx on websites(user_id);
-create index if not exists events_website_created_idx on events(website_id, created_at);
-create index if not exists events_website_session_created_idx on events(website_id, session_id, created_at);
-create index if not exists events_website_visit_created_idx on events(website_id, visit_id, created_at);
-create index if not exists events_website_path_created_idx on events(website_id, url_path, created_at);
-create index if not exists events_website_event_created_idx on events(website_id, event_name, created_at);
-create index if not exists event_data_event_idx on event_data(event_id);
-create index if not exists app_sessions_expiry_idx on app_sessions(expiry);
