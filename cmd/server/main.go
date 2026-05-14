@@ -68,23 +68,20 @@ func run(ctx context.Context, logger *slog.Logger, production bool) error {
 	}
 
 	go func() {
-		logger.Info("server starting", "addr", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("listen error", "error", err)
+		<-ctx.Done()
+		logger.Info("shutting down")
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			logger.Error("shutdown error", "error", err)
 		}
 	}()
 
-	<-ctx.Done()
-	logger.Info("shutting down")
-
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := srv.Shutdown(shutdownCtx); err != nil {
-		if closeErr := srv.Close(); closeErr != nil {
-			return fmt.Errorf("server shutdown: %w, force close: %v", err, closeErr)
-		}
-		return fmt.Errorf("server shutdown: %w", err)
+	logger.Info("server starting", "addr", srv.Addr)
+	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+		return fmt.Errorf("listen error: %w", err)
 	}
 
 	logger.Info("server stopped")
