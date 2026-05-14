@@ -18,6 +18,10 @@ import (
 
 func main() {
 	cfg, err := config.Load()
+	if err != nil {
+		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
+	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	if cfg.Production {
@@ -25,16 +29,11 @@ func main() {
 	}
 	slog.SetDefault(logger)
 
-	if err != nil {
-		slog.Error("fatal error", "error", fmt.Errorf("load config: %w", err))
-		os.Exit(1)
-	}
-
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	if err := run(ctx, logger, cfg); err != nil {
-		slog.Error("fatal error", "error", err)
+		logger.Error("application error", "error", err)
 		os.Exit(1)
 	}
 }
