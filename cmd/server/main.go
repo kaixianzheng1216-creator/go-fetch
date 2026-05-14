@@ -20,39 +20,34 @@ func main() {
 	production := os.Getenv("APP_ENV") == "production"
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
 	if production {
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	}
-
 	slog.SetDefault(logger)
 
-	if err := run(production); err != nil {
-		slog.Error("fatal error", "error", err)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
+	if err := run(ctx, logger, production); err != nil {
+		slog.Error("fatal error", "error", err)
 		os.Exit(1)
 	}
 }
 
-func run(production bool) error {
+func run(ctx context.Context, logger *slog.Logger, production bool) error {
 	cfg, err := config.Load()
-
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
-
-	ctx := context.Background()
 
 	if err := store.Migrate(ctx, cfg.DatabaseURL); err != nil {
 		return fmt.Errorf("migrate database: %w", err)
 	}
 
 	db, err := store.Open(ctx, cfg.DatabaseURL)
-
 	if err != nil {
 		return fmt.Errorf("open database: %w", err)
 	}
-
 	defer db.Close()
 
 	if err := db.EnsureAdmin(ctx, cfg.AdminUsername, cfg.AdminPassword); err != nil {
@@ -60,7 +55,6 @@ func run(production bool) error {
 	}
 
 	app, err := server.New(db, production)
-
 	if err != nil {
 		return fmt.Errorf("create server: %w", err)
 	}
@@ -73,31 +67,24 @@ func run(production bool) error {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	shutdownCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-
-	defer stop()
-
 	go func() {
-		slog.Info("server starting", "addr", srv.Addr)
-
+		logger.Info("server starting", "addr", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("listen error", "error", err)
+			logger.Error("listen error", "error", err)
 		}
 	}()
 
-	<-shutdownCtx.Done()
+	<-ctx.Done()
+	logger.Info("shutting down")
 
-	slog.Info("shutting down")
-
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := srv.Shutdown(timeoutCtx); err != nil {
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		srv.Close()
 		return fmt.Errorf("server shutdown: %w", err)
 	}
 
-	slog.Info("server stopped")
-
+	logger.Info("server stopped")
 	return nil
 }
