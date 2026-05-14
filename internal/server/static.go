@@ -5,9 +5,17 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/web"
-
 	"github.com/danielgtaylor/huma/v2"
+
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/web"
+)
+
+const (
+	contentTypeHTML        = "text/html; charset=utf-8"
+	contentTypeJS          = "application/javascript; charset=utf-8"
+	contentTypeProblemJSON = "application/problem+json"
+
+	apiPrefix = "/api/"
 )
 
 func (a *App) handleFrontendAsset(w http.ResponseWriter, r *http.Request) {
@@ -15,34 +23,37 @@ func (a *App) handleFrontendAsset(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handleScript(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+	w.Header().Set("Content-Type", contentTypeJS)
+
 	http.ServeFileFS(w, r, web.StaticFS(), "script.js")
 }
 
 func (a *App) handleFrontend(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	switch {
+	case r.Method != http.MethodGet:
 		http.NotFound(w, r)
 		return
-	}
 
-	if strings.HasPrefix(r.URL.Path, "/api/") {
+	case strings.HasPrefix(r.URL.Path, apiPrefix):
 		writeProblemError(w, http.StatusNotFound, "not found")
 		return
 	}
 
-	html, err := web.IndexHTML()
+	indexHTML, err := web.IndexHTML()
 	if err != nil {
 		http.Error(w, "frontend build not found", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = w.Write(html)
+	w.Header().Set("Content-Type", contentTypeHTML)
+
+	_, _ = w.Write(indexHTML)
 }
 
 func writeProblemError(w http.ResponseWriter, status int, message string) {
-	w.Header().Set("Content-Type", "application/problem+json")
+	w.Header().Set("Content-Type", contentTypeProblemJSON)
 	w.WriteHeader(status)
+
 	_ = json.NewEncoder(w).Encode(huma.ErrorModel{
 		Title:  http.StatusText(status),
 		Status: status,
