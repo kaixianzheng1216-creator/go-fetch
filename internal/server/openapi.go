@@ -17,10 +17,8 @@ func OpenAPIJSON() ([]byte, error) {
 
 func humaConfig() huma.Config {
 	cfg := huma.DefaultConfig("go-fetch Analytics API", "0.1.0")
-	cfg.OpenAPIPath = "/openapi"
 	cfg.DocsPath = "/api/docs"
 	cfg.SchemasPath = ""
-	cfg.Transformers = nil
 	cfg.CreateHooks = nil
 	cfg.Servers = []*huma.Server{{URL: "/"}}
 	cfg.Components.SecuritySchemes = map[string]*huma.SecurityScheme{

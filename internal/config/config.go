@@ -12,7 +12,7 @@ type Config struct {
 	ListenAddr    string `env:"LISTEN_ADDR" envDefault:":8080"`
 	AdminUsername string `env:"ADMIN_USERNAME" envDefault:"admin"`
 	AdminPassword string `env:"ADMIN_PASSWORD" envDefault:"change-me"`
-	Production    bool   `env:"PRODUCTION" envDefault:"false"`
+	Production    bool   `env:"PRODUCTION"`
 }
 
 func Load() (Config, error) {

@@ -15,23 +15,27 @@ import (
 	"github.com/go-chi/httplog/v3"
 )
 
+const (
+	sessionCookieName = "go_fetch_session"
+	sessionUserIDKey  = "user_id"
+)
+
 type App struct {
-	store    *store.Store
-	sessions *scs.SessionManager
+	secureCookie bool
+	store        *store.Store
+	sessions     *scs.SessionManager
 }
 
 func New(dataStore *store.Store, secureCookie bool) *App {
 	sessions := scs.New()
-	sessions.Lifetime = 7 * 24 * time.Hour
 	sessions.Store = pgxstore.NewWithConfig(dataStore.Pool(), pgxstore.Config{
 		TableName:       "app_sessions",
 		CleanUpInterval: 5 * time.Minute,
 	})
-	sessions.Codec = scs.GobCodec{}
-	sessions.Cookie.Name = "go_fetch_session"
+	sessions.Cookie.Name = sessionCookieName
 	sessions.Cookie.Secure = secureCookie
 
-	return &App{store: dataStore, sessions: sessions}
+	return &App{secureCookie: secureCookie, store: dataStore, sessions: sessions}
 }
 
 func (a *App) Routes() http.Handler {
