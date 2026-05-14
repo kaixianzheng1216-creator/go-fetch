@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/store/migrations"
 
@@ -14,7 +15,7 @@ func Migrate(ctx context.Context, databaseURL string) error {
 	sqlDB, err := sql.Open("pgx", databaseURL)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("open migration database: %w", err)
 	}
 
 	defer sqlDB.Close()
@@ -22,8 +23,12 @@ func Migrate(ctx context.Context, databaseURL string) error {
 	goose.SetBaseFS(migrations.FS)
 
 	if err := goose.SetDialect("postgres"); err != nil {
-		return err
+		return fmt.Errorf("set migration dialect: %w", err)
 	}
 
-	return goose.UpContext(ctx, sqlDB, ".")
+	if err := goose.UpContext(ctx, sqlDB, "."); err != nil {
+		return fmt.Errorf("run migrations: %w", err)
+	}
+
+	return nil
 }

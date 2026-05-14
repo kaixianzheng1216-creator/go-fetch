@@ -44,5 +44,9 @@ func (s *Store) Pool() *pgxpool.Pool {
 }
 
 func (s *Store) Ping(ctx context.Context) error {
-	return s.db.Ping(ctx)
+	if err := s.db.Ping(ctx); err != nil {
+		return fmt.Errorf("ping database: %w", err)
+	}
+
+	return nil
 }

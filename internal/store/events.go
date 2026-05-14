@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/collector"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
@@ -13,23 +14,23 @@ import (
 func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("begin save event transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
 	websiteUUID, err := uuid.Parse(input.WebsiteID)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse website id: %w", err)
 	}
 
 	sessionID, err := uuid.Parse(input.SessionID)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse session id: %w", err)
 	}
 
 	visitID, err := uuid.Parse(input.VisitID)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse visit id: %w", err)
 	}
 
 	qtx := s.queries.WithTx(tx)
@@ -47,7 +48,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 		DistinctID: input.DistinctID,
 		CreatedAt:  pgTime(input.CreatedAt),
 	}); err != nil {
-		return err
+		return fmt.Errorf("insert session: %w", err)
 	}
 
 	eventID := uuid.New()
@@ -72,7 +73,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 		UtmTerm:        input.UTMTerm,
 		CreatedAt:      pgTime(input.CreatedAt),
 	}); err != nil {
-		return err
+		return fmt.Errorf("insert event: %w", err)
 	}
 
 	for _, item := range collector.FlattenData(input.Data) {
@@ -87,12 +88,12 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 			DataType:    int32(item.DataType),
 			CreatedAt:   pgTime(input.CreatedAt),
 		}); err != nil {
-			return err
+			return fmt.Errorf("insert event data: %w", err)
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return fmt.Errorf("commit save event transaction: %w", err)
 	}
 
 	return nil
