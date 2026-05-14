@@ -58,21 +58,23 @@ reference/umami/             参考项目代码，不属于主应用运行路径
 scripts/                     格式化和格式检查脚本
 ```
 
-## 环境变量
+## 配置
 
-本地运行只需要显式配置应用无法推导的项：
+本地开发默认配置已经和 `docker-compose.yml` 对齐，启动 PostgreSQL 后可以直接运行后端：
 
 ```text
 DATABASE_URL=postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable
+LISTEN_ADDR=:8080
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-me
+PRODUCTION=false
 ```
 
-其他运行策略由代码常量或底层库默认值负责，不再作为环境变量配置项。服务监听 `:8080`。
+需要改数据库、端口或管理员账号时，再用环境变量覆盖对应默认值。
 
-生产环境可设置 `APP_ENV=production`，用于切换 JSON 日志并启用 Secure Cookie；本地运行不用设置。
+生产环境可设置 `PRODUCTION=true`，用于切换 JSON 日志并启用 Secure Cookie；本地运行不用设置。
 
-`ADMIN_PASSWORD` 只在第一次启动、数据库中还没有用户时用于创建初始管理员；数据库已有用户后不会重置密码。
+`ADMIN_PASSWORD` 用于第一次启动时创建初始管理员；数据库已有用户后不会重置密码。生产环境必须覆盖默认密码。
 
 ## 本地启动
 
@@ -85,9 +87,6 @@ docker compose up -d postgres
 启动 Go 后端：
 
 ```powershell
-$env:DATABASE_URL = "postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable"
-$env:ADMIN_USERNAME = "admin"
-$env:ADMIN_PASSWORD = "change-me"
 go run ./cmd/server
 ```
 
@@ -137,8 +136,6 @@ npm --prefix frontend run build
 再启动后端：
 
 ```powershell
-$env:DATABASE_URL = "postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable"
-$env:ADMIN_PASSWORD = "change-me"
 go run ./cmd/server
 ```
 

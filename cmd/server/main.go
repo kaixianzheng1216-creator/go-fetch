@@ -17,29 +17,29 @@ import (
 )
 
 func main() {
-	production := os.Getenv("APP_ENV") == "production"
+	cfg, err := config.Load()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	if production {
+	if cfg.Production {
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	}
 	slog.SetDefault(logger)
 
+	if err != nil {
+		slog.Error("fatal error", "error", fmt.Errorf("load config: %w", err))
+		os.Exit(1)
+	}
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	if err := run(ctx, logger, production); err != nil {
+	if err := run(ctx, logger, cfg); err != nil {
 		slog.Error("fatal error", "error", err)
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, logger *slog.Logger, production bool) error {
-	cfg, err := config.Load()
-	if err != nil {
-		return fmt.Errorf("load config: %w", err)
-	}
-
+func run(ctx context.Context, logger *slog.Logger, cfg config.Config) error {
 	if err := store.Migrate(ctx, cfg.DatabaseURL); err != nil {
 		return fmt.Errorf("migrate database: %w", err)
 	}
@@ -54,7 +54,7 @@ func run(ctx context.Context, logger *slog.Logger, production bool) error {
 		return fmt.Errorf("ensure admin: %w", err)
 	}
 
-	app, err := server.New(db, production)
+	app, err := server.New(db, cfg.Production)
 	if err != nil {
 		return fmt.Errorf("create server: %w", err)
 	}

@@ -1,33 +1,24 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/caarlos0/env/v11"
 )
 
 type Config struct {
-	DatabaseURL   string `env:"DATABASE_URL"`
-	ListenAddr    string `env:"LISTEN_ADDR"`
-	AdminUsername string `env:"ADMIN_USERNAME"`
-	AdminPassword string `env:"ADMIN_PASSWORD"`
+	DatabaseURL   string `env:"DATABASE_URL" envDefault:"postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable"`
+	ListenAddr    string `env:"LISTEN_ADDR" envDefault:":8080"`
+	AdminUsername string `env:"ADMIN_USERNAME" envDefault:"admin"`
+	AdminPassword string `env:"ADMIN_PASSWORD" envDefault:"change-me"`
+	Production    bool   `env:"PRODUCTION" envDefault:"false"`
 }
 
 func Load() (Config, error) {
-	cfg := Config{
-		ListenAddr: ":8080",
-	}
+	var cfg Config
 
 	if err := env.Parse(&cfg); err != nil {
-		return cfg, err
-	}
-
-	if cfg.DatabaseURL == "" {
-		return cfg, errors.New("DATABASE_URL is required")
-	}
-
-	if cfg.AdminUsername == "" {
-		return cfg, errors.New("ADMIN_USERNAME is required")
+		return Config{}, fmt.Errorf("parse config: %w", err)
 	}
 
 	return cfg, nil

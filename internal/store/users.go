@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"errors"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	storedb "github.com/kaixianzheng1216-creator/go-fetch/internal/store/db"
@@ -20,10 +19,6 @@ func (s *Store) EnsureAdmin(ctx context.Context, username, password string) erro
 
 	if count > 0 {
 		return nil
-	}
-
-	if password == "" {
-		return errors.New("ADMIN_PASSWORD is required when bootstrapping the first admin user")
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
