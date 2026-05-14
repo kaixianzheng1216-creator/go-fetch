@@ -13,20 +13,23 @@ import (
 
 func Migrate(ctx context.Context, databaseURL string) error {
 	sqlDB, err := sql.Open("pgx", databaseURL)
-
 	if err != nil {
 		return fmt.Errorf("open migration database: %w", err)
 	}
-
 	defer sqlDB.Close()
 
-	goose.SetBaseFS(migrations.FS)
+	sqlDB.SetMaxOpenConns(1)
 
-	if err := goose.SetDialect("postgres"); err != nil {
-		return fmt.Errorf("set migration dialect: %w", err)
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return fmt.Errorf("ping migration database: %w", err)
 	}
 
-	if err := goose.UpContext(ctx, sqlDB, "."); err != nil {
+	provider, err := goose.NewProvider(goose.DialectPostgres, sqlDB, migrations.FS)
+	if err != nil {
+		return fmt.Errorf("create migration provider: %w", err)
+	}
+
+	if _, err := provider.Up(ctx); err != nil {
 		return fmt.Errorf("run migrations: %w", err)
 	}
 
