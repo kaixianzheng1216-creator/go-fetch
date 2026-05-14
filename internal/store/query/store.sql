@@ -48,19 +48,21 @@ where id = sqlc.arg(id)::uuid and user_id = sqlc.arg(user_id)::uuid and deleted_
 
 -- name: InsertSession :exec
 insert into sessions (
-	id, website_id, browser, os, device, screen, language, country, created_at
+	id, website_id, browser, os, device, screen, language, country, region, city, distinct_id, created_at
 )
 values (
 	sqlc.arg(id)::uuid, sqlc.arg(website_id)::uuid, nullif(sqlc.arg(browser)::text, ''),
 	nullif(sqlc.arg(os)::text, ''), nullif(sqlc.arg(device)::text, ''), nullif(sqlc.arg(screen)::text, ''),
-	nullif(sqlc.arg(language)::text, ''), nullif(sqlc.arg(country)::text, ''), sqlc.arg(created_at)
+	nullif(sqlc.arg(language)::text, ''), nullif(sqlc.arg(country)::text, ''),
+	nullif(sqlc.arg(region)::text, ''), nullif(sqlc.arg(city)::text, ''),
+	nullif(sqlc.arg(distinct_id)::text, ''), sqlc.arg(created_at)
 )
 on conflict (id) do nothing;
 
 -- name: InsertEvent :exec
 insert into events (
 	id, website_id, session_id, visit_id, event_type, event_name, url_path, url_query,
-	referrer_path, referrer_domain, page_title, hostname, utm_source, utm_medium,
+	referrer_path, referrer_query, referrer_domain, page_title, hostname, utm_source, utm_medium,
 	utm_campaign, utm_content, utm_term, browser, os, device, screen, language,
 	country, created_at
 )
@@ -68,8 +70,8 @@ values (
 	sqlc.arg(id)::uuid, sqlc.arg(website_id)::uuid, sqlc.arg(session_id)::uuid,
 	sqlc.arg(visit_id)::uuid, sqlc.arg(event_type), nullif(sqlc.arg(event_name)::text, ''),
 	sqlc.arg(url_path), nullif(sqlc.arg(url_query)::text, ''), nullif(sqlc.arg(referrer_path)::text, ''),
-	nullif(sqlc.arg(referrer_domain)::text, ''), nullif(sqlc.arg(page_title)::text, ''),
-	nullif(sqlc.arg(hostname)::text, ''), nullif(sqlc.arg(utm_source)::text, ''),
+	nullif(sqlc.arg(referrer_query)::text, ''), nullif(sqlc.arg(referrer_domain)::text, ''),
+	nullif(sqlc.arg(page_title)::text, ''), nullif(sqlc.arg(hostname)::text, ''), nullif(sqlc.arg(utm_source)::text, ''),
 	nullif(sqlc.arg(utm_medium)::text, ''), nullif(sqlc.arg(utm_campaign)::text, ''),
 	nullif(sqlc.arg(utm_content)::text, ''), nullif(sqlc.arg(utm_term)::text, ''),
 	nullif(sqlc.arg(browser)::text, ''), nullif(sqlc.arg(os)::text, ''), nullif(sqlc.arg(device)::text, ''),
@@ -79,12 +81,12 @@ values (
 
 -- name: InsertEventData :exec
 insert into event_data (
-	id, website_id, event_id, data_key, string_value, number_value, created_at
+	id, website_id, event_id, data_key, string_value, number_value, date_value, data_type, created_at
 )
 values (
 	sqlc.arg(id)::uuid, sqlc.arg(website_id)::uuid, sqlc.arg(event_id)::uuid,
 	sqlc.arg(data_key), nullif(sqlc.arg(string_value)::text, ''), sqlc.arg(number_value),
-	sqlc.arg(created_at)
+	sqlc.arg(date_value), sqlc.arg(data_type), sqlc.arg(created_at)
 );
 
 -- name: WebsiteStats :one

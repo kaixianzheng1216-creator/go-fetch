@@ -34,15 +34,18 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 
 	qtx := s.queries.WithTx(tx)
 	if err := qtx.InsertSession(ctx, storedb.InsertSessionParams{
-		ID:        sessionID,
-		WebsiteID: websiteUUID,
-		Browser:   input.Browser,
-		Os:        input.OS,
-		Device:    input.Device,
-		Screen:    input.Screen,
-		Language:  input.Language,
-		Country:   input.Country,
-		CreatedAt: input.CreatedAt,
+		ID:         sessionID,
+		WebsiteID:  websiteUUID,
+		Browser:    input.Browser,
+		Os:         input.OS,
+		Device:     input.Device,
+		Screen:     input.Screen,
+		Language:   input.Language,
+		Country:    input.Country,
+		Region:     input.Region,
+		City:       input.City,
+		DistinctID: input.DistinctID,
+		CreatedAt:  input.CreatedAt,
 	}); err != nil {
 		return err
 	}
@@ -58,6 +61,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 		UrlPath:        input.URLPath,
 		UrlQuery:       input.URLQuery,
 		ReferrerPath:   input.ReferrerPath,
+		ReferrerQuery:  input.ReferrerQuery,
 		ReferrerDomain: input.ReferrerDomain,
 		PageTitle:      input.PageTitle,
 		Hostname:       input.Hostname,
@@ -85,6 +89,8 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 			DataKey:     item.Key,
 			StringValue: item.StringValue,
 			NumberValue: pgFloat(item.NumberValue),
+			DateValue:   pgTime(item.DateValue),
+			DataType:    int32(item.DataType),
 			CreatedAt:   input.CreatedAt,
 		}); err != nil {
 			return err

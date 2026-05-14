@@ -8,6 +8,10 @@
             "additionalProperties": {},
             "type": "object"
           },
+          "distinctId": {
+            "maxLength": 50,
+            "type": "string"
+          },
           "language": {
             "type": "string"
           },

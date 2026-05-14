@@ -33,3 +33,11 @@ func pgFloat(value *float64) pgtype.Float8 {
 	}
 	return pgtype.Float8{Float64: *value, Valid: true}
 }
+
+func pgTime(value *time.Time) pgtype.Timestamptz {
+	if value == nil {
+		return pgtype.Timestamptz{}
+	}
+
+	return pgtype.Timestamptz{Time: *value, Valid: true}
+}

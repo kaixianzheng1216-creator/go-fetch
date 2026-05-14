@@ -9,6 +9,16 @@ const (
 
 type EventType int
 
+const (
+	EventDataTypeString  EventDataType = 1
+	EventDataTypeNumber  EventDataType = 2
+	EventDataTypeBoolean EventDataType = 3
+	EventDataTypeDate    EventDataType = 4
+	EventDataTypeArray   EventDataType = 5
+)
+
+type EventDataType int
+
 type User struct {
 	ID           string
 	Username     string
@@ -46,14 +56,15 @@ type MetricRow struct {
 }
 
 type CollectPayload struct {
-	WebsiteID string
-	URL       string
-	Referrer  string
-	Title     string
-	Screen    string
-	Language  string
-	Name      string
-	Data      map[string]any
+	WebsiteID  string
+	URL        string
+	Referrer   string
+	Title      string
+	Screen     string
+	Language   string
+	DistinctID string
+	Name       string
+	Data       map[string]any
 }
 
 type EventInput struct {
@@ -65,6 +76,7 @@ type EventInput struct {
 	URLPath        string
 	URLQuery       string
 	ReferrerPath   string
+	ReferrerQuery  string
 	ReferrerDomain string
 	PageTitle      string
 	Hostname       string
@@ -79,6 +91,9 @@ type EventInput struct {
 	Screen         string
 	Language       string
 	Country        string
+	Region         string
+	City           string
+	DistinctID     string
 	CreatedAt      time.Time
 	Data           map[string]any
 }

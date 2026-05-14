@@ -38,6 +38,9 @@ create table if not exists sessions (
 	screen varchar(20),
 	language varchar(35),
 	country char(2),
+	region varchar(20),
+	city varchar(50),
+	distinct_id varchar(50),
 	created_at timestamptz not null default now()
 );
 
@@ -49,6 +52,9 @@ comment on column sessions.device is '设备类型';
 comment on column sessions.screen is '屏幕尺寸';
 comment on column sessions.language is '浏览器语言';
 comment on column sessions.country is '国家代码';
+comment on column sessions.region is '地区代码';
+comment on column sessions.city is '城市名称';
+comment on column sessions.distinct_id is '访客标识';
 comment on column sessions.created_at is '会话创建时间';
 
 create table if not exists events (
@@ -61,6 +67,7 @@ create table if not exists events (
 	url_path varchar(500) not null,
 	url_query varchar(500),
 	referrer_path varchar(500),
+	referrer_query varchar(500),
 	referrer_domain varchar(500),
 	page_title varchar(500),
 	hostname varchar(100),
@@ -87,6 +94,7 @@ comment on column events.event_name is '自定义事件名称';
 comment on column events.url_path is '页面路径';
 comment on column events.url_query is 'URL 查询参数';
 comment on column events.referrer_path is '来源页面路径';
+comment on column events.referrer_query is '来源页面查询参数';
 comment on column events.referrer_domain is '来源页面域名';
 comment on column events.page_title is '页面标题';
 comment on column events.hostname is '页面主机名';
@@ -110,6 +118,8 @@ create table if not exists event_data (
 	data_key varchar(500) not null,
 	string_value varchar(500),
 	number_value double precision,
+	date_value timestamptz,
+	data_type integer not null,
 	created_at timestamptz not null default now()
 );
 
@@ -119,6 +129,8 @@ comment on column event_data.event_id is '事件 ID';
 comment on column event_data.data_key is '数据键';
 comment on column event_data.string_value is '字符串值';
 comment on column event_data.number_value is '数值';
+comment on column event_data.date_value is '日期值';
+comment on column event_data.data_type is '数据类型';
 comment on column event_data.created_at is '创建时间';
 
 create table if not exists app_sessions (

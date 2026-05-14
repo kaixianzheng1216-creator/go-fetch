@@ -188,6 +188,7 @@ export interface components {
       data?: {
         [key: string]: unknown
       }
+      distinctId?: string
       language?: string
       name?: string
       referrer?: string

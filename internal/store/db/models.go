@@ -39,6 +39,8 @@ type Event struct {
 	UrlQuery pgtype.Text `json:"url_query"`
 	// 来源页面路径
 	ReferrerPath pgtype.Text `json:"referrer_path"`
+	// 来源页面查询参数
+	ReferrerQuery pgtype.Text `json:"referrer_query"`
 	// 来源页面域名
 	ReferrerDomain pgtype.Text `json:"referrer_domain"`
 	// 页面标题
@@ -84,6 +86,10 @@ type EventDatum struct {
 	StringValue pgtype.Text `json:"string_value"`
 	// 数值
 	NumberValue pgtype.Float8 `json:"number_value"`
+	// 日期值
+	DateValue pgtype.Timestamptz `json:"date_value"`
+	// 数据类型
+	DataType int32 `json:"data_type"`
 	// 创建时间
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -105,6 +111,12 @@ type Session struct {
 	Language pgtype.Text `json:"language"`
 	// 国家代码
 	Country pgtype.Text `json:"country"`
+	// 地区代码
+	Region pgtype.Text `json:"region"`
+	// 城市名称
+	City pgtype.Text `json:"city"`
+	// 访客标识
+	DistinctID pgtype.Text `json:"distinct_id"`
 	// 会话创建时间
 	CreatedAt time.Time `json:"created_at"`
 }

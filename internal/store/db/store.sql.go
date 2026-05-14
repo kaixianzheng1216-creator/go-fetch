@@ -190,7 +190,7 @@ func (q *Queries) GetWebsiteForCollection(ctx context.Context, id uuid.UUID) (Ge
 const insertEvent = `-- name: InsertEvent :exec
 insert into events (
 	id, website_id, session_id, visit_id, event_type, event_name, url_path, url_query,
-	referrer_path, referrer_domain, page_title, hostname, utm_source, utm_medium,
+	referrer_path, referrer_query, referrer_domain, page_title, hostname, utm_source, utm_medium,
 	utm_campaign, utm_content, utm_term, browser, os, device, screen, language,
 	country, created_at
 )
@@ -199,12 +199,12 @@ values (
 	$4::uuid, $5, nullif($6::text, ''),
 	$7, nullif($8::text, ''), nullif($9::text, ''),
 	nullif($10::text, ''), nullif($11::text, ''),
-	nullif($12::text, ''), nullif($13::text, ''),
-	nullif($14::text, ''), nullif($15::text, ''),
-	nullif($16::text, ''), nullif($17::text, ''),
-	nullif($18::text, ''), nullif($19::text, ''), nullif($20::text, ''),
-	nullif($21::text, ''), nullif($22::text, ''),
-	nullif($23::text, ''), $24
+	nullif($12::text, ''), nullif($13::text, ''), nullif($14::text, ''),
+	nullif($15::text, ''), nullif($16::text, ''),
+	nullif($17::text, ''), nullif($18::text, ''),
+	nullif($19::text, ''), nullif($20::text, ''), nullif($21::text, ''),
+	nullif($22::text, ''), nullif($23::text, ''),
+	nullif($24::text, ''), $25
 )
 `
 
@@ -218,6 +218,7 @@ type InsertEventParams struct {
 	UrlPath        string    `json:"url_path"`
 	UrlQuery       string    `json:"url_query"`
 	ReferrerPath   string    `json:"referrer_path"`
+	ReferrerQuery  string    `json:"referrer_query"`
 	ReferrerDomain string    `json:"referrer_domain"`
 	PageTitle      string    `json:"page_title"`
 	Hostname       string    `json:"hostname"`
@@ -246,6 +247,7 @@ func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) error 
 		arg.UrlPath,
 		arg.UrlQuery,
 		arg.ReferrerPath,
+		arg.ReferrerQuery,
 		arg.ReferrerDomain,
 		arg.PageTitle,
 		arg.Hostname,
@@ -267,23 +269,25 @@ func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) error 
 
 const insertEventData = `-- name: InsertEventData :exec
 insert into event_data (
-	id, website_id, event_id, data_key, string_value, number_value, created_at
+	id, website_id, event_id, data_key, string_value, number_value, date_value, data_type, created_at
 )
 values (
 	$1::uuid, $2::uuid, $3::uuid,
 	$4, nullif($5::text, ''), $6,
-	$7
+	$7, $8, $9
 )
 `
 
 type InsertEventDataParams struct {
-	ID          uuid.UUID     `json:"id"`
-	WebsiteID   uuid.UUID     `json:"website_id"`
-	EventID     uuid.UUID     `json:"event_id"`
-	DataKey     string        `json:"data_key"`
-	StringValue string        `json:"string_value"`
-	NumberValue pgtype.Float8 `json:"number_value"`
-	CreatedAt   time.Time     `json:"created_at"`
+	ID          uuid.UUID          `json:"id"`
+	WebsiteID   uuid.UUID          `json:"website_id"`
+	EventID     uuid.UUID          `json:"event_id"`
+	DataKey     string             `json:"data_key"`
+	StringValue string             `json:"string_value"`
+	NumberValue pgtype.Float8      `json:"number_value"`
+	DateValue   pgtype.Timestamptz `json:"date_value"`
+	DataType    int32              `json:"data_type"`
+	CreatedAt   time.Time          `json:"created_at"`
 }
 
 func (q *Queries) InsertEventData(ctx context.Context, arg InsertEventDataParams) error {
@@ -294,6 +298,8 @@ func (q *Queries) InsertEventData(ctx context.Context, arg InsertEventDataParams
 		arg.DataKey,
 		arg.StringValue,
 		arg.NumberValue,
+		arg.DateValue,
+		arg.DataType,
 		arg.CreatedAt,
 	)
 	return err
@@ -301,26 +307,31 @@ func (q *Queries) InsertEventData(ctx context.Context, arg InsertEventDataParams
 
 const insertSession = `-- name: InsertSession :exec
 insert into sessions (
-	id, website_id, browser, os, device, screen, language, country, created_at
+	id, website_id, browser, os, device, screen, language, country, region, city, distinct_id, created_at
 )
 values (
 	$1::uuid, $2::uuid, nullif($3::text, ''),
 	nullif($4::text, ''), nullif($5::text, ''), nullif($6::text, ''),
-	nullif($7::text, ''), nullif($8::text, ''), $9
+	nullif($7::text, ''), nullif($8::text, ''),
+	nullif($9::text, ''), nullif($10::text, ''),
+	nullif($11::text, ''), $12
 )
 on conflict (id) do nothing
 `
 
 type InsertSessionParams struct {
-	ID        uuid.UUID `json:"id"`
-	WebsiteID uuid.UUID `json:"website_id"`
-	Browser   string    `json:"browser"`
-	Os        string    `json:"os"`
-	Device    string    `json:"device"`
-	Screen    string    `json:"screen"`
-	Language  string    `json:"language"`
-	Country   string    `json:"country"`
-	CreatedAt time.Time `json:"created_at"`
+	ID         uuid.UUID `json:"id"`
+	WebsiteID  uuid.UUID `json:"website_id"`
+	Browser    string    `json:"browser"`
+	Os         string    `json:"os"`
+	Device     string    `json:"device"`
+	Screen     string    `json:"screen"`
+	Language   string    `json:"language"`
+	Country    string    `json:"country"`
+	Region     string    `json:"region"`
+	City       string    `json:"city"`
+	DistinctID string    `json:"distinct_id"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) error {
@@ -333,6 +344,9 @@ func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) er
 		arg.Screen,
 		arg.Language,
 		arg.Country,
+		arg.Region,
+		arg.City,
+		arg.DistinctID,
 		arg.CreatedAt,
 	)
 	return err

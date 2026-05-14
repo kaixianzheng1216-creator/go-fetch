@@ -26,20 +26,23 @@ const (
 
 	laptopMaxScreenWidth = 1280
 
-	maxEventNameLength = 50
-	maxURLPartLength   = 500
-	maxPageTitleLength = 500
-	maxHostnameLength  = 100
-	maxUTMValueLength  = 255
-	maxScreenLength    = 20
-	maxLanguageLength  = 35
-	maxDataValueLength = 500
+	maxEventNameLength  = 50
+	maxURLPartLength    = 500
+	maxPageTitleLength  = 500
+	maxHostnameLength   = 100
+	maxUTMValueLength   = 255
+	maxScreenLength     = 20
+	maxLanguageLength   = 35
+	maxDistinctIDLength = 50
+	maxDataValueLength  = 500
 )
 
 type FlatData struct {
 	Key         string
 	StringValue string
 	NumberValue *float64
+	DateValue   *time.Time
+	DataType    domain.EventDataType
 }
 
 func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Time) domain.EventInput {
@@ -65,6 +68,7 @@ func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Ti
 		URLPath:        truncate(pathWithHash(pageURL), maxURLPartLength),
 		URLQuery:       truncate(pageURL.RawQuery, maxURLPartLength),
 		ReferrerPath:   truncate(refURL.Path, maxURLPartLength),
+		ReferrerQuery:  truncate(refURL.RawQuery, maxURLPartLength),
 		ReferrerDomain: truncate(trimWWW(refURL.Hostname()), maxURLPartLength),
 		PageTitle:      truncate(payload.Title, maxPageTitleLength),
 		Hostname:       truncate(pageURL.Hostname(), maxHostnameLength),
@@ -78,6 +82,7 @@ func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Ti
 		Device:         device,
 		Screen:         truncate(payload.Screen, maxScreenLength),
 		Language:       truncate(payload.Language, maxLanguageLength),
+		DistinctID:     truncate(payload.DistinctID, maxDistinctIDLength),
 		CreatedAt:      now,
 		Data:           payload.Data,
 	}
@@ -177,20 +182,51 @@ func FlattenData(data map[string]any) []FlatData {
 			}
 		case []any:
 			bytes, _ := json.Marshal(v)
-			result = append(result, FlatData{Key: prefix, StringValue: truncate(string(bytes), maxDataValueLength)})
+			result = append(result, FlatData{
+				Key:         prefix,
+				StringValue: truncate(string(bytes), maxDataValueLength),
+				DataType:    domain.EventDataTypeArray,
+			})
 		case float64:
 			if !math.IsNaN(v) && !math.IsInf(v, 0) {
 				n := v
-				result = append(result, FlatData{Key: prefix, StringValue: fmt.Sprintf("%g", v), NumberValue: &n})
+				result = append(result, FlatData{
+					Key:         prefix,
+					StringValue: fmt.Sprintf("%g", v),
+					NumberValue: &n,
+					DataType:    domain.EventDataTypeNumber,
+				})
 			}
 		case bool:
-			result = append(result, FlatData{Key: prefix, StringValue: strconv.FormatBool(v)})
+			result = append(result, FlatData{
+				Key:         prefix,
+				StringValue: strconv.FormatBool(v),
+				DataType:    domain.EventDataTypeBoolean,
+			})
 		case string:
-			result = append(result, FlatData{Key: prefix, StringValue: truncate(v, maxDataValueLength)})
+			if dateValue, ok := parseDataTime(v); ok {
+				result = append(result, FlatData{
+					Key:         prefix,
+					StringValue: dateValue.UTC().Format(time.RFC3339Nano),
+					DateValue:   &dateValue,
+					DataType:    domain.EventDataTypeDate,
+				})
+				break
+			}
+
+			result = append(result, FlatData{
+				Key:         prefix,
+				StringValue: truncate(v, maxDataValueLength),
+				DataType:    domain.EventDataTypeString,
+			})
 		case nil:
-			result = append(result, FlatData{Key: prefix})
+			result = append(result, FlatData{Key: prefix, DataType: domain.EventDataTypeString})
 		default:
-			result = append(result, FlatData{Key: prefix, StringValue: truncate(fmt.Sprint(v), maxDataValueLength)})
+			result = append(result, FlatData{
+				Key:         prefix,
+				StringValue: truncate(fmt.Sprint(v), maxDataValueLength),
+				DataType:    domain.EventDataTypeString,
+			})
 		}
 	}
 
@@ -199,6 +235,21 @@ func FlattenData(data map[string]any) []FlatData {
 	}
 
 	return result
+}
+
+func parseDataTime(value string) (time.Time, bool) {
+	if !strings.Contains(value, "T") {
+		return time.Time{}, false
+	}
+
+	for _, layout := range []string{time.RFC3339Nano, "2006-01-02T15:04:05.000", "2006-01-02T15:04:05"} {
+		parsed, err := time.Parse(layout, value)
+		if err == nil {
+			return parsed.UTC(), true
+		}
+	}
+
+	return time.Time{}, false
 }
 
 func joinKey(prefix, key string) string {

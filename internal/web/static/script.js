@@ -3,6 +3,7 @@
   if (!currentScript) return;
 
   var website = currentScript.getAttribute("data-website-id");
+  var distinctId = currentScript.getAttribute("data-distinct-id") || "";
   var endpoint = currentScript.getAttribute("data-host-url") || "";
   endpoint = endpoint.replace(/\/$/, "") + "/api/collect";
 
@@ -24,6 +25,7 @@
       title: document.title,
       screen: screenSize,
       language: navigator.language,
+      distinctId: distinctId || undefined,
       name: name || "",
       data: data || undefined,
     };
