@@ -15,33 +15,23 @@ import (
 	"github.com/go-chi/httplog/v3"
 )
 
-const (
-	maxRequestBodyBytes  = 1 << 20
-	sessionCookieName    = "go_fetch_session"
-	sessionUserIDKey     = "user_id"
-	staticAssetCacheRule = "public, max-age=31536000, immutable"
-)
-
 type App struct {
-	secureCookie bool
-	store        *store.Store
-	sessions     *scs.SessionManager
+	store    *store.Store
+	sessions *scs.SessionManager
 }
 
 func New(dataStore *store.Store, secureCookie bool) *App {
 	sessions := scs.New()
+	sessions.Lifetime = 7 * 24 * time.Hour
 	sessions.Store = pgxstore.NewWithConfig(dataStore.Pool(), pgxstore.Config{
 		TableName:       "app_sessions",
 		CleanUpInterval: 5 * time.Minute,
 	})
-	sessions.Lifetime = 7 * 24 * time.Hour
-	sessions.Cookie.Name = sessionCookieName
-	sessions.Cookie.HttpOnly = true
-	sessions.Cookie.Path = "/"
-	sessions.Cookie.SameSite = http.SameSiteLaxMode
+	sessions.Codec = scs.GobCodec{}
+	sessions.Cookie.Name = "go_fetch_session"
 	sessions.Cookie.Secure = secureCookie
 
-	return &App{secureCookie: secureCookie, store: dataStore, sessions: sessions}
+	return &App{store: dataStore, sessions: sessions}
 }
 
 func (a *App) Routes() http.Handler {
@@ -50,7 +40,7 @@ func (a *App) Routes() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(httplog.RequestLogger(slog.Default(), &httplog.Options{Level: slog.LevelInfo, Schema: httplog.SchemaECS}))
 	r.Use(middleware.Recoverer)
-	r.Use(limitRequestBody(maxRequestBodyBytes))
+	r.Use(limitRequestBody(1 << 20))
 	r.Use(middleware.Timeout(30 * time.Second))
 	r.Use(a.sessions.LoadAndSave)
 	r.Use(a.secureHeaders().Handler)
@@ -58,7 +48,7 @@ func (a *App) Routes() http.Handler {
 	api := humachi.New(r, humaConfig())
 	registerAPIRoutes(api, a)
 
-	r.With(middleware.SetHeader("Cache-Control", staticAssetCacheRule)).Get("/assets/*", a.handleFrontendAsset)
+	r.With(middleware.SetHeader("Cache-Control", "public, max-age=31536000, immutable")).Get("/assets/*", a.handleFrontendAsset)
 	r.Get("/script.js", a.handleScript)
 	r.Get("/*", a.handleFrontend)
 	return r
