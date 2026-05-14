@@ -17,20 +17,24 @@ const (
 	requestContextKey contextKey = "request"
 )
 
-func (a *App) currentUser(ctx context.Context) (domain.User, bool) {
+func (a *App) currentUser(ctx context.Context) (domain.User, bool, error) {
 	userID := a.sessions.GetString(ctx, sessionUserIDKey)
 
 	if userID == "" {
-		return domain.User{}, false
+		return domain.User{}, false, nil
 	}
 
 	user, err := a.store.GetUserByID(ctx, userID)
 
 	if err != nil {
-		return domain.User{}, false
+		if isStoreNotFound(err) {
+			return domain.User{}, false, nil
+		}
+
+		return domain.User{}, false, err
 	}
 
-	return user, true
+	return user, true, nil
 }
 
 func withUser(ctx context.Context, user domain.User) context.Context {
@@ -50,7 +54,13 @@ func requestFromContext(ctx context.Context) *http.Request {
 }
 
 func captureRequest(ctx huma.Context, next func(huma.Context)) {
-	r, _ := humachi.Unwrap(ctx)
+	request, _ := humachi.Unwrap(ctx)
 
-	next(huma.WithContext(ctx, context.WithValue(ctx.Context(), requestContextKey, r)))
+	if request == nil {
+		next(ctx)
+
+		return
+	}
+
+	next(huma.WithContext(ctx, context.WithValue(ctx.Context(), requestContextKey, request)))
 }

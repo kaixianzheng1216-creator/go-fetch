@@ -95,7 +95,13 @@ func (a *App) startSession(ctx context.Context, userID string) error {
 
 func (a *App) requireHumaAuth(api huma.API) func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {
-		user, ok := a.currentUser(ctx.Context())
+		user, ok, err := a.currentUser(ctx.Context())
+
+		if err != nil {
+			_ = huma.WriteErr(api, ctx, http.StatusInternalServerError, "加载当前用户失败")
+
+			return
+		}
 
 		if !ok {
 			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "未登录或登录已失效")
