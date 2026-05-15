@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/website"
 	storedb "github.com/kaixianzheng1216-creator/go-fetch/internal/store/db"
 
 	"github.com/google/uuid"
 )
 
-func (s *Store) ListWebsites(ctx context.Context, userID string) ([]domain.Website, error) {
+func (s *Store) ListWebsites(ctx context.Context, userID string) ([]websitedomain.Website, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
 		return nil, fmt.Errorf("解析用户 ID 失败: %w", err)
@@ -21,7 +21,7 @@ func (s *Store) ListWebsites(ctx context.Context, userID string) ([]domain.Websi
 		return nil, fmt.Errorf("查询网站列表失败: %w", err)
 	}
 
-	websites := make([]domain.Website, 0, len(rows))
+	websites := make([]websitedomain.Website, 0, len(rows))
 	for _, row := range rows {
 		websites = append(websites, toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt))
 	}
@@ -29,10 +29,10 @@ func (s *Store) ListWebsites(ctx context.Context, userID string) ([]domain.Websi
 	return websites, nil
 }
 
-func (s *Store) CreateWebsite(ctx context.Context, userID, name, domainName string) (domain.Website, error) {
+func (s *Store) CreateWebsite(ctx context.Context, userID, name, domainName string) (websitedomain.Website, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("解析用户 ID 失败: %w", err)
+		return websitedomain.Website{}, fmt.Errorf("解析用户 ID 失败: %w", err)
 	}
 
 	row, err := s.queries.CreateWebsite(ctx, storedb.CreateWebsiteParams{
@@ -42,40 +42,40 @@ func (s *Store) CreateWebsite(ctx context.Context, userID, name, domainName stri
 		Domain: domainName,
 	})
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("创建网站失败: %w", err)
+		return websitedomain.Website{}, fmt.Errorf("创建网站失败: %w", err)
 	}
 
 	return toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt), nil
 }
 
-func (s *Store) GetWebsite(ctx context.Context, userID, websiteID string) (domain.Website, error) {
+func (s *Store) GetWebsite(ctx context.Context, userID, websiteID string) (websitedomain.Website, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("解析用户 ID 失败: %w", err)
+		return websitedomain.Website{}, fmt.Errorf("解析用户 ID 失败: %w", err)
 	}
 
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("解析网站 ID 失败: %w", err)
+		return websitedomain.Website{}, fmt.Errorf("解析网站 ID 失败: %w", err)
 	}
 
 	row, err := s.queries.GetWebsite(ctx, storedb.GetWebsiteParams{ID: websiteUUID, UserID: userUUID})
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("查询网站失败: %w", mapNotFound(err))
+		return websitedomain.Website{}, fmt.Errorf("查询网站失败: %w", mapNotFound(err))
 	}
 
 	return toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt), nil
 }
 
-func (s *Store) GetWebsiteForCollection(ctx context.Context, websiteID string) (domain.Website, error) {
+func (s *Store) GetWebsiteForCollection(ctx context.Context, websiteID string) (websitedomain.Website, error) {
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("解析网站 ID 失败: %w", err)
+		return websitedomain.Website{}, fmt.Errorf("解析网站 ID 失败: %w", err)
 	}
 
 	row, err := s.queries.GetWebsiteForCollection(ctx, websiteUUID)
 	if err != nil {
-		return domain.Website{}, fmt.Errorf("查询采集网站失败: %w", mapNotFound(err))
+		return websitedomain.Website{}, fmt.Errorf("查询采集网站失败: %w", mapNotFound(err))
 	}
 
 	return toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt), nil

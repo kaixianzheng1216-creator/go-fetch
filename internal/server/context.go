@@ -4,7 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/user"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/session"
 )
 
 type contextKey string
@@ -14,38 +15,42 @@ const (
 	requestContextKey contextKey = "request"
 )
 
-func (a *App) currentUser(ctx context.Context) (domain.User, bool, error) {
-	userID := a.sessions.GetString(ctx, sessionUserIDKey)
+func withUser(ctx context.Context, user userdomain.User) context.Context {
+	return context.WithValue(ctx, userContextKey, user)
+}
+
+func userFromContext(ctx context.Context) userdomain.User {
+	user, _ := ctx.Value(userContextKey).(userdomain.User)
+
+	return user
+}
+
+func withRequest(ctx context.Context, request *http.Request) context.Context {
+	return context.WithValue(ctx, requestContextKey, request)
+}
+
+func requestFromContext(ctx context.Context) *http.Request {
+	request, _ := ctx.Value(requestContextKey).(*http.Request)
+
+	return request
+}
+
+func (a *App) currentUser(ctx context.Context) (userdomain.User, bool, error) {
+	userID := a.sessions.GetString(ctx, session.UserIDKey)
 
 	if userID == "" {
-		return domain.User{}, false, nil
+		return userdomain.User{}, false, nil
 	}
 
 	user, err := a.store.GetUserByID(ctx, userID)
 
 	if err != nil {
 		if isNotFound(err) {
-			return domain.User{}, false, nil
+			return userdomain.User{}, false, nil
 		}
 
-		return domain.User{}, false, err
+		return userdomain.User{}, false, err
 	}
 
 	return user, true, nil
-}
-
-func withUser(ctx context.Context, user domain.User) context.Context {
-	return context.WithValue(ctx, userContextKey, user)
-}
-
-func userFromContext(ctx context.Context) domain.User {
-	user, _ := ctx.Value(userContextKey).(domain.User)
-
-	return user
-}
-
-func requestFromContext(ctx context.Context) *http.Request {
-	r, _ := ctx.Value(requestContextKey).(*http.Request)
-
-	return r
 }

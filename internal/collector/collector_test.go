@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/event"
 )
 
 const testWebsiteID = "11111111-1111-1111-1111-111111111111"
@@ -21,7 +21,7 @@ func eventRequest() *http.Request {
 }
 
 func TestBuildEventInputParsesURLAndUTM(t *testing.T) {
-	payload := domain.CollectPayload{
+	payload := eventdomain.CollectPayload{
 		WebsiteID:  testWebsiteID,
 		URL:        "https://example.com/docs?a=1&utm_source=newsletter&utm_medium=email#intro",
 		Referrer:   "https://google.com/search?q=x",
@@ -40,13 +40,13 @@ func TestBuildEventInputParsesURLAndUTM(t *testing.T) {
 	assertString(t, "ReferrerDomain", input.ReferrerDomain, "google.com")
 	assertString(t, "ReferrerQuery", input.ReferrerQuery, "q=x")
 	assertString(t, "DistinctID", input.DistinctID, "visitor-1")
-	if input.EventType != domain.EventTypePageView {
+	if input.EventType != eventdomain.EventTypePageView {
 		t.Fatalf("EventType = %d", input.EventType)
 	}
 }
 
 func TestBuildEventInputLeavesEmptyReferrerEmpty(t *testing.T) {
-	payload := domain.CollectPayload{
+	payload := eventdomain.CollectPayload{
 		WebsiteID: testWebsiteID,
 		URL:       "https://example.com/docs",
 	}
@@ -58,7 +58,7 @@ func TestBuildEventInputLeavesEmptyReferrerEmpty(t *testing.T) {
 }
 
 func TestBuildEventInputCustomEvent(t *testing.T) {
-	payload := domain.CollectPayload{
+	payload := eventdomain.CollectPayload{
 		WebsiteID: testWebsiteID,
 		URL:       "https://example.com/",
 		Name:      "signup",
@@ -67,7 +67,7 @@ func TestBuildEventInputCustomEvent(t *testing.T) {
 
 	input := BuildEventInput(eventRequest(), payload, testNow)
 
-	if input.EventType != domain.EventTypeCustom {
+	if input.EventType != eventdomain.EventTypeCustom {
 		t.Fatalf("EventType = %d", input.EventType)
 	}
 	assertString(t, "EventName", input.EventName, "signup")
@@ -80,7 +80,7 @@ func TestBuildEventInputCustomEvent(t *testing.T) {
 }
 
 func TestBuildEventInputUsesDistinctIDForSession(t *testing.T) {
-	payload := domain.CollectPayload{
+	payload := eventdomain.CollectPayload{
 		WebsiteID: testWebsiteID,
 		URL:       "https://example.com/",
 	}
@@ -100,7 +100,7 @@ func TestBuildEventInputUsesDistinctIDForSession(t *testing.T) {
 }
 
 func TestBuildEventInputUsesRemoteAddrForFallbackSession(t *testing.T) {
-	payload := domain.CollectPayload{
+	payload := eventdomain.CollectPayload{
 		WebsiteID: testWebsiteID,
 		URL:       "https://example.com/",
 	}

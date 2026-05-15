@@ -1,6 +1,10 @@
-package domain
+package event
 
-import "time"
+import (
+	"time"
+
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain/shared"
+)
 
 const (
 	EventTypePageView EventType = 1
@@ -18,22 +22,6 @@ const (
 )
 
 type EventDataType int
-
-type User struct {
-	ID           string
-	Username     string
-	PasswordHash string
-	CreatedAt    time.Time
-	UpdatedAt    *time.Time
-	DeletedAt    *time.Time
-}
-
-type Website struct {
-	ID        string
-	Name      string
-	Domain    string
-	CreatedAt time.Time
-}
 
 type WebsiteStats struct {
 	Pageviews       int64
@@ -58,7 +46,7 @@ type MetricRow struct {
 }
 
 type CollectPayload struct {
-	WebsiteID  string
+	WebsiteID  shared.ID
 	URL        string
 	Referrer   string
 	Title      string
@@ -70,9 +58,9 @@ type CollectPayload struct {
 }
 
 type EventInput struct {
-	WebsiteID      string
-	SessionID      string
-	VisitID        string
+	WebsiteID      shared.ID
+	SessionID      shared.ID
+	VisitID        shared.ID
 	EventType      EventType
 	EventName      string
 	URLPath        string

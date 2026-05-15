@@ -65,4 +65,4 @@ npm run ui:info
 npm run ui:add -- button card input --overwrite --yes
 ```
 
-开发服务会把 `/api` 和 `/script.js` 代理到 `http://localhost:8080`。生产构建输出到 `../internal/web/dist`，由 Go `embed` 打包进服务端。
+开发服务会把 `/api` 和 `/script.js` 代理到 `http://localhost:8080`。生产构建输出到 `../internal/static/dist`，由 Go `embed` 打包进服务端。

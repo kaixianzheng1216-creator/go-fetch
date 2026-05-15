@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/web"
+	assets "github.com/kaixianzheng1216-creator/go-fetch/internal/static"
 )
 
 const (
@@ -15,13 +15,13 @@ const (
 )
 
 func (a *App) handleFrontendAsset(w http.ResponseWriter, r *http.Request) {
-	http.FileServer(http.FS(web.DistFS())).ServeHTTP(w, r)
+	http.FileServer(http.FS(assets.DistFS())).ServeHTTP(w, r)
 }
 
 func (a *App) handleScript(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", contentTypeJS)
 
-	http.ServeFileFS(w, r, web.StaticFS(), "script.js")
+	http.ServeFileFS(w, r, assets.StaticFS(), "script.js")
 }
 
 func (a *App) handleFrontend(w http.ResponseWriter, r *http.Request) {
@@ -31,13 +31,13 @@ func (a *App) handleFrontend(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case strings.HasPrefix(r.URL.Path, apiPrefix):
-		writeProblemError(w, http.StatusNotFound, "未找到")
+		writeProblemError(w, http.StatusNotFound, "not found")
 		return
 	}
 
-	indexHTML, err := web.IndexHTML()
+	indexHTML, err := assets.IndexHTML()
 	if err != nil {
-		http.Error(w, "前端构建产物不存在", http.StatusInternalServerError)
+		http.Error(w, "frontend build output missing", http.StatusInternalServerError)
 		return
 	}
 

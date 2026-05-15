@@ -132,6 +132,18 @@
         },
         "type": "object"
       },
+      "EventOK": {
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "type": "object"
+      },
       "LoginRequest": {
         "additionalProperties": false,
         "properties": {
@@ -182,18 +194,6 @@
           "name",
           "views",
           "visitors"
-        ],
-        "type": "object"
-      },
-      "OK": {
-        "additionalProperties": false,
-        "properties": {
-          "ok": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "ok"
         ],
         "type": "object"
       },
@@ -254,6 +254,18 @@
         ],
         "type": "object"
       },
+      "UserOK": {
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "type": "object"
+      },
       "Website": {
         "additionalProperties": false,
         "properties": {
@@ -277,6 +289,18 @@
           "name",
           "domain",
           "createdAt"
+        ],
+        "type": "object"
+      },
+      "WebsiteOK": {
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
         ],
         "type": "object"
       },
@@ -369,7 +393,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OK"
+                  "$ref": "#/components/schemas/EventOK"
                 }
               }
             },
@@ -489,7 +513,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OK"
+                  "$ref": "#/components/schemas/UserOK"
                 }
               }
             },
@@ -699,7 +723,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OK"
+                  "$ref": "#/components/schemas/WebsiteOK"
                 }
               }
             },

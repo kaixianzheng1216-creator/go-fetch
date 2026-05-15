@@ -7,9 +7,10 @@ Go analytics service with a React frontend. The backend owns the API, storage, m
 - `cmd/server`: HTTP server entrypoint.
 - `cmd/openapi`: OpenAPI JSON generator.
 - `internal/server`: routes, middleware, DTOs, and frontend serving.
-- `internal/domain`: application types and business rules.
+- `internal/domain`: application types and business rules, split by domain.
 - `internal/store`: PostgreSQL access, sqlc generated code, and migrations.
 - `internal/collector`: request parsing and analytics event construction.
+- `internal/static`: embedded tracking script and production frontend build output.
 - `frontend`: Vite React application. It has its own empty `go.mod` so root-level Go commands do not scan `node_modules`.
 - `api`: generated OpenAPI artifact.
 

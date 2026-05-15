@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/event"
 	storedb "github.com/kaixianzheng1216-creator/go-fetch/internal/store/db"
 
 	"github.com/google/uuid"
 )
 
-func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
+func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("开启保存事件事务失败: %w", err)
@@ -77,7 +77,7 @@ func (s *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 		return fmt.Errorf("写入事件失败: %w", err)
 	}
 
-	for _, item := range domain.FlattenEventData(input.Data) {
+	for _, item := range eventdomain.FlattenEventData(input.Data) {
 		if err := qtx.InsertEventData(ctx, storedb.InsertEventDataParams{
 			ID:          uuid.New(),
 			WebsiteID:   websiteUUID,

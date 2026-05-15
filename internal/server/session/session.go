@@ -1,4 +1,4 @@
-package server
+package session
 
 import (
 	"net/http"
@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	sessionCookieName = "go_fetch_session"
-	sessionUserIDKey  = "user_id"
+	CookieName = "go_fetch_session"
+	UserIDKey  = "user_id"
 )
 
-func newSessionManager(dataStore *store.Store) *scs.SessionManager {
+func NewManager(dataStore *store.Store) *scs.SessionManager {
 	sessions := scs.New()
 
 	sessions.Store = pgxstore.NewWithConfig(dataStore.Pool(), pgxstore.Config{
@@ -23,7 +23,7 @@ func newSessionManager(dataStore *store.Store) *scs.SessionManager {
 		CleanUpInterval: 10 * time.Minute,
 	})
 
-	sessions.Cookie.Name = sessionCookieName
+	sessions.Cookie.Name = CookieName
 	sessions.Cookie.Secure = true
 	sessions.Cookie.HttpOnly = true
 	sessions.Cookie.SameSite = http.SameSiteLaxMode

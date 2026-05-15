@@ -3,9 +3,9 @@ package server
 import (
 	"errors"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/store"
-
 	"github.com/danielgtaylor/huma/v2"
+
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/store"
 )
 
 func isNotFound(err error) bool {
@@ -14,8 +14,8 @@ func isNotFound(err error) bool {
 
 func websiteLookupError(err error) error {
 	if isNotFound(err) {
-		return huma.Error404NotFound("网站不存在")
+		return huma.Error404NotFound("website not found")
 	}
 
-	return huma.Error500InternalServerError("加载网站失败")
+	return huma.Error500InternalServerError("load website failed")
 }

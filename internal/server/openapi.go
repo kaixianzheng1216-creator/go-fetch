@@ -6,17 +6,9 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
-)
 
-func newOperation(method, path, operationID, tag string, statusCodes ...int) huma.Operation {
-	return huma.Operation{
-		Method:      method,
-		Path:        path,
-		OperationID: operationID,
-		Tags:        []string{tag},
-		Errors:      statusCodes,
-	}
-}
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/session"
+)
 
 func OpenAPIJSON() ([]byte, error) {
 	r := chi.NewRouter()
@@ -35,7 +27,7 @@ func humaConfig() huma.Config {
 		"sessionCookie": {
 			Type: "apiKey",
 			In:   "cookie",
-			Name: sessionCookieName,
+			Name: session.CookieName,
 		},
 	}
 	return cfg

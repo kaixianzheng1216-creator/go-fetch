@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/event"
 
 	"github.com/google/uuid"
 	"github.com/mileusna/useragent"
@@ -36,22 +36,22 @@ const (
 	maxDistinctIDLength = 50
 )
 
-func BuildEventInput(r *http.Request, payload domain.CollectPayload, now time.Time) domain.EventInput {
+func BuildEventInput(r *http.Request, payload eventdomain.CollectPayload, now time.Time) eventdomain.EventInput {
 	userAgent := r.UserAgent()
 	ip := clientIP(r)
 	browser, osName, device := parseUserAgent(userAgent, payload.Screen)
 	pageURL := parsePageURL(payload.URL, payload.WebsiteID)
 	referrerURL := parseReferrerURL(payload.Referrer, pageURL)
 	distinctID := truncate(payload.DistinctID, maxDistinctIDLength)
-	eventType := domain.EventTypePageView
+	eventType := eventdomain.EventTypePageView
 	if payload.Name != "" {
-		eventType = domain.EventTypeCustom
+		eventType = eventdomain.EventTypeCustom
 	}
 
 	sessionID := stableUUID(payload.WebsiteID + "|" + visitorIdentity(distinctID, ip, userAgent) + "|" + now.UTC().Format(sessionWindowFormat))
 	visitID := stableUUID(sessionID + "|" + strconv.FormatInt(now.Unix()/visitWindowSeconds, 10))
 
-	return domain.EventInput{
+	return eventdomain.EventInput{
 		WebsiteID:      payload.WebsiteID,
 		SessionID:      sessionID,
 		VisitID:        visitID,

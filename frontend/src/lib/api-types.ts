@@ -212,6 +212,9 @@ export interface components {
        */
       type: string
     }
+    EventOK: {
+      ok: boolean
+    }
     LoginRequest: {
       password: string
       username: string
@@ -225,9 +228,6 @@ export interface components {
       views: number
       /** Format: int64 */
       visitors: number
-    }
-    OK: {
-      ok: boolean
     }
     PageviewPoint: {
       label: string
@@ -249,6 +249,9 @@ export interface components {
       updatedAt?: string
       username: string
     }
+    UserOK: {
+      ok: boolean
+    }
     Website: {
       /** Format: date-time */
       createdAt: string
@@ -256,6 +259,9 @@ export interface components {
       /** Format: uuid */
       id: string
       name: string
+    }
+    WebsiteOK: {
+      ok: boolean
     }
     WebsiteRequest: {
       domain?: string
@@ -303,7 +309,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": components["schemas"]["OK"]
+          "application/json": components["schemas"]["EventOK"]
         }
       }
       /** @description Bad Request */
@@ -410,7 +416,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": components["schemas"]["OK"]
+          "application/json": components["schemas"]["UserOK"]
         }
       }
       /** @description Internal Server Error */
@@ -635,7 +641,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "application/json": components["schemas"]["OK"]
+          "application/json": components["schemas"]["WebsiteOK"]
         }
       }
       /** @description Unauthorized */
