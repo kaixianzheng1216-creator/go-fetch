@@ -16,14 +16,14 @@ type WithRequestFunc func(context.Context, *http.Request) context.Context
 
 func RequireAuth(api huma.API, currentUser CurrentUserFunc, withUser WithUserFunc) func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {
-		user, ok, err := currentUser(ctx.Context())
+		user, isAuthenticated, err := currentUser(ctx.Context())
 
 		if err != nil {
 			_ = huma.WriteErr(api, ctx, http.StatusInternalServerError, "加载当前用户失败")
 			return
 		}
 
-		if !ok {
+		if !isAuthenticated {
 			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "未登录")
 			return
 		}

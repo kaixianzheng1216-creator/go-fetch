@@ -10,13 +10,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) error {
-	tx, err := s.db.Begin(ctx)
+func (store *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) error {
+	transaction, err := store.databasePool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("开启保存事件事务失败: %w", err)
 	}
 	defer func() {
-		_ = tx.Rollback(ctx)
+		_ = transaction.Rollback(ctx)
 	}()
 
 	websiteUUID, err := uuid.Parse(input.WebsiteID)
@@ -34,8 +34,8 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 		return fmt.Errorf("解析访问 ID 失败: %w", err)
 	}
 
-	qtx := s.queries.WithTx(tx)
-	if err := qtx.InsertSession(ctx, storesqlc.InsertSessionParams{
+	transactionQueries := store.queries.WithTx(transaction)
+	if err := transactionQueries.InsertSession(ctx, storesqlc.InsertSessionParams{
 		ID:         sessionID,
 		WebsiteID:  websiteUUID,
 		Browser:    input.Browser,
@@ -53,7 +53,7 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 	}
 
 	eventID := uuid.New()
-	if err := qtx.InsertEvent(ctx, storesqlc.InsertEventParams{
+	if err := transactionQueries.InsertEvent(ctx, storesqlc.InsertEventParams{
 		ID:             eventID,
 		WebsiteID:      websiteUUID,
 		SessionID:      sessionID,
@@ -78,7 +78,7 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 	}
 
 	for _, item := range eventdomain.FlattenEventData(input.Data) {
-		if err := qtx.InsertEventData(ctx, storesqlc.InsertEventDataParams{
+		if err := transactionQueries.InsertEventData(ctx, storesqlc.InsertEventDataParams{
 			ID:          uuid.New(),
 			WebsiteID:   websiteUUID,
 			EventID:     eventID,
@@ -93,7 +93,7 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 		}
 	}
 
-	if err := tx.Commit(ctx); err != nil {
+	if err := transaction.Commit(ctx); err != nil {
 		return fmt.Errorf("提交保存事件事务失败: %w", err)
 	}
 

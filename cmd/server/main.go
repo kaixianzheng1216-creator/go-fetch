@@ -14,43 +14,43 @@ import (
 )
 
 func main() {
-	cfg, err := config.Load()
+	appConfig, err := config.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	ctx := context.Background()
-	if err := run(ctx, cfg); err != nil {
+	if err := run(ctx, appConfig); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(ctx context.Context, cfg config.Config) error {
-	if err := store.Migrate(ctx, cfg.DatabaseURL); err != nil {
+func run(ctx context.Context, appConfig config.Config) error {
+	if err := store.Migrate(ctx, appConfig.DatabaseURL); err != nil {
 		return fmt.Errorf("执行数据库迁移失败: %w", err)
 	}
 
-	db, err := store.Open(ctx, cfg.DatabaseURL)
+	dataStore, err := store.Open(ctx, appConfig.DatabaseURL)
 	if err != nil {
 		return fmt.Errorf("打开数据库连接失败: %w", err)
 	}
-	defer db.Close()
+	defer dataStore.Close()
 
-	if err := db.EnsureAdmin(ctx, cfg.AdminUsername, cfg.AdminPassword); err != nil {
+	if err := dataStore.EnsureAdminUser(ctx, appConfig.AdminUsername, appConfig.AdminPassword); err != nil {
 		return fmt.Errorf("初始化管理员用户失败: %w", err)
 	}
 
-	app := server.New(db)
+	app := server.New(dataStore)
 
-	srv := &http.Server{
-		Addr:         cfg.ListenAddr,
+	httpServer := &http.Server{
+		Addr:         appConfig.ListenAddr,
 		Handler:      app.Routes(),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
-	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("启动 HTTP 服务失败: %w", err)
 	}
 

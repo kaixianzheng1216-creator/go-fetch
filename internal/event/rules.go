@@ -74,14 +74,14 @@ func DateTruncUnit(unit DateUnit) string {
 	return string(ParseDateUnit(string(unit)))
 }
 
-func FormatBucket(t time.Time, unit DateUnit) string {
+func FormatBucket(bucketTime time.Time, unit DateUnit) string {
 	switch ParseDateUnit(string(unit)) {
 	case DateUnitMonth:
-		return t.Format("2006-01")
+		return bucketTime.Format("2006-01")
 	case DateUnitDay:
-		return t.Format("01-02")
+		return bucketTime.Format("01-02")
 	default:
-		return t.Format("15:04")
+		return bucketTime.Format("15:04")
 	}
 }
 
@@ -123,16 +123,16 @@ func MetricTypeValues() []string {
 	}
 }
 
-func (m MetricType) EventType() EventType {
-	if m == MetricTypeEvent {
+func (metricType MetricType) EventType() EventType {
+	if metricType == MetricTypeEvent {
 		return EventTypeCustom
 	}
 
 	return EventTypePageView
 }
 
-func (m MetricType) IsSessionDimension() bool {
-	switch m {
+func (metricType MetricType) IsSessionDimension() bool {
+	switch metricType {
 	case MetricTypeBrowser, MetricTypeOS, MetricTypeDevice, MetricTypeCountry:
 		return true
 	default:

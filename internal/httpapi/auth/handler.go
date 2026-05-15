@@ -50,10 +50,10 @@ type loginRequest struct {
 
 type emptyRequest struct{}
 
-func (h Handler) Login(ctx context.Context, request *loginRequest) (*loginOutput, error) {
-	user, err := h.store.GetUserByUsername(ctx, request.Body.Username)
+func (handler Handler) Login(ctx context.Context, request *loginRequest) (*loginOutput, error) {
+	user, err := handler.store.GetUserByUsername(ctx, request.Body.Username)
 	if err != nil {
-		if h.isNotFound(err) {
+		if handler.isNotFound(err) {
 			return nil, huma.Error401Unauthorized("用户名或密码错误")
 		}
 
@@ -64,7 +64,7 @@ func (h Handler) Login(ctx context.Context, request *loginRequest) (*loginOutput
 		return nil, huma.Error401Unauthorized("用户名或密码错误")
 	}
 
-	if err := h.startSession(ctx, user.ID); err != nil {
+	if err := handler.startUserSession(ctx, user.ID); err != nil {
 		return nil, huma.Error500InternalServerError("创建登录会话失败")
 	}
 
@@ -75,26 +75,26 @@ func (h Handler) Login(ctx context.Context, request *loginRequest) (*loginOutput
 	return newLoginOutput(response), nil
 }
 
-func (h Handler) Logout(ctx context.Context, _ *emptyRequest) (*okOutput, error) {
-	if err := h.sessions.Destroy(ctx); err != nil {
+func (handler Handler) Logout(ctx context.Context, _ *emptyRequest) (*okOutput, error) {
+	if err := handler.sessions.Destroy(ctx); err != nil {
 		return nil, huma.Error500InternalServerError("退出登录失败")
 	}
 
 	return newOKOutput(), nil
 }
 
-func (h Handler) Me(ctx context.Context, _ *emptyRequest) (*userOutput, error) {
-	response := ToUser(h.currentUser(ctx))
+func (handler Handler) CurrentUser(ctx context.Context, _ *emptyRequest) (*userOutput, error) {
+	response := ToUser(handler.currentUser(ctx))
 
 	return newUserOutput(response), nil
 }
 
-func (h Handler) startSession(ctx context.Context, userID string) error {
-	if err := h.sessions.RenewToken(ctx); err != nil {
+func (handler Handler) startUserSession(ctx context.Context, userID string) error {
+	if err := handler.sessions.RenewToken(ctx); err != nil {
 		return fmt.Errorf("刷新会话令牌失败: %w", err)
 	}
 
-	h.sessions.Put(ctx, h.userIDKey, userID)
+	handler.sessions.Put(ctx, handler.userIDKey, userID)
 
 	return nil
 }

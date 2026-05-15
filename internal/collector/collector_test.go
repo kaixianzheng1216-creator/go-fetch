@@ -8,11 +8,11 @@ import (
 	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/event"
 )
 
-func TestBuildEventInput(t *testing.T) {
+func TestBuildEventInput(testRunner *testing.T) {
 	now := time.Date(2026, 5, 15, 9, 30, 0, 0, time.UTC)
 	request, err := http.NewRequest(http.MethodPost, "/api/collect", nil)
 	if err != nil {
-		t.Fatalf("NewRequest() error = %v", err)
+		testRunner.Fatalf("NewRequest() error = %v", err)
 	}
 	request.RemoteAddr = "203.0.113.10:1234"
 	request.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36")
@@ -29,97 +29,97 @@ func TestBuildEventInput(t *testing.T) {
 		Data:       map[string]any{"plan": "pro"},
 	}
 
-	got := BuildEventInput(request, payload, now)
+	actual := BuildEventInput(request, payload, now)
 
-	if got.WebsiteID != payload.WebsiteID {
-		t.Fatalf("WebsiteID = %q, want %q", got.WebsiteID, payload.WebsiteID)
+	if actual.WebsiteID != payload.WebsiteID {
+		testRunner.Fatalf("WebsiteID = %q, want %q", actual.WebsiteID, payload.WebsiteID)
 	}
-	if got.EventType != eventdomain.EventTypeCustom {
-		t.Fatalf("EventType = %d, want %d", got.EventType, eventdomain.EventTypeCustom)
+	if actual.EventType != eventdomain.EventTypeCustom {
+		testRunner.Fatalf("EventType = %d, want %d", actual.EventType, eventdomain.EventTypeCustom)
 	}
-	if got.EventName != "signup" {
-		t.Fatalf("EventName = %q, want signup", got.EventName)
+	if actual.EventName != "signup" {
+		testRunner.Fatalf("EventName = %q, want signup", actual.EventName)
 	}
-	if got.URLPath != "/docs#intro" {
-		t.Fatalf("URLPath = %q, want /docs#intro", got.URLPath)
+	if actual.URLPath != "/docs#intro" {
+		testRunner.Fatalf("URLPath = %q, want /docs#intro", actual.URLPath)
 	}
-	if got.URLQuery != "utm_source=newsletter&utm_medium=email" {
-		t.Fatalf("URLQuery = %q", got.URLQuery)
+	if actual.URLQuery != "utm_source=newsletter&utm_medium=email" {
+		testRunner.Fatalf("URLQuery = %q", actual.URLQuery)
 	}
-	if got.ReferrerPath != "/start" {
-		t.Fatalf("ReferrerPath = %q, want /start", got.ReferrerPath)
+	if actual.ReferrerPath != "/start" {
+		testRunner.Fatalf("ReferrerPath = %q, want /start", actual.ReferrerPath)
 	}
-	if got.ReferrerQuery != "q=1" {
-		t.Fatalf("ReferrerQuery = %q, want q=1", got.ReferrerQuery)
+	if actual.ReferrerQuery != "q=1" {
+		testRunner.Fatalf("ReferrerQuery = %q, want q=1", actual.ReferrerQuery)
 	}
-	if got.ReferrerDomain != "ref.example.com" {
-		t.Fatalf("ReferrerDomain = %q, want ref.example.com", got.ReferrerDomain)
+	if actual.ReferrerDomain != "ref.example.com" {
+		testRunner.Fatalf("ReferrerDomain = %q, want ref.example.com", actual.ReferrerDomain)
 	}
-	if got.Hostname != "www.example.com" {
-		t.Fatalf("Hostname = %q, want www.example.com", got.Hostname)
+	if actual.Hostname != "www.example.com" {
+		testRunner.Fatalf("Hostname = %q, want www.example.com", actual.Hostname)
 	}
-	if got.UTMSource != "newsletter" || got.UTMMedium != "email" {
-		t.Fatalf("UTM fields = (%q, %q), want (newsletter, email)", got.UTMSource, got.UTMMedium)
+	if actual.UTMSource != "newsletter" || actual.UTMMedium != "email" {
+		testRunner.Fatalf("UTM fields = (%q, %q), want (newsletter, email)", actual.UTMSource, actual.UTMMedium)
 	}
-	if got.Device != "laptop" {
-		t.Fatalf("Device = %q, want laptop", got.Device)
+	if actual.Device != "laptop" {
+		testRunner.Fatalf("Device = %q, want laptop", actual.Device)
 	}
-	if got.DistinctID != "user-1" {
-		t.Fatalf("DistinctID = %q, want user-1", got.DistinctID)
+	if actual.DistinctID != "user-1" {
+		testRunner.Fatalf("DistinctID = %q, want user-1", actual.DistinctID)
 	}
-	if !got.CreatedAt.Equal(now) {
-		t.Fatalf("CreatedAt = %s, want %s", got.CreatedAt, now)
+	if !actual.CreatedAt.Equal(now) {
+		testRunner.Fatalf("CreatedAt = %s, want %s", actual.CreatedAt, now)
 	}
-	if got.SessionID == "" || got.VisitID == "" {
-		t.Fatalf("SessionID and VisitID must be populated: %#v", got)
+	if actual.SessionID == "" || actual.VisitID == "" {
+		testRunner.Fatalf("SessionID and VisitID must be populated: %#v", actual)
 	}
 
-	again := BuildEventInput(request, payload, now)
-	if got.SessionID != again.SessionID || got.VisitID != again.VisitID {
-		t.Fatalf("stable ids changed: got (%s, %s), again (%s, %s)", got.SessionID, got.VisitID, again.SessionID, again.VisitID)
+	repeated := BuildEventInput(request, payload, now)
+	if actual.SessionID != repeated.SessionID || actual.VisitID != repeated.VisitID {
+		testRunner.Fatalf("stable ids changed: actual (%s, %s), repeated (%s, %s)", actual.SessionID, actual.VisitID, repeated.SessionID, repeated.VisitID)
 	}
 }
 
-func TestBuildEventInputDefaultsPageview(t *testing.T) {
+func TestBuildEventInputDefaultsPageview(testRunner *testing.T) {
 	now := time.Date(2026, 5, 15, 9, 30, 0, 0, time.UTC)
 	request, err := http.NewRequest(http.MethodPost, "/api/collect", nil)
 	if err != nil {
-		t.Fatalf("NewRequest() error = %v", err)
+		testRunner.Fatalf("NewRequest() error = %v", err)
 	}
 	request.RemoteAddr = "203.0.113.10"
 
-	got := BuildEventInput(request, eventdomain.CollectPayload{
+	actual := BuildEventInput(request, eventdomain.CollectPayload{
 		WebsiteID: "8a7e7a10-7b51-43ef-9e85-874df7dd5f8b",
 		URL:       "not a valid url",
 	}, now)
 
-	if got.EventType != eventdomain.EventTypePageView {
-		t.Fatalf("EventType = %d, want %d", got.EventType, eventdomain.EventTypePageView)
+	if actual.EventType != eventdomain.EventTypePageView {
+		testRunner.Fatalf("EventType = %d, want %d", actual.EventType, eventdomain.EventTypePageView)
 	}
-	if got.URLPath != "/not%20a%20valid%20url" {
-		t.Fatalf("URLPath = %q, want escaped relative path", got.URLPath)
+	if actual.URLPath != "/not%20a%20valid%20url" {
+		testRunner.Fatalf("URLPath = %q, want escaped relative path", actual.URLPath)
 	}
-	if got.Device != "desktop" {
-		t.Fatalf("Device = %q, want desktop", got.Device)
+	if actual.Device != "desktop" {
+		testRunner.Fatalf("Device = %q, want desktop", actual.Device)
 	}
 }
 
-func TestTruncate(t *testing.T) {
+func TestTruncate(testRunner *testing.T) {
 	tests := []struct {
-		name  string
-		value string
-		max   int
-		want  string
+		name     string
+		value    string
+		max      int
+		expected string
 	}{
-		{name: "keeps shorter value", value: "abc", max: 5, want: "abc"},
-		{name: "truncates", value: "abcdef", max: 3, want: "abc"},
-		{name: "empty for non-positive max", value: "abcdef", max: 0, want: ""},
+		{name: "keeps shorter value", value: "abc", max: 5, expected: "abc"},
+		{name: "truncates", value: "abcdef", max: 3, expected: "abc"},
+		{name: "empty for non-positive max", value: "abcdef", max: 0, expected: ""},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := truncate(tt.value, tt.max); got != tt.want {
-				t.Fatalf("truncate(%q, %d) = %q, want %q", tt.value, tt.max, got, tt.want)
+	for _, testCase := range tests {
+		testRunner.Run(testCase.name, func(testRunner *testing.T) {
+			if actual := truncate(testCase.value, testCase.max); actual != testCase.expected {
+				testRunner.Fatalf("truncate(%q, %d) = %q, want %q", testCase.value, testCase.max, actual, testCase.expected)
 			}
 		})
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 )
 
-func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
+func Register(api huma.API, handler Handler, authMiddleware huma.Middlewares) {
 	loginOp := httpapi.NewOperation(
 		http.MethodPost,
 		"/api/login",
@@ -20,7 +20,7 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, loginOp, h.Login)
+	huma.Register(api, loginOp, handler.Login)
 
 	logoutOp := httpapi.NewOperation(
 		http.MethodPost,
@@ -30,7 +30,7 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, logoutOp, h.Logout)
+	huma.Register(api, logoutOp, handler.Logout)
 
 	meOp := httpapi.NewOperation(
 		http.MethodGet,
@@ -40,5 +40,5 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 		http.StatusUnauthorized,
 	)
 
-	huma.Register(api, httpapi.WithAuth(meOp, authMiddleware), h.Me)
+	huma.Register(api, httpapi.WithAuth(meOp, authMiddleware), handler.CurrentUser)
 }

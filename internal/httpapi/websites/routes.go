@@ -8,7 +8,7 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 )
 
-func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
+func Register(api huma.API, handler Handler, authMiddleware huma.Middlewares) {
 	listOp := httpapi.NewOperation(
 		http.MethodGet,
 		"/api/websites",
@@ -18,7 +18,7 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, httpapi.WithAuth(listOp, authMiddleware), h.List)
+	huma.Register(api, httpapi.WithAuth(listOp, authMiddleware), handler.ListWebsites)
 
 	createOp := httpapi.NewOperation(
 		http.MethodPost,
@@ -34,7 +34,7 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 	createOp = httpapi.WithAuth(createOp, authMiddleware)
 	createOp.DefaultStatus = http.StatusCreated
 
-	huma.Register(api, createOp, h.Create)
+	huma.Register(api, createOp, handler.CreateWebsite)
 
 	getOp := httpapi.NewOperation(
 		http.MethodGet,
@@ -46,7 +46,7 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, httpapi.WithAuth(getOp, authMiddleware), h.Get)
+	huma.Register(api, httpapi.WithAuth(getOp, authMiddleware), handler.GetWebsite)
 
 	updateOp := httpapi.NewOperation(
 		http.MethodPatch,
@@ -60,7 +60,7 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, httpapi.WithAuth(updateOp, authMiddleware), h.Update)
+	huma.Register(api, httpapi.WithAuth(updateOp, authMiddleware), handler.UpdateWebsite)
 
 	deleteOp := httpapi.NewOperation(
 		http.MethodDelete,
@@ -72,5 +72,5 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, httpapi.WithAuth(deleteOp, authMiddleware), h.Delete)
+	huma.Register(api, httpapi.WithAuth(deleteOp, authMiddleware), handler.DeleteWebsite)
 }

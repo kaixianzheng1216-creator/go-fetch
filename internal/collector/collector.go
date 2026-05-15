@@ -36,9 +36,9 @@ const (
 	maxDistinctIDLength = 50
 )
 
-func BuildEventInput(r *http.Request, payload eventdomain.CollectPayload, now time.Time) eventdomain.EventInput {
-	userAgent := r.UserAgent()
-	ip := clientIP(r)
+func BuildEventInput(request *http.Request, payload eventdomain.CollectPayload, now time.Time) eventdomain.EventInput {
+	userAgent := request.UserAgent()
+	ip := clientIP(request)
 	browser, osName, device := parseUserAgent(userAgent, payload.Screen)
 	pageURL := parsePageURL(payload.URL, payload.WebsiteID)
 	referrerURL := parseReferrerURL(payload.Referrer, pageURL)
@@ -157,7 +157,7 @@ func parseUserAgent(userAgent, screen string) (browser, osName, device string) {
 		device = "tablet"
 	default:
 		device = "desktop"
-		if width, _, ok := strings.Cut(screen, "x"); ok {
+		if width, _, hasHeight := strings.Cut(screen, "x"); hasHeight {
 			if screenWidth, err := strconv.Atoi(width); err == nil && screenWidth <= laptopMaxScreenWidth {
 				device = "laptop"
 			}
@@ -167,13 +167,13 @@ func parseUserAgent(userAgent, screen string) (browser, osName, device string) {
 	return browser, osName, device
 }
 
-func clientIP(r *http.Request) string {
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
+func clientIP(request *http.Request) string {
+	host, _, err := net.SplitHostPort(request.RemoteAddr)
 	if err == nil {
 		return host
 	}
 
-	return r.RemoteAddr
+	return request.RemoteAddr
 }
 
 func trimWWW(host string) string {
@@ -186,9 +186,9 @@ func truncate(value string, max int) string {
 	}
 
 	count := 0
-	for i := range value {
+	for index := range value {
 		if count == max {
-			return value[:i]
+			return value[:index]
 		}
 
 		count++

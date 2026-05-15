@@ -35,14 +35,14 @@ func requestFromContext(ctx context.Context) *http.Request {
 	return request
 }
 
-func (a *App) currentUser(ctx context.Context) (userdomain.User, bool, error) {
-	userID := a.sessions.GetString(ctx, session.UserIDKey)
+func (app *App) currentUser(ctx context.Context) (userdomain.User, bool, error) {
+	userID := app.sessions.GetString(ctx, session.UserIDKey)
 
 	if userID == "" {
 		return userdomain.User{}, false, nil
 	}
 
-	user, err := a.store.GetUserByID(ctx, userID)
+	user, err := app.store.GetUserByID(ctx, userID)
 
 	if err != nil {
 		if isNotFound(err) {

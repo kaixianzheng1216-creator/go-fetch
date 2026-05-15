@@ -172,41 +172,41 @@ export interface components {
       type?: "event"
     }
     ErrorDetail: {
-      /** @description 错误发生位置，例如 body.items[3].tags 或 path.thing-id。 */
+      /** @description Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id' */
       location?: string
-      /** @description 错误消息。 */
+      /** @description Error message text */
       message?: string
-      /** @description 触发错误的值。 */
+      /** @description The value at the given location */
       value?: unknown
     }
     ErrorModel: {
       /**
-       * @description 本次错误的具体说明。
-       * @example 字段 foo 为必填项。
+       * @description A human-readable explanation specific to this occurrence of the problem.
+       * @example Property foo is required but is missing.
        */
       detail?: string
-      /** @description 字段级错误详情列表。 */
+      /** @description Optional list of individual error details */
       errors?: components["schemas"]["ErrorDetail"][] | null
       /**
        * Format: uri
-       * @description 本次错误实例的标识地址。
+       * @description A URI reference that identifies the specific occurrence of the problem.
        * @example https://example.com/error-log/abc123
        */
       instance?: string
       /**
        * Format: int64
-       * @description HTTP 状态码。
+       * @description HTTP status code
        * @example 400
        */
       status?: number
       /**
-       * @description 错误类型摘要。
-       * @example 请求错误
+       * @description A short, human-readable summary of the problem type. This value should not change between occurrences of the error.
+       * @example Bad Request
        */
       title?: string
       /**
        * Format: uri
-       * @description 错误类型文档地址。
+       * @description A URI reference to human-readable documentation for the error.
        * @default about:blank
        * @example https://example.com/errors/example
        */
@@ -312,7 +312,7 @@ export interface operations {
           "application/json": components["schemas"]["EventOK"]
         }
       }
-      /** @description 请求错误 */
+      /** @description Bad Request */
       400: {
         headers: {
           [name: string]: unknown
@@ -321,7 +321,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 请求参数无法处理 */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown
@@ -330,7 +330,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -363,7 +363,7 @@ export interface operations {
           "application/json": components["schemas"]["LoginResponse"]
         }
       }
-      /** @description 请求错误 */
+      /** @description Bad Request */
       400: {
         headers: {
           [name: string]: unknown
@@ -372,7 +372,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 未授权 */
+      /** @description Unauthorized */
       401: {
         headers: {
           [name: string]: unknown
@@ -381,7 +381,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 请求参数无法处理 */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown
@@ -390,7 +390,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -419,7 +419,7 @@ export interface operations {
           "application/json": components["schemas"]["UserOK"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -448,7 +448,7 @@ export interface operations {
           "application/json": components["schemas"]["User"]
         }
       }
-      /** @description 未授权 */
+      /** @description Unauthorized */
       401: {
         headers: {
           [name: string]: unknown
@@ -457,7 +457,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -486,7 +486,7 @@ export interface operations {
           "application/json": components["schemas"]["Website"][] | null
         }
       }
-      /** @description 未授权 */
+      /** @description Unauthorized */
       401: {
         headers: {
           [name: string]: unknown
@@ -495,7 +495,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -528,7 +528,7 @@ export interface operations {
           "application/json": components["schemas"]["Website"]
         }
       }
-      /** @description 请求错误 */
+      /** @description Bad Request */
       400: {
         headers: {
           [name: string]: unknown
@@ -537,7 +537,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 未授权 */
+      /** @description Unauthorized */
       401: {
         headers: {
           [name: string]: unknown
@@ -546,7 +546,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 请求参数无法处理 */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown
@@ -555,7 +555,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -586,7 +586,7 @@ export interface operations {
           "application/json": components["schemas"]["Website"]
         }
       }
-      /** @description 未授权 */
+      /** @description Unauthorized */
       401: {
         headers: {
           [name: string]: unknown
@@ -595,7 +595,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 未找到 */
+      /** @description Not Found */
       404: {
         headers: {
           [name: string]: unknown
@@ -604,7 +604,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 请求参数无法处理 */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown
@@ -613,7 +613,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -644,7 +644,7 @@ export interface operations {
           "application/json": components["schemas"]["WebsiteOK"]
         }
       }
-      /** @description 未授权 */
+      /** @description Unauthorized */
       401: {
         headers: {
           [name: string]: unknown
@@ -653,7 +653,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 未找到 */
+      /** @description Not Found */
       404: {
         headers: {
           [name: string]: unknown
@@ -662,7 +662,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 请求参数无法处理 */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown
@@ -671,7 +671,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -706,7 +706,7 @@ export interface operations {
           "application/json": components["schemas"]["Website"]
         }
       }
-      /** @description 请求错误 */
+      /** @description Bad Request */
       400: {
         headers: {
           [name: string]: unknown
@@ -715,7 +715,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 未授权 */
+      /** @description Unauthorized */
       401: {
         headers: {
           [name: string]: unknown
@@ -724,7 +724,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 未找到 */
+      /** @description Not Found */
       404: {
         headers: {
           [name: string]: unknown
@@ -733,7 +733,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 请求参数无法处理 */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown
@@ -742,7 +742,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -778,7 +778,7 @@ export interface operations {
           "application/json": components["schemas"]["MetricRow"][] | null
         }
       }
-      /** @description 请求错误 */
+      /** @description Bad Request */
       400: {
         headers: {
           [name: string]: unknown
@@ -787,7 +787,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 未授权 */
+      /** @description Unauthorized */
       401: {
         headers: {
           [name: string]: unknown
@@ -796,7 +796,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 未找到 */
+      /** @description Not Found */
       404: {
         headers: {
           [name: string]: unknown
@@ -805,7 +805,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 请求参数无法处理 */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown
@@ -814,7 +814,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -849,7 +849,7 @@ export interface operations {
           "application/json": components["schemas"]["PageviewPoint"][] | null
         }
       }
-      /** @description 未授权 */
+      /** @description Unauthorized */
       401: {
         headers: {
           [name: string]: unknown
@@ -858,7 +858,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 未找到 */
+      /** @description Not Found */
       404: {
         headers: {
           [name: string]: unknown
@@ -867,7 +867,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 请求参数无法处理 */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown
@@ -876,7 +876,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown
@@ -910,7 +910,7 @@ export interface operations {
           "application/json": components["schemas"]["WebsiteStats"]
         }
       }
-      /** @description 未授权 */
+      /** @description Unauthorized */
       401: {
         headers: {
           [name: string]: unknown
@@ -919,7 +919,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 未找到 */
+      /** @description Not Found */
       404: {
         headers: {
           [name: string]: unknown
@@ -928,7 +928,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 请求参数无法处理 */
+      /** @description Unprocessable Entity */
       422: {
         headers: {
           [name: string]: unknown
@@ -937,7 +937,7 @@ export interface operations {
           "application/problem+json": components["schemas"]["ErrorModel"]
         }
       }
-      /** @description 服务器内部错误 */
+      /** @description Internal Server Error */
       500: {
         headers: {
           [name: string]: unknown

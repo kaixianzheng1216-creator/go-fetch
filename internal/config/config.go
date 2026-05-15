@@ -15,26 +15,27 @@ type Config struct {
 }
 
 func Load() (Config, error) {
-	var cfg Config
-	if err := env.Parse(&cfg); err != nil {
+	var config Config
+
+	if err := env.Parse(&config); err != nil {
 		return Config{}, fmt.Errorf("解析配置失败: %w", err)
 	}
 
-	if strings.TrimSpace(cfg.DatabaseURL) == "" {
+	if strings.TrimSpace(config.DatabaseURL) == "" {
 		return Config{}, fmt.Errorf("DATABASE_URL 不能为空")
 	}
 
-	if strings.TrimSpace(cfg.ListenAddr) == "" {
+	if strings.TrimSpace(config.ListenAddr) == "" {
 		return Config{}, fmt.Errorf("LISTEN_ADDR 不能为空")
 	}
 
-	if strings.TrimSpace(cfg.AdminUsername) == "" {
+	if strings.TrimSpace(config.AdminUsername) == "" {
 		return Config{}, fmt.Errorf("ADMIN_USERNAME 不能为空")
 	}
 
-	if strings.TrimSpace(cfg.AdminPassword) == "" {
+	if strings.TrimSpace(config.AdminPassword) == "" {
 		return Config{}, fmt.Errorf("ADMIN_PASSWORD 不能为空")
 	}
 
-	return cfg, nil
+	return config, nil
 }

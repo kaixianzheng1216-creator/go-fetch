@@ -94,7 +94,7 @@ npm --prefix frontend run api:generate
 - `frontend/src/lib/api-types.ts` 由 `api/openapi.json` 生成。
 - `internal/store/sqlc` 由 `internal/store/query` 和 `internal/store/migrations` 生成。
 
-不要手动编辑生成文件，除非用户明确要求临时修补。优先修改源 schema、路由、查询或生成配置。
+不要手动编辑生成文件。`api/openapi.json` 必须完全来自生成命令，生成结果是什么就保留什么；不要为了文案或格式对它做手工修改，也不要在生成后增加额外的 OpenAPI 后处理。优先修改源 schema、路由、查询或生成配置。
 
 ## 后端约定
 
@@ -137,4 +137,3 @@ npm --prefix frontend run api:generate
 - 前端变更：运行 `npm --prefix frontend run lint` 和 `npm --prefix frontend run build`。
 - API schema 变更：运行 `go generate ./...` 和 `npm --prefix frontend run api:generate`。
 - Store schema 或查询变更：运行 `go generate ./internal/store` 和相关 Go 测试。
-

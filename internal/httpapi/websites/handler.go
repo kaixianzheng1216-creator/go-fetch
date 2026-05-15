@@ -51,8 +51,8 @@ type updateWebsiteRequest struct {
 
 type emptyRequest struct{}
 
-func (h Handler) List(ctx context.Context, _ *emptyRequest) (*listOutput, error) {
-	websites, err := h.store.ListWebsites(ctx, h.currentUser(ctx).ID)
+func (handler Handler) ListWebsites(ctx context.Context, _ *emptyRequest) (*listOutput, error) {
+	websites, err := handler.store.ListWebsites(ctx, handler.currentUser(ctx).ID)
 	if err != nil {
 		return nil, huma.Error500InternalServerError("加载站点列表失败")
 	}
@@ -60,13 +60,13 @@ func (h Handler) List(ctx context.Context, _ *emptyRequest) (*listOutput, error)
 	return newListOutput(ToWebsites(websites)), nil
 }
 
-func (h Handler) Create(ctx context.Context, request *websiteRequest) (*websiteOutput, error) {
+func (handler Handler) CreateWebsite(ctx context.Context, request *websiteRequest) (*websiteOutput, error) {
 	body := normalizeWebsiteRequest(request.Body)
 	if body.Name == "" {
 		return nil, huma.Error400BadRequest("站点名称不能为空")
 	}
 
-	website, err := h.store.CreateWebsite(ctx, h.currentUser(ctx).ID, body.Name, body.Domain)
+	website, err := handler.store.CreateWebsite(ctx, handler.currentUser(ctx).ID, body.Name, body.Domain)
 	if err != nil {
 		return nil, huma.Error500InternalServerError("创建站点失败")
 	}
@@ -74,37 +74,37 @@ func (h Handler) Create(ctx context.Context, request *websiteRequest) (*websiteO
 	return newWebsiteOutput(ToWebsite(website)), nil
 }
 
-func (h Handler) Get(ctx context.Context, request *websiteIDRequest) (*websiteOutput, error) {
-	website, err := h.store.GetWebsite(ctx, h.currentUser(ctx).ID, request.WebsiteID)
+func (handler Handler) GetWebsite(ctx context.Context, request *websiteIDRequest) (*websiteOutput, error) {
+	website, err := handler.store.GetWebsite(ctx, handler.currentUser(ctx).ID, request.WebsiteID)
 	if err != nil {
-		return nil, h.websiteLookupError(err)
+		return nil, handler.websiteLookupError(err)
 	}
 
 	return newWebsiteOutput(ToWebsite(website)), nil
 }
 
-func (h Handler) Update(ctx context.Context, request *updateWebsiteRequest) (*websiteOutput, error) {
+func (handler Handler) UpdateWebsite(ctx context.Context, request *updateWebsiteRequest) (*websiteOutput, error) {
 	body := normalizeWebsiteRequest(request.Body)
 	if body.Name == "" {
 		return nil, huma.Error400BadRequest("站点名称不能为空")
 	}
 
-	user := h.currentUser(ctx)
-	if err := h.store.UpdateWebsite(ctx, user.ID, request.WebsiteID, body.Name, body.Domain); err != nil {
-		return nil, h.websiteLookupError(err)
+	user := handler.currentUser(ctx)
+	if err := handler.store.UpdateWebsite(ctx, user.ID, request.WebsiteID, body.Name, body.Domain); err != nil {
+		return nil, handler.websiteLookupError(err)
 	}
 
-	website, err := h.store.GetWebsite(ctx, user.ID, request.WebsiteID)
+	website, err := handler.store.GetWebsite(ctx, user.ID, request.WebsiteID)
 	if err != nil {
-		return nil, h.websiteLookupError(err)
+		return nil, handler.websiteLookupError(err)
 	}
 
 	return newWebsiteOutput(ToWebsite(website)), nil
 }
 
-func (h Handler) Delete(ctx context.Context, request *websiteIDRequest) (*okOutput, error) {
-	if err := h.store.DeleteWebsite(ctx, h.currentUser(ctx).ID, request.WebsiteID); err != nil {
-		return nil, h.websiteLookupError(err)
+func (handler Handler) DeleteWebsite(ctx context.Context, request *websiteIDRequest) (*okOutput, error) {
+	if err := handler.store.DeleteWebsite(ctx, handler.currentUser(ctx).ID, request.WebsiteID); err != nil {
+		return nil, handler.websiteLookupError(err)
 	}
 
 	return newOKOutput(), nil

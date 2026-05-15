@@ -8,12 +8,12 @@ import (
 	"time"
 )
 
-func TestFlattenEventData(t *testing.T) {
+func TestFlattenEventData(testRunner *testing.T) {
 	createdAt := time.Date(2026, 5, 15, 9, 30, 0, 0, time.UTC)
 	tests := []struct {
-		name string
-		data map[string]any
-		want []FlatEventData
+		name     string
+		data     map[string]any
+		expected []FlatEventData
 	}{
 		{
 			name: "flattens supported values",
@@ -25,7 +25,7 @@ func TestFlattenEventData(t *testing.T) {
 				},
 				"tags": []any{"alpha", "beta"},
 			},
-			want: []FlatEventData{
+			expected: []FlatEventData{
 				{
 					Key:         "createdAt",
 					StringValue: "2026-05-15T09:30:00Z",
@@ -56,52 +56,52 @@ func TestFlattenEventData(t *testing.T) {
 				"inf": math.Inf(1),
 				"nan": math.NaN(),
 			},
-			want: nil,
+			expected: nil,
 		},
 		{
-			name: "stores nil as empty string value",
-			data: map[string]any{"value": nil},
-			want: []FlatEventData{{Key: "value", DataType: EventDataTypeString}},
+			name:     "stores nil as empty string value",
+			data:     map[string]any{"value": nil},
+			expected: []FlatEventData{{Key: "value", DataType: EventDataTypeString}},
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := FlattenEventData(tt.data)
-			sortFlatEventData(got)
-			sortFlatEventData(tt.want)
+	for _, testCase := range tests {
+		testRunner.Run(testCase.name, func(testRunner *testing.T) {
+			actual := FlattenEventData(testCase.data)
+			sortFlatEventData(actual)
+			sortFlatEventData(testCase.expected)
 
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Fatalf("FlattenEventData() = %#v, want %#v", got, tt.want)
+			if !reflect.DeepEqual(actual, testCase.expected) {
+				testRunner.Fatalf("FlattenEventData() = %#v, want %#v", actual, testCase.expected)
 			}
 		})
 	}
 }
 
-func TestTruncateEventDataValue(t *testing.T) {
+func TestTruncateEventDataValue(testRunner *testing.T) {
 	tests := []struct {
-		name  string
-		value string
-		max   int
-		want  string
+		name     string
+		value    string
+		max      int
+		expected string
 	}{
-		{name: "keeps shorter value", value: "abc", max: 5, want: "abc"},
-		{name: "truncates by rune count", value: "abcdef", max: 3, want: "abc"},
-		{name: "empty for non-positive max", value: "abcdef", max: 0, want: ""},
+		{name: "keeps shorter value", value: "abc", max: 5, expected: "abc"},
+		{name: "truncates by rune count", value: "abcdef", max: 3, expected: "abc"},
+		{name: "empty for non-positive max", value: "abcdef", max: 0, expected: ""},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := truncateEventDataValue(tt.value, tt.max); got != tt.want {
-				t.Fatalf("truncateEventDataValue(%q, %d) = %q, want %q", tt.value, tt.max, got, tt.want)
+	for _, testCase := range tests {
+		testRunner.Run(testCase.name, func(testRunner *testing.T) {
+			if actual := truncateEventDataValue(testCase.value, testCase.max); actual != testCase.expected {
+				testRunner.Fatalf("truncateEventDataValue(%q, %d) = %q, want %q", testCase.value, testCase.max, actual, testCase.expected)
 			}
 		})
 	}
 }
 
 func sortFlatEventData(items []FlatEventData) {
-	sort.Slice(items, func(i, j int) bool {
-		return items[i].Key < items[j].Key
+	sort.Slice(items, func(leftIndex, rightIndex int) bool {
+		return items[leftIndex].Key < items[rightIndex].Key
 	})
 }
 

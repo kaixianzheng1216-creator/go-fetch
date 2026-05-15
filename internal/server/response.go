@@ -9,11 +9,11 @@ import (
 
 const contentTypeProblemJSON = "application/problem+json"
 
-func writeProblemError(w http.ResponseWriter, status int, message string) {
-	w.Header().Set("Content-Type", contentTypeProblemJSON)
-	w.WriteHeader(status)
+func writeProblemError(responseWriter http.ResponseWriter, status int, message string) {
+	responseWriter.Header().Set("Content-Type", contentTypeProblemJSON)
+	responseWriter.WriteHeader(status)
 
-	_ = json.NewEncoder(w).Encode(huma.ErrorModel{
+	_ = json.NewEncoder(responseWriter).Encode(huma.ErrorModel{
 		Title:  message,
 		Status: status,
 		Detail: message,

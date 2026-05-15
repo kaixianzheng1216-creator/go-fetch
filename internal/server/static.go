@@ -14,34 +14,34 @@ const (
 	apiPrefix = "/api/"
 )
 
-func (a *App) handleFrontendAsset(w http.ResponseWriter, r *http.Request) {
-	http.FileServer(http.FS(assets.DistFS())).ServeHTTP(w, r)
+func (app *App) handleFrontendAsset(responseWriter http.ResponseWriter, request *http.Request) {
+	http.FileServer(http.FS(assets.DistFS())).ServeHTTP(responseWriter, request)
 }
 
-func (a *App) handleScript(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", contentTypeJS)
+func (app *App) handleScript(responseWriter http.ResponseWriter, request *http.Request) {
+	responseWriter.Header().Set("Content-Type", contentTypeJS)
 
-	http.ServeFileFS(w, r, assets.StaticFS(), "script.js")
+	http.ServeFileFS(responseWriter, request, assets.StaticFS(), "script.js")
 }
 
-func (a *App) handleFrontend(w http.ResponseWriter, r *http.Request) {
+func (app *App) handleFrontend(responseWriter http.ResponseWriter, request *http.Request) {
 	switch {
-	case r.Method != http.MethodGet:
-		http.NotFound(w, r)
+	case request.Method != http.MethodGet:
+		http.NotFound(responseWriter, request)
 		return
 
-	case strings.HasPrefix(r.URL.Path, apiPrefix):
-		writeProblemError(w, http.StatusNotFound, "接口不存在")
+	case strings.HasPrefix(request.URL.Path, apiPrefix):
+		writeProblemError(responseWriter, http.StatusNotFound, "接口不存在")
 		return
 	}
 
 	indexHTML, err := assets.IndexHTML()
 	if err != nil {
-		http.Error(w, "前端构建产物不存在", http.StatusInternalServerError)
+		http.Error(responseWriter, "前端构建产物不存在", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", contentTypeHTML)
+	responseWriter.Header().Set("Content-Type", contentTypeHTML)
 
-	_, _ = w.Write(indexHTML)
+	_, _ = responseWriter.Write(indexHTML)
 }

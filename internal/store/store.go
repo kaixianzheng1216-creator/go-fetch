@@ -10,8 +10,8 @@ import (
 )
 
 type Store struct {
-	db      *pgxpool.Pool
-	queries *storesqlc.Queries
+	databasePool *pgxpool.Pool
+	queries      *storesqlc.Queries
 }
 
 func Open(ctx context.Context, databaseURL string) (*Store, error) {
@@ -30,15 +30,15 @@ func Open(ctx context.Context, databaseURL string) (*Store, error) {
 		return nil, fmt.Errorf("连接数据库失败: %w", err)
 	}
 
-	return &Store{db: pool, queries: storesqlc.New(pool)}, nil
+	return &Store{databasePool: pool, queries: storesqlc.New(pool)}, nil
 }
 
-func (s *Store) Close() {
-	if s.db != nil {
-		s.db.Close()
+func (store *Store) Close() {
+	if store.databasePool != nil {
+		store.databasePool.Close()
 	}
 }
 
-func (s *Store) Pool() *pgxpool.Pool {
-	return s.db
+func (store *Store) Pool() *pgxpool.Pool {
+	return store.databasePool
 }

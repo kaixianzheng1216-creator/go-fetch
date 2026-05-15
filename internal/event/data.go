@@ -24,15 +24,15 @@ func FlattenEventData(data map[string]any) []FlatEventData {
 
 	var walk func(prefix string, value any)
 	walk = func(prefix string, value any) {
-		switch v := value.(type) {
+		switch typedValue := value.(type) {
 		case map[string]any:
-			for key, child := range v {
+			for key, child := range typedValue {
 				walk(joinEventDataKey(prefix, key), child)
 			}
 		case []any:
-			bytes, err := json.Marshal(v)
+			bytes, err := json.Marshal(typedValue)
 			if err != nil {
-				bytes = []byte(fmt.Sprint(v))
+				bytes = []byte(fmt.Sprint(typedValue))
 			}
 			result = append(result, FlatEventData{
 				Key:         prefix,
@@ -40,23 +40,23 @@ func FlattenEventData(data map[string]any) []FlatEventData {
 				DataType:    EventDataTypeArray,
 			})
 		case float64:
-			if !math.IsNaN(v) && !math.IsInf(v, 0) {
-				n := v
+			if !math.IsNaN(typedValue) && !math.IsInf(typedValue, 0) {
+				numberValue := typedValue
 				result = append(result, FlatEventData{
 					Key:         prefix,
-					StringValue: fmt.Sprintf("%g", v),
-					NumberValue: &n,
+					StringValue: fmt.Sprintf("%g", typedValue),
+					NumberValue: &numberValue,
 					DataType:    EventDataTypeNumber,
 				})
 			}
 		case bool:
 			result = append(result, FlatEventData{
 				Key:         prefix,
-				StringValue: strconv.FormatBool(v),
+				StringValue: strconv.FormatBool(typedValue),
 				DataType:    EventDataTypeBoolean,
 			})
 		case string:
-			if dateValue, ok := parseEventDataTime(v); ok {
+			if dateValue, hasDateValue := parseEventDataTime(typedValue); hasDateValue {
 				result = append(result, FlatEventData{
 					Key:         prefix,
 					StringValue: dateValue.UTC().Format(time.RFC3339Nano),
@@ -68,7 +68,7 @@ func FlattenEventData(data map[string]any) []FlatEventData {
 
 			result = append(result, FlatEventData{
 				Key:         prefix,
-				StringValue: truncateEventDataValue(v, maxEventDataValueLength),
+				StringValue: truncateEventDataValue(typedValue, maxEventDataValueLength),
 				DataType:    EventDataTypeString,
 			})
 		case nil:
@@ -76,7 +76,7 @@ func FlattenEventData(data map[string]any) []FlatEventData {
 		default:
 			result = append(result, FlatEventData{
 				Key:         prefix,
-				StringValue: truncateEventDataValue(fmt.Sprint(v), maxEventDataValueLength),
+				StringValue: truncateEventDataValue(fmt.Sprint(typedValue), maxEventDataValueLength),
 				DataType:    EventDataTypeString,
 			})
 		}
@@ -118,9 +118,9 @@ func truncateEventDataValue(value string, max int) string {
 	}
 
 	count := 0
-	for i := range value {
+	for index := range value {
 		if count == max {
-			return value[:i]
+			return value[:index]
 		}
 
 		count++

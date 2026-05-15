@@ -15,8 +15,8 @@ import (
 type Store interface {
 	GetWebsite(ctx context.Context, userID, websiteID string) (websitedomain.Website, error)
 	WebsiteStats(ctx context.Context, websiteID string, start, end time.Time) (eventdomain.WebsiteStats, error)
-	Pageviews(ctx context.Context, websiteID string, start, end time.Time, unit eventdomain.DateUnit) ([]eventdomain.PageviewPoint, error)
-	Metrics(ctx context.Context, websiteID string, start, end time.Time, metric eventdomain.MetricType, limit int) ([]eventdomain.MetricRow, error)
+	WebsitePageviews(ctx context.Context, websiteID string, start, end time.Time, unit eventdomain.DateUnit) ([]eventdomain.PageviewPoint, error)
+	WebsiteMetrics(ctx context.Context, websiteID string, start, end time.Time, metric eventdomain.MetricType, limit int) ([]eventdomain.MetricRow, error)
 }
 
 type Handler struct {
@@ -58,13 +58,13 @@ type metricsRequest struct {
 	Limit     MetricLimit     `query:"limit"`
 }
 
-func (h Handler) Stats(ctx context.Context, request *statsRequest) (*statsOutput, error) {
-	if err := h.requireWebsiteAccess(ctx, request.WebsiteID); err != nil {
+func (handler Handler) GetWebsiteStats(ctx context.Context, request *statsRequest) (*statsOutput, error) {
+	if err := handler.requireWebsiteAccess(ctx, request.WebsiteID); err != nil {
 		return nil, err
 	}
 
 	start, end, _ := eventdomain.DateRange(OptionalTimeParam(request.StartAt), OptionalTimeParam(request.EndAt), "")
-	stats, err := h.store.WebsiteStats(ctx, request.WebsiteID, start, end)
+	stats, err := handler.store.WebsiteStats(ctx, request.WebsiteID, start, end)
 	if err != nil {
 		return nil, huma.Error500InternalServerError("加载统计数据失败")
 	}
@@ -72,13 +72,13 @@ func (h Handler) Stats(ctx context.Context, request *statsRequest) (*statsOutput
 	return newStatsOutput(ToWebsiteStats(stats)), nil
 }
 
-func (h Handler) Pageviews(ctx context.Context, request *pageviewsRequest) (*pageviewsOutput, error) {
-	if err := h.requireWebsiteAccess(ctx, request.WebsiteID); err != nil {
+func (handler Handler) GetWebsitePageviews(ctx context.Context, request *pageviewsRequest) (*pageviewsOutput, error) {
+	if err := handler.requireWebsiteAccess(ctx, request.WebsiteID); err != nil {
 		return nil, err
 	}
 
 	start, end, unit := eventdomain.DateRange(OptionalTimeParam(request.StartAt), OptionalTimeParam(request.EndAt), string(request.Unit))
-	points, err := h.store.Pageviews(ctx, request.WebsiteID, start, end, unit)
+	points, err := handler.store.WebsitePageviews(ctx, request.WebsiteID, start, end, unit)
 	if err != nil {
 		return nil, huma.Error500InternalServerError("加载页面浏览量失败")
 	}
@@ -86,14 +86,14 @@ func (h Handler) Pageviews(ctx context.Context, request *pageviewsRequest) (*pag
 	return newPageviewsOutput(ToPageviewPoints(points)), nil
 }
 
-func (h Handler) Metrics(ctx context.Context, request *metricsRequest) (*metricsOutput, error) {
-	if err := h.requireWebsiteAccess(ctx, request.WebsiteID); err != nil {
+func (handler Handler) GetWebsiteMetrics(ctx context.Context, request *metricsRequest) (*metricsOutput, error) {
+	if err := handler.requireWebsiteAccess(ctx, request.WebsiteID); err != nil {
 		return nil, err
 	}
 
 	start, end, _ := eventdomain.DateRange(OptionalTimeParam(request.StartAt), OptionalTimeParam(request.EndAt), "")
-	metric, ok := eventdomain.ParseMetricType(string(request.Type))
-	if !ok {
+	metric, isSupportedMetricType := eventdomain.ParseMetricType(string(request.Type))
+	if !isSupportedMetricType {
 		return nil, huma.Error400BadRequest(eventdomain.ErrUnsupportedMetricType.Error())
 	}
 
@@ -102,7 +102,7 @@ func (h Handler) Metrics(ctx context.Context, request *metricsRequest) (*metrics
 		limit = eventdomain.DefaultMetricLimit
 	}
 
-	rows, err := h.store.Metrics(ctx, request.WebsiteID, start, end, metric, limit)
+	rows, err := handler.store.WebsiteMetrics(ctx, request.WebsiteID, start, end, metric, limit)
 	if err != nil {
 		if errors.Is(err, eventdomain.ErrUnsupportedMetricType) {
 			return nil, huma.Error400BadRequest(err.Error())
@@ -114,9 +114,9 @@ func (h Handler) Metrics(ctx context.Context, request *metricsRequest) (*metrics
 	return newMetricsOutput(ToMetricRows(rows)), nil
 }
 
-func (h Handler) requireWebsiteAccess(ctx context.Context, websiteID string) error {
-	if _, err := h.store.GetWebsite(ctx, h.currentUser(ctx).ID, websiteID); err != nil {
-		return h.websiteLookupError(err)
+func (handler Handler) requireWebsiteAccess(ctx context.Context, websiteID string) error {
+	if _, err := handler.store.GetWebsite(ctx, handler.currentUser(ctx).ID, websiteID); err != nil {
+		return handler.websiteLookupError(err)
 	}
 	return nil
 }

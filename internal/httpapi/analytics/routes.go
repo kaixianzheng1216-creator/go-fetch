@@ -8,7 +8,7 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 )
 
-func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
+func Register(api huma.API, handler Handler, authMiddleware huma.Middlewares) {
 	statsOp := httpapi.NewOperation(
 		http.MethodGet,
 		"/api/websites/{websiteID}/stats",
@@ -19,7 +19,7 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, httpapi.WithAuth(statsOp, authMiddleware), h.Stats)
+	huma.Register(api, httpapi.WithAuth(statsOp, authMiddleware), handler.GetWebsiteStats)
 
 	pageviewsOp := httpapi.NewOperation(
 		http.MethodGet,
@@ -31,7 +31,7 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, httpapi.WithAuth(pageviewsOp, authMiddleware), h.Pageviews)
+	huma.Register(api, httpapi.WithAuth(pageviewsOp, authMiddleware), handler.GetWebsitePageviews)
 
 	metricsOp := httpapi.NewOperation(
 		http.MethodGet,
@@ -44,5 +44,5 @@ func Register(api huma.API, h Handler, authMiddleware huma.Middlewares) {
 		http.StatusInternalServerError,
 	)
 
-	huma.Register(api, httpapi.WithAuth(metricsOp, authMiddleware), h.Metrics)
+	huma.Register(api, httpapi.WithAuth(metricsOp, authMiddleware), handler.GetWebsiteMetrics)
 }

@@ -11,13 +11,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Store) WebsiteStats(ctx context.Context, websiteID string, start, end time.Time) (eventdomain.WebsiteStats, error) {
+func (store *Store) WebsiteStats(ctx context.Context, websiteID string, start, end time.Time) (eventdomain.WebsiteStats, error) {
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
 		return eventdomain.WebsiteStats{}, fmt.Errorf("解析站点 ID 失败: %w", err)
 	}
 
-	row, err := s.queries.WebsiteStats(ctx, storesqlc.WebsiteStatsParams{
+	row, err := store.queries.WebsiteStats(ctx, storesqlc.WebsiteStatsParams{
 		WebsiteID:         websiteUUID,
 		StartAt:           start,
 		EndAt:             end,
@@ -42,13 +42,13 @@ func (s *Store) WebsiteStats(ctx context.Context, websiteID string, start, end t
 	return stats, nil
 }
 
-func (s *Store) Pageviews(ctx context.Context, websiteID string, start, end time.Time, unit eventdomain.DateUnit) ([]eventdomain.PageviewPoint, error) {
+func (store *Store) WebsitePageviews(ctx context.Context, websiteID string, start, end time.Time, unit eventdomain.DateUnit) ([]eventdomain.PageviewPoint, error) {
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
 		return nil, fmt.Errorf("解析站点 ID 失败: %w", err)
 	}
 
-	rows, err := s.queries.Pageviews(ctx, storesqlc.PageviewsParams{
+	rows, err := store.queries.Pageviews(ctx, storesqlc.PageviewsParams{
 		Bucket:            eventdomain.DateTruncUnit(unit),
 		WebsiteID:         websiteUUID,
 		StartAt:           start,
@@ -73,8 +73,8 @@ func (s *Store) Pageviews(ctx context.Context, websiteID string, start, end time
 	return points, nil
 }
 
-func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.Time, metric eventdomain.MetricType, limit int) ([]eventdomain.MetricRow, error) {
-	if _, ok := eventdomain.ParseMetricType(string(metric)); !ok {
+func (store *Store) WebsiteMetrics(ctx context.Context, websiteID string, start, end time.Time, metric eventdomain.MetricType, limit int) ([]eventdomain.MetricRow, error) {
+	if _, isSupportedMetricType := eventdomain.ParseMetricType(string(metric)); !isSupportedMetricType {
 		return nil, eventdomain.ErrUnsupportedMetricType
 	}
 
@@ -85,7 +85,7 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 	}
 
 	if metric.IsSessionDimension() {
-		rows, err := s.queries.SessionMetrics(ctx, storesqlc.SessionMetricsParams{
+		rows, err := store.queries.SessionMetrics(ctx, storesqlc.SessionMetricsParams{
 			Metric:     string(metric),
 			WebsiteID:  websiteUUID,
 			StartAt:    start,
@@ -109,7 +109,7 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 		return metrics, nil
 	}
 
-	rows, err := s.queries.EventMetrics(ctx, storesqlc.EventMetricsParams{
+	rows, err := store.queries.EventMetrics(ctx, storesqlc.EventMetricsParams{
 		Metric:     string(metric),
 		WebsiteID:  websiteUUID,
 		StartAt:    start,

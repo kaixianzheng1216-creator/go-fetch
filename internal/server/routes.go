@@ -15,19 +15,22 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
-func (a *App) Routes() http.Handler {
-	r := chi.NewRouter()
+func (app *App) Routes() http.Handler {
+	router := chi.NewRouter()
 
-	middleware.UseHTTP(r, a.sessions)
+	middleware.UseHTTP(router, app.sessions)
 
-	api := humachi.New(r, humaConfig())
-	registerAPIRoutes(api, a)
+	api := humachi.New(router, humaConfig())
 
-	r.Get("/assets/*", a.handleFrontendAsset)
-	r.Get("/script.js", a.handleScript)
-	r.Get("/*", a.handleFrontend)
+	registerAPIRoutes(api, app)
 
-	return r
+	router.Get("/assets/*", app.handleFrontendAsset)
+
+	router.Get("/script.js", app.handleScript)
+
+	router.Get("/*", app.handleFrontend)
+
+	return router
 }
 
 func registerAPIRoutes(api huma.API, app *App) {

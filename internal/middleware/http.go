@@ -10,11 +10,11 @@ import (
 
 const httpRequestTimeout = 30 * time.Second
 
-func UseHTTP(r chi.Router, sessions *scs.SessionManager) {
-	r.Use(chimiddleware.RequestID)
-	r.Use(chimiddleware.RealIP)
-	r.Use(chimiddleware.Logger)
-	r.Use(chimiddleware.Recoverer)
-	r.Use(chimiddleware.Timeout(httpRequestTimeout))
-	r.Use(sessions.LoadAndSave)
+func UseHTTP(router chi.Router, sessionManager *scs.SessionManager) {
+	router.Use(chimiddleware.RequestID)
+	router.Use(chimiddleware.RealIP)
+	router.Use(chimiddleware.Logger)
+	router.Use(chimiddleware.Recoverer)
+	router.Use(chimiddleware.Timeout(httpRequestTimeout))
+	router.Use(sessionManager.LoadAndSave)
 }
