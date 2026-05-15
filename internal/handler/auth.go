@@ -7,7 +7,9 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/model"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	requestdto "github.com/kaixianzheng1216-creator/go-fetch/internal/dto/request"
+	responsedto "github.com/kaixianzheng1216-creator/go-fetch/internal/dto/response"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 )
 
@@ -21,23 +23,23 @@ type AuthHandler struct {
 	auth        service.Auth
 	sessions    Sessions
 	userIDKey   string
-	currentUser func(context.Context) model.User
+	currentUser func(context.Context) domain.User
 }
 
 func NewAuth(
 	auth service.Auth,
 	sessions Sessions,
 	userIDKey string,
-	currentUser func(context.Context) model.User,
+	currentUser func(context.Context) domain.User,
 ) AuthHandler {
 	return AuthHandler{auth: auth, sessions: sessions, userIDKey: userIDKey, currentUser: currentUser}
 }
 
 type loginRequest struct {
-	Body LoginRequest
+	Body requestdto.LoginRequest
 }
 
-func (handler AuthHandler) Login(ctx context.Context, input *loginRequest) (*LoginOutput, error) {
+func (handler AuthHandler) Login(ctx context.Context, input *loginRequest) (*responsedto.LoginOutput, error) {
 	user, err := handler.auth.Login(ctx, input.Body.Username, input.Body.Password)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
@@ -50,19 +52,19 @@ func (handler AuthHandler) Login(ctx context.Context, input *loginRequest) (*Log
 		return nil, huma.Error500InternalServerError("创建登录会话失败")
 	}
 
-	return NewLoginOutput(LoginResponse{User: ToUser(user)}), nil
+	return responsedto.NewLoginOutput(responsedto.LoginResponse{User: responsedto.ToUser(user)}), nil
 }
 
-func (handler AuthHandler) Logout(ctx context.Context, _ *emptyRequest) (*OKOutput, error) {
+func (handler AuthHandler) Logout(ctx context.Context, _ *requestdto.Empty) (*responsedto.OKOutput, error) {
 	if err := handler.sessions.Destroy(ctx); err != nil {
 		return nil, huma.Error500InternalServerError("退出登录失败")
 	}
 
-	return NewOKOutput(), nil
+	return responsedto.NewOKOutput(), nil
 }
 
-func (handler AuthHandler) CurrentUser(ctx context.Context, _ *emptyRequest) (*UserOutput, error) {
-	return NewUserOutput(ToUser(handler.currentUser(ctx))), nil
+func (handler AuthHandler) CurrentUser(ctx context.Context, _ *requestdto.Empty) (*responsedto.UserOutput, error) {
+	return responsedto.NewUserOutput(responsedto.ToUser(handler.currentUser(ctx))), nil
 }
 
 func (handler AuthHandler) startUserSession(ctx context.Context, userID string) error {

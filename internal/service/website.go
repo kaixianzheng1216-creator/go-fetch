@@ -5,51 +5,44 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/model"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/repository"
 )
 
 var ErrInvalidWebsiteName = errors.New("website name cannot be empty")
 
-type WebsiteStore interface {
-	ListWebsites(ctx context.Context, userID string) ([]model.Website, error)
-	CreateWebsite(ctx context.Context, userID, name, domainName string) (model.Website, error)
-	GetWebsite(ctx context.Context, userID, websiteID string) (model.Website, error)
-	UpdateWebsite(ctx context.Context, userID, websiteID, name, domainName string) error
-	DeleteWebsite(ctx context.Context, userID, websiteID string) error
-}
-
 type Website struct {
-	store WebsiteStore
+	store repository.WebsiteRepository
 }
 
-func NewWebsite(store WebsiteStore) Website {
+func NewWebsite(store repository.WebsiteRepository) Website {
 	return Website{store: store}
 }
 
-func (service Website) List(ctx context.Context, userID string) ([]model.Website, error) {
+func (service Website) List(ctx context.Context, userID string) ([]domain.Website, error) {
 	return service.store.ListWebsites(ctx, userID)
 }
 
-func (service Website) Create(ctx context.Context, userID, name, domain string) (model.Website, error) {
-	name, domain = normalizeWebsiteInput(name, domain)
+func (service Website) Create(ctx context.Context, userID, name, domainName string) (domain.Website, error) {
+	name, domainName = normalizeWebsiteInput(name, domainName)
 	if name == "" {
-		return model.Website{}, ErrInvalidWebsiteName
+		return domain.Website{}, ErrInvalidWebsiteName
 	}
-	return service.store.CreateWebsite(ctx, userID, name, domain)
+	return service.store.CreateWebsite(ctx, userID, name, domainName)
 }
 
-func (service Website) Get(ctx context.Context, userID, websiteID string) (model.Website, error) {
+func (service Website) Get(ctx context.Context, userID, websiteID string) (domain.Website, error) {
 	return service.store.GetWebsite(ctx, userID, websiteID)
 }
 
-func (service Website) Update(ctx context.Context, userID, websiteID, name, domain string) (model.Website, error) {
-	name, domain = normalizeWebsiteInput(name, domain)
+func (service Website) Update(ctx context.Context, userID, websiteID, name, domainName string) (domain.Website, error) {
+	name, domainName = normalizeWebsiteInput(name, domainName)
 	if name == "" {
-		return model.Website{}, ErrInvalidWebsiteName
+		return domain.Website{}, ErrInvalidWebsiteName
 	}
 
-	if err := service.store.UpdateWebsite(ctx, userID, websiteID, name, domain); err != nil {
-		return model.Website{}, err
+	if err := service.store.UpdateWebsite(ctx, userID, websiteID, name, domainName); err != nil {
+		return domain.Website{}, err
 	}
 	return service.store.GetWebsite(ctx, userID, websiteID)
 }

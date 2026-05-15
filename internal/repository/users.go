@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/model"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	storesqlc "github.com/kaixianzheng1216-creator/go-fetch/internal/repository/sqlc"
 )
 
@@ -36,24 +36,24 @@ func (store *Store) EnsureAdminUser(ctx context.Context, username, password stri
 	return nil
 }
 
-func (store *Store) GetUserByUsername(ctx context.Context, username string) (model.User, error) {
+func (store *Store) GetUserByUsername(ctx context.Context, username string) (domain.User, error) {
 	row, err := store.queries.GetUserByUsername(ctx, username)
 	if err != nil {
-		return model.User{}, fmt.Errorf("get user by username: %w", mapNotFound(err))
+		return domain.User{}, fmt.Errorf("get user by username: %w", mapNotFound(err))
 	}
 
 	return toUser(row.ID, row.Username, row.PasswordHash, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil
 }
 
-func (store *Store) GetUserByID(ctx context.Context, userID string) (model.User, error) {
+func (store *Store) GetUserByID(ctx context.Context, userID string) (domain.User, error) {
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
-		return model.User{}, fmt.Errorf("parse user ID: %w", err)
+		return domain.User{}, fmt.Errorf("parse user ID: %w", err)
 	}
 
 	row, err := store.queries.GetUserByID(ctx, userUUID)
 	if err != nil {
-		return model.User{}, fmt.Errorf("get user by ID: %w", mapNotFound(err))
+		return domain.User{}, fmt.Errorf("get user by ID: %w", mapNotFound(err))
 	}
 
 	return toUser(row.ID, row.Username, row.PasswordHash, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil

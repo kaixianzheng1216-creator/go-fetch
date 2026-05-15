@@ -6,14 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/server"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/router"
 )
 
 func main() {
 	outputPath := flag.String("out", "api/openapi.json", "output OpenAPI JSON file")
 	flag.Parse()
 
-	openAPIJSON, err := server.OpenAPIJSON()
+	openAPIJSON, err := router.OpenAPIJSON()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "generate OpenAPI: %v\n", err)
 		os.Exit(1)

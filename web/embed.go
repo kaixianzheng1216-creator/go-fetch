@@ -5,7 +5,7 @@ import (
 	"io/fs"
 )
 
-//go:embed dist tracker/script.js
+//go:embed dist static/tracker.js
 var assets embed.FS
 
 var dashboardFS = mustSubFS("dist")
@@ -27,5 +27,5 @@ func IndexHTML() ([]byte, error) {
 }
 
 func TrackerScript() ([]byte, error) {
-	return assets.ReadFile("tracker/script.js")
+	return assets.ReadFile("static/tracker.js")
 }

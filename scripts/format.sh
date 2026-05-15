@@ -3,7 +3,7 @@ set -eu
 
 root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
 dashboard="$root/web/dashboard"
-tracking_script="$root/web/tracker/script.js"
+tracking_script="$root/web/static/tracker.js"
 
 go_files="$(go list -f '{{range .GoFiles}}{{$.Dir}}/{{.}}{{println}}{{end}}{{range .TestGoFiles}}{{$.Dir}}/{{.}}{{println}}{{end}}' ./...)"
 if [ -n "$go_files" ]; then

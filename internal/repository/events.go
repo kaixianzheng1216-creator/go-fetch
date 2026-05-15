@@ -6,11 +6,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/model"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	storesqlc "github.com/kaixianzheng1216-creator/go-fetch/internal/repository/sqlc"
 )
 
-func (store *Store) SaveEvent(ctx context.Context, input model.EventInput) error {
+func (store *Store) SaveEvent(ctx context.Context, input domain.EventInput) error {
 	transaction, err := store.databasePool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("begin save event transaction: %w", err)
@@ -75,7 +75,7 @@ func (store *Store) SaveEvent(ctx context.Context, input model.EventInput) error
 		return fmt.Errorf("insert event: %w", err)
 	}
 
-	for _, item := range model.FlattenEventData(input.Data) {
+	for _, item := range domain.FlattenEventData(input.Data) {
 		if err := transactionQueries.InsertEventData(ctx, storesqlc.InsertEventDataParams{
 			ID:          uuid.New(),
 			WebsiteID:   websiteUUID,

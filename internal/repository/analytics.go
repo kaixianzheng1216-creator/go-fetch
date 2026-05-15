@@ -7,27 +7,27 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/model"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	storesqlc "github.com/kaixianzheng1216-creator/go-fetch/internal/repository/sqlc"
 )
 
-func (store *Store) WebsiteStats(ctx context.Context, websiteID string, start, end time.Time) (model.WebsiteStats, error) {
+func (store *Store) WebsiteStats(ctx context.Context, websiteID string, start, end time.Time) (domain.WebsiteStats, error) {
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
-		return model.WebsiteStats{}, fmt.Errorf("parse website ID: %w", err)
+		return domain.WebsiteStats{}, fmt.Errorf("parse website ID: %w", err)
 	}
 
 	row, err := store.queries.WebsiteStats(ctx, storesqlc.WebsiteStatsParams{
 		WebsiteID:         websiteUUID,
 		StartAt:           start,
 		EndAt:             end,
-		PageviewEventType: int32(model.EventTypePageView),
+		PageviewEventType: int32(domain.EventTypePageView),
 	})
 	if err != nil {
-		return model.WebsiteStats{}, fmt.Errorf("load website stats: %w", err)
+		return domain.WebsiteStats{}, fmt.Errorf("load website stats: %w", err)
 	}
 
-	stats := model.WebsiteStats{
+	stats := domain.WebsiteStats{
 		Pageviews: row.Pageviews,
 		Visitors:  row.Visitors,
 		Visits:    row.Visits,
@@ -41,43 +41,43 @@ func (store *Store) WebsiteStats(ctx context.Context, websiteID string, start, e
 	return stats, nil
 }
 
-func (store *Store) WebsitePageviews(ctx context.Context, websiteID string, start, end time.Time, unit model.DateUnit) ([]model.PageviewPoint, error) {
+func (store *Store) WebsitePageviews(ctx context.Context, websiteID string, start, end time.Time, unit domain.DateUnit) ([]domain.PageviewPoint, error) {
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
 		return nil, fmt.Errorf("parse website ID: %w", err)
 	}
 
 	rows, err := store.queries.Pageviews(ctx, storesqlc.PageviewsParams{
-		Bucket:            model.DateTruncUnit(unit),
+		Bucket:            domain.DateTruncUnit(unit),
 		WebsiteID:         websiteUUID,
 		StartAt:           start,
 		EndAt:             end,
-		PageviewEventType: int32(model.EventTypePageView),
+		PageviewEventType: int32(domain.EventTypePageView),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("load pageviews: %w", err)
 	}
 
-	points := make([]model.PageviewPoint, 0, len(rows))
+	points := make([]domain.PageviewPoint, 0, len(rows))
 	for _, row := range rows {
-		point := model.PageviewPoint{
+		point := domain.PageviewPoint{
 			Time:     row.Time,
 			Views:    row.Views,
 			Visitors: row.Visitors,
 		}
-		point.Label = model.FormatBucket(point.Time, unit)
+		point.Label = domain.FormatBucket(point.Time, unit)
 		points = append(points, point)
 	}
 
 	return points, nil
 }
 
-func (store *Store) WebsiteMetrics(ctx context.Context, websiteID string, start, end time.Time, metric model.MetricType, limit int) ([]model.MetricRow, error) {
-	if _, isSupportedMetricType := model.ParseMetricType(string(metric)); !isSupportedMetricType {
-		return nil, model.ErrUnsupportedMetricType
+func (store *Store) WebsiteMetrics(ctx context.Context, websiteID string, start, end time.Time, metric domain.MetricType, limit int) ([]domain.MetricRow, error) {
+	if _, isSupportedMetricType := domain.ParseMetricType(string(metric)); !isSupportedMetricType {
+		return nil, domain.ErrUnsupportedMetricType
 	}
 
-	limit = model.NormalizeMetricLimit(limit)
+	limit = domain.NormalizeMetricLimit(limit)
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
 		return nil, fmt.Errorf("parse website ID: %w", err)
@@ -96,9 +96,9 @@ func (store *Store) WebsiteMetrics(ctx context.Context, websiteID string, start,
 			return nil, fmt.Errorf("load session metrics: %w", err)
 		}
 
-		metrics := make([]model.MetricRow, 0, len(rows))
+		metrics := make([]domain.MetricRow, 0, len(rows))
 		for _, row := range rows {
-			metrics = append(metrics, model.MetricRow{
+			metrics = append(metrics, domain.MetricRow{
 				Name:     row.Name,
 				Views:    row.Views,
 				Visitors: row.Visitors,
@@ -119,9 +119,9 @@ func (store *Store) WebsiteMetrics(ctx context.Context, websiteID string, start,
 		return nil, fmt.Errorf("load event metrics: %w", err)
 	}
 
-	metrics := make([]model.MetricRow, 0, len(rows))
+	metrics := make([]domain.MetricRow, 0, len(rows))
 	for _, row := range rows {
-		metrics = append(metrics, model.MetricRow{
+		metrics = append(metrics, domain.MetricRow{
 			Name:     row.Name,
 			Views:    row.Views,
 			Visitors: row.Visitors,
