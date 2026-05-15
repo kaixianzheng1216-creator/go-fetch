@@ -28,13 +28,10 @@ func (app *App) Routes() http.Handler {
 	router.Use(app.sessions.LoadAndSave)
 
 	api := humachi.New(router, humaConfig())
-
 	registerAPIRoutes(api, app)
 
 	router.Get("/assets/*", app.handleFrontendAsset)
-
 	router.Get("/script.js", app.handleScript)
-
 	router.Get("/*", app.handleFrontend)
 
 	return router
