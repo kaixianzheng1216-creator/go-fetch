@@ -38,7 +38,6 @@ create table if not exists sessions
     created_at  timestamptz not null default now()
 );
 
-
 create table if not exists events
 (
     id              uuid primary key,
@@ -83,13 +82,3 @@ create table if not exists app_sessions
     data   bytea       not null,
     expiry timestamptz not null
 );
-
-
-create index if not exists websites_user_idx on websites (user_id) where deleted_at is null;
-create index if not exists events_website_type_created_idx on events (website_id, event_type, created_at);
-create index if not exists events_website_session_created_idx on events (website_id, session_id, created_at);
-create index if not exists events_website_visit_created_idx on events (website_id, visit_id, created_at);
-create index if not exists events_website_path_created_idx on events (website_id, url_path, created_at);
-create index if not exists events_website_event_created_idx on events (website_id, event_name, created_at);
-create index if not exists event_data_event_idx on event_data (event_id);
-create index if not exists app_sessions_expiry_idx on app_sessions (expiry);
