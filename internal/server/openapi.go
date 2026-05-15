@@ -6,8 +6,6 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
-
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
 func OpenAPIJSON() ([]byte, error) {
@@ -35,7 +33,7 @@ func humaConfig() huma.Config {
 		"sessionCookie": {
 			Type: "apiKey",
 			In:   "cookie",
-			Name: session.CookieName,
+			Name: sessionCookieName,
 		},
 	}
 

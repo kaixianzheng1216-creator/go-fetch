@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/user"
 )
 
@@ -20,7 +19,7 @@ func withRequest(ctx context.Context, request *http.Request) context.Context {
 }
 
 func (app *App) currentUser(ctx context.Context) (userdomain.User, bool, error) {
-	userID := app.sessions.GetString(ctx, session.UserIDKey)
+	userID := app.sessions.GetString(ctx, userIDSessionKey)
 
 	if userID == "" {
 		return userdomain.User{}, false, nil
