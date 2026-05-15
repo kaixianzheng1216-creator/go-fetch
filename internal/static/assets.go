@@ -5,18 +5,18 @@ import (
 	"io/fs"
 )
 
-//go:embed static/* dist
+//go:embed js/* dist
 var assets embed.FS
 
 var (
-	staticFS = mustSubFS("static")
+	staticFS = mustSubFS("js")
 	distFS   = mustSubFS("dist")
 )
 
 func mustSubFS(dir string) fs.FS {
 	subFS, err := fs.Sub(assets, dir)
 	if err != nil {
-		panic("嵌入资源 " + dir + " 失败: " + err.Error())
+		panic("embed resources " + dir + ": " + err.Error())
 	}
 
 	return subFS

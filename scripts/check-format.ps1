@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $frontend = Join-Path $root "frontend"
-$trackingScript = Join-Path $root "internal\static\static\script.js"
+$trackingScript = Join-Path $root "internal\static\js\script.js"
 
 function Assert-LastExitCode {
   if ($LASTEXITCODE -ne 0) {

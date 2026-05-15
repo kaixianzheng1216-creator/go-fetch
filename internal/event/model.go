@@ -2,8 +2,6 @@ package event
 
 import (
 	"time"
-
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain/shared"
 )
 
 const (
@@ -46,7 +44,7 @@ type MetricRow struct {
 }
 
 type CollectPayload struct {
-	WebsiteID  shared.ID
+	WebsiteID  string
 	URL        string
 	Referrer   string
 	Title      string
@@ -58,9 +56,9 @@ type CollectPayload struct {
 }
 
 type EventInput struct {
-	WebsiteID      shared.ID
-	SessionID      shared.ID
-	VisitID        shared.ID
+	WebsiteID      string
+	SessionID      string
+	VisitID        string
 	EventType      EventType
 	EventName      string
 	URLPath        string

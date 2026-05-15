@@ -1,9 +1,9 @@
-package website
+package websitehandler
 
 import (
 	"time"
 
-	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/website"
+	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/website"
 )
 
 type Website struct {

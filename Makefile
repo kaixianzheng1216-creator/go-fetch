@@ -1,7 +1,7 @@
 .PHONY: check format format-check test test-race vet lint frontend-check
 
 GO_FILES := $(shell go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}{{range .TestGoFiles}}{{$$.Dir}}/{{.}} {{end}}' ./...)
-TRACKING_SCRIPT := internal/static/static/script.js
+TRACKING_SCRIPT := internal/static/js/script.js
 
 check: format-check vet lint test frontend-check
 

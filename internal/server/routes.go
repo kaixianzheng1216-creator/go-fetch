@@ -8,10 +8,10 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/middleware"
-	eventhandler "github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/event"
-	summaryhandler "github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/summary"
-	userhandler "github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/user"
-	websitehandler "github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/website"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/eventhandler"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/summaryhandler"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/userhandler"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/websitehandler"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 

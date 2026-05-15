@@ -1,9 +1,9 @@
-package summary
+package summaryhandler
 
 import (
 	"time"
 
-	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/event"
+	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/event"
 )
 
 type WebsiteStats struct {

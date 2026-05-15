@@ -1,9 +1,9 @@
-package event
+package eventhandler
 
 import (
 	"github.com/danielgtaylor/huma/v2"
 
-	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/event"
+	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/event"
 )
 
 type CollectRequest struct {

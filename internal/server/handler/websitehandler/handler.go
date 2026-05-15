@@ -1,4 +1,4 @@
-package website
+package websitehandler
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/user"
-	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/website"
+	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/user"
+	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/website"
 )
 
 type Store interface {

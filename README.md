@@ -6,13 +6,13 @@ Go analytics service with a React frontend. The backend owns the API, storage, m
 
 - `cmd/server`: HTTP server entrypoint.
 - `cmd/openapi`: OpenAPI JSON generator.
-- `internal/server`: routes, handlers, OpenAPI configuration, and frontend serving.
-- `internal/middleware`: HTTP and API middleware.
-- `internal/session`: session manager configuration.
-- `internal/domain`: application types and business rules, split by domain.
-- `internal/store`: PostgreSQL access, sqlc generated code, and migrations.
 - `internal/collector`: request parsing and analytics event construction.
+- `internal/event`, `internal/user`, `internal/website`: application types and business rules.
+- `internal/middleware`: HTTP and API middleware.
+- `internal/server`: routes, handlers, OpenAPI configuration, and frontend serving.
+- `internal/session`: session manager configuration.
 - `internal/static`: embedded tracking script and production frontend build output.
+- `internal/store`: PostgreSQL access, sqlc generated code, and migrations.
 - `frontend`: Vite React application. It has its own empty `go.mod` so root-level Go commands do not scan `node_modules`.
 - `api`: generated OpenAPI artifact.
 
@@ -50,6 +50,13 @@ On systems with `make`, the common workflow is:
 
 ```sh
 make check
+```
+
+PowerShell and POSIX shell formatting helpers are also available:
+
+```sh
+powershell -ExecutionPolicy Bypass -File scripts/check-format.ps1
+sh scripts/check-format.sh
 ```
 
 ## Code Generation

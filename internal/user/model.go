@@ -1,13 +1,9 @@
 package user
 
-import (
-	"time"
-
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain/shared"
-)
+import "time"
 
 type User struct {
-	ID           shared.ID
+	ID           string
 	Username     string
 	PasswordHash string
 	CreatedAt    time.Time

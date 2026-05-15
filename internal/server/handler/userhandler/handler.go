@@ -1,4 +1,4 @@
-package user
+package userhandler
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"golang.org/x/crypto/bcrypt"
 
-	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/user"
+	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/user"
 )
 
 type Store interface {

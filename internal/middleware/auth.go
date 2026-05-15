@@ -7,7 +7,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 
-	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/user"
+	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/user"
 )
 
 type CurrentUserFunc func(context.Context) (userdomain.User, bool, error)
@@ -19,14 +19,12 @@ func RequireAuth(api huma.API, currentUser CurrentUserFunc, withUser WithUserFun
 		user, ok, err := currentUser(ctx.Context())
 
 		if err != nil {
-			_ = huma.WriteErr(api, ctx, http.StatusInternalServerError, "加载当前用户失败")
-
+			_ = huma.WriteErr(api, ctx, http.StatusInternalServerError, "load current user failed")
 			return
 		}
 
 		if !ok {
-			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "未登录或登录已失效")
-
+			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "not authenticated")
 			return
 		}
 
@@ -40,7 +38,6 @@ func CaptureRequest(withRequest WithRequestFunc) func(huma.Context, func(huma.Co
 
 		if request == nil {
 			next(ctx)
-
 			return
 		}
 

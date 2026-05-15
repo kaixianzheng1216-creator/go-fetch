@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"time"
 
-	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/user"
-	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/website"
+	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/user"
+	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/website"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"

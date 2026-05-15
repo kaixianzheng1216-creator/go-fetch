@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/user"
-	storedb "github.com/kaixianzheng1216-creator/go-fetch/internal/store/db"
+	storesqlc "github.com/kaixianzheng1216-creator/go-fetch/internal/store/sqlc"
+	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/user"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -13,9 +13,8 @@ import (
 
 func (s *Store) EnsureAdmin(ctx context.Context, username, password string) error {
 	count, err := s.queries.CountUsers(ctx)
-
 	if err != nil {
-		return fmt.Errorf("统计用户数量失败: %w", err)
+		return fmt.Errorf("count users: %w", err)
 	}
 
 	if count > 0 {
@@ -23,17 +22,16 @@ func (s *Store) EnsureAdmin(ctx context.Context, username, password string) erro
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
 	if err != nil {
-		return fmt.Errorf("加密管理员密码失败: %w", err)
+		return fmt.Errorf("hash admin password: %w", err)
 	}
 
-	if err := s.queries.CreateUser(ctx, storedb.CreateUserParams{
+	if err := s.queries.CreateUser(ctx, storesqlc.CreateUserParams{
 		ID:           uuid.New(),
 		Username:     username,
 		PasswordHash: string(hash),
 	}); err != nil {
-		return fmt.Errorf("创建管理员用户失败: %w", err)
+		return fmt.Errorf("create admin user: %w", err)
 	}
 
 	return nil
@@ -41,9 +39,8 @@ func (s *Store) EnsureAdmin(ctx context.Context, username, password string) erro
 
 func (s *Store) GetUserByUsername(ctx context.Context, username string) (userdomain.User, error) {
 	row, err := s.queries.GetUserByUsername(ctx, username)
-
 	if err != nil {
-		return userdomain.User{}, fmt.Errorf("按用户名查询用户失败: %w", mapNotFound(err))
+		return userdomain.User{}, fmt.Errorf("get user by username: %w", mapNotFound(err))
 	}
 
 	return toUser(row.ID, row.Username, row.PasswordHash, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil
@@ -51,15 +48,13 @@ func (s *Store) GetUserByUsername(ctx context.Context, username string) (userdom
 
 func (s *Store) GetUserByID(ctx context.Context, userID string) (userdomain.User, error) {
 	userUUID, err := uuid.Parse(userID)
-
 	if err != nil {
-		return userdomain.User{}, fmt.Errorf("解析用户 ID 失败: %w", err)
+		return userdomain.User{}, fmt.Errorf("parse user ID: %w", err)
 	}
 
 	row, err := s.queries.GetUserByID(ctx, userUUID)
-
 	if err != nil {
-		return userdomain.User{}, fmt.Errorf("按 ID 查询用户失败: %w", mapNotFound(err))
+		return userdomain.User{}, fmt.Errorf("get user by ID: %w", mapNotFound(err))
 	}
 
 	return toUser(row.ID, row.Username, row.PasswordHash, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil

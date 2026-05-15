@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/user"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
+	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/user"
 )
 
 type contextKey string

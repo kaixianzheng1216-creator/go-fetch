@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/event"
-	storedb "github.com/kaixianzheng1216-creator/go-fetch/internal/store/db"
+	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/event"
+	storesqlc "github.com/kaixianzheng1216-creator/go-fetch/internal/store/sqlc"
 
 	"github.com/google/uuid"
 )
@@ -13,7 +13,7 @@ import (
 func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("开启保存事件事务失败: %w", err)
+		return fmt.Errorf("begin save event transaction: %w", err)
 	}
 	defer func() {
 		_ = tx.Rollback(ctx)
@@ -21,21 +21,21 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 
 	websiteUUID, err := uuid.Parse(input.WebsiteID)
 	if err != nil {
-		return fmt.Errorf("解析网站 ID 失败: %w", err)
+		return fmt.Errorf("parse website ID: %w", err)
 	}
 
 	sessionID, err := uuid.Parse(input.SessionID)
 	if err != nil {
-		return fmt.Errorf("解析会话 ID 失败: %w", err)
+		return fmt.Errorf("parse session ID: %w", err)
 	}
 
 	visitID, err := uuid.Parse(input.VisitID)
 	if err != nil {
-		return fmt.Errorf("解析访问 ID 失败: %w", err)
+		return fmt.Errorf("parse visit ID: %w", err)
 	}
 
 	qtx := s.queries.WithTx(tx)
-	if err := qtx.InsertSession(ctx, storedb.InsertSessionParams{
+	if err := qtx.InsertSession(ctx, storesqlc.InsertSessionParams{
 		ID:         sessionID,
 		WebsiteID:  websiteUUID,
 		Browser:    input.Browser,
@@ -49,11 +49,11 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 		DistinctID: input.DistinctID,
 		CreatedAt:  input.CreatedAt,
 	}); err != nil {
-		return fmt.Errorf("写入会话失败: %w", err)
+		return fmt.Errorf("insert session: %w", err)
 	}
 
 	eventID := uuid.New()
-	if err := qtx.InsertEvent(ctx, storedb.InsertEventParams{
+	if err := qtx.InsertEvent(ctx, storesqlc.InsertEventParams{
 		ID:             eventID,
 		WebsiteID:      websiteUUID,
 		SessionID:      sessionID,
@@ -74,11 +74,11 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 		UtmTerm:        input.UTMTerm,
 		CreatedAt:      input.CreatedAt,
 	}); err != nil {
-		return fmt.Errorf("写入事件失败: %w", err)
+		return fmt.Errorf("insert event: %w", err)
 	}
 
 	for _, item := range eventdomain.FlattenEventData(input.Data) {
-		if err := qtx.InsertEventData(ctx, storedb.InsertEventDataParams{
+		if err := qtx.InsertEventData(ctx, storesqlc.InsertEventDataParams{
 			ID:          uuid.New(),
 			WebsiteID:   websiteUUID,
 			EventID:     eventID,
@@ -89,12 +89,12 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 			DataType:    int32(item.DataType),
 			CreatedAt:   input.CreatedAt,
 		}); err != nil {
-			return fmt.Errorf("写入事件数据失败: %w", err)
+			return fmt.Errorf("insert event data: %w", err)
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("提交保存事件事务失败: %w", err)
+		return fmt.Errorf("commit save event transaction: %w", err)
 	}
 
 	return nil

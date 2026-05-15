@@ -1,9 +1,9 @@
-package user
+package userhandler
 
 import (
 	"time"
 
-	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/user"
+	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/user"
 )
 
 type User struct {

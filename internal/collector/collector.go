@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/event"
+	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/event"
 
 	"github.com/google/uuid"
 	"github.com/mileusna/useragent"

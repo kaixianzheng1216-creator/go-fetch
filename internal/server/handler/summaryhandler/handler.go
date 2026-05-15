@@ -1,4 +1,4 @@
-package summary
+package summaryhandler
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 
-	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/event"
-	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/user"
-	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/website"
+	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/event"
+	userdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/user"
+	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/website"
 )
 
 type Store interface {

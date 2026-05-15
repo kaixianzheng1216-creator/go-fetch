@@ -1,4 +1,4 @@
-package event
+package eventhandler
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/collector"
-	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/event"
-	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/website"
+	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/event"
+	websitedomain "github.com/kaixianzheng1216-creator/go-fetch/internal/website"
 )
 
 type Store interface {

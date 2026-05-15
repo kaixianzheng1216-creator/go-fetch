@@ -9,12 +9,6 @@ create table if not exists users
     deleted_at    timestamptz
 );
 
-comment on column users.id is 'ID';
-comment on column users.username is '用户名';
-comment on column users.password_hash is '密码哈希';
-comment on column users.created_at is '创建时间';
-comment on column users.updated_at is '更新时间';
-comment on column users.deleted_at is '删除时间';
 
 create table if not exists websites
 (
@@ -27,13 +21,6 @@ create table if not exists websites
     deleted_at timestamptz
 );
 
-comment on column websites.id is 'ID';
-comment on column websites.user_id is '用户';
-comment on column websites.name is '名称';
-comment on column websites.domain is '域名';
-comment on column websites.created_at is '创建时间';
-comment on column websites.updated_at is '更新时间';
-comment on column websites.deleted_at is '删除时间';
 
 create table if not exists sessions
 (
@@ -51,18 +38,6 @@ create table if not exists sessions
     created_at  timestamptz not null default now()
 );
 
-comment on column sessions.id is 'ID';
-comment on column sessions.website_id is '网站';
-comment on column sessions.browser is '浏览器';
-comment on column sessions.os is '操作系统';
-comment on column sessions.device is '设备';
-comment on column sessions.screen is '屏幕';
-comment on column sessions.language is '语言';
-comment on column sessions.country is '国家';
-comment on column sessions.region is '地区';
-comment on column sessions.city is '城市';
-comment on column sessions.distinct_id is '访客标识';
-comment on column sessions.created_at is '创建时间';
 
 create table if not exists events
 (
@@ -87,25 +62,6 @@ create table if not exists events
     created_at      timestamptz not null default now()
 );
 
-comment on column events.id is 'ID';
-comment on column events.website_id is '网站';
-comment on column events.session_id is '会话';
-comment on column events.visit_id is '访问';
-comment on column events.event_type is '类型';
-comment on column events.event_name is '事件名';
-comment on column events.url_path is '路径';
-comment on column events.url_query is '查询参数';
-comment on column events.referrer_path is '来源路径';
-comment on column events.referrer_query is '来源参数';
-comment on column events.referrer_domain is '来源域名';
-comment on column events.page_title is '页面标题';
-comment on column events.hostname is '主机名';
-comment on column events.utm_source is 'UTM 来源';
-comment on column events.utm_medium is 'UTM 媒介';
-comment on column events.utm_campaign is 'UTM 活动';
-comment on column events.utm_content is 'UTM 内容';
-comment on column events.utm_term is 'UTM 关键词';
-comment on column events.created_at is '创建时间';
 
 create table if not exists event_data
 (
@@ -120,15 +76,6 @@ create table if not exists event_data
     created_at   timestamptz not null default now()
 );
 
-comment on column event_data.id is 'ID';
-comment on column event_data.website_id is '网站';
-comment on column event_data.event_id is '事件';
-comment on column event_data.data_key is '键';
-comment on column event_data.string_value is '字符串值';
-comment on column event_data.number_value is '数值';
-comment on column event_data.date_value is '日期值';
-comment on column event_data.data_type is '数据类型';
-comment on column event_data.created_at is '创建时间';
 
 create table if not exists app_sessions
 (
@@ -137,9 +84,6 @@ create table if not exists app_sessions
     expiry timestamptz not null
 );
 
-comment on column app_sessions.token is '令牌';
-comment on column app_sessions.data is '数据';
-comment on column app_sessions.expiry is '过期时间';
 
 create index if not exists websites_user_idx on websites (user_id) where deleted_at is null;
 create index if not exists events_website_type_created_idx on events (website_id, event_type, created_at);

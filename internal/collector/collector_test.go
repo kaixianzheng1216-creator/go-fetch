@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/domain/event"
+	eventdomain "github.com/kaixianzheng1216-creator/go-fetch/internal/event"
 )
 
 func TestBuildEventInput(t *testing.T) {
