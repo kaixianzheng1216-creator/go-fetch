@@ -4,7 +4,8 @@
 
   var website = currentScript.getAttribute("data-website-id");
   var distinctId = currentScript.getAttribute("data-distinct-id") || "";
-  var endpoint = currentScript.getAttribute("data-host-url") || "";
+  var host = currentScript.getAttribute("data-host-url") || scriptOrigin();
+  var endpoint = host || "";
   endpoint = endpoint.replace(/\/$/, "") + "/api/collect";
 
   var screenSize = window.screen
@@ -36,17 +37,20 @@
     var body = JSON.stringify({ type: "event", payload: payload(name, data) });
 
     try {
-      navigator.sendBeacon && !data
-        ? navigator.sendBeacon(
-            endpoint,
-            new Blob([body], { type: "application/json" }),
-          )
-        : fetch(endpoint, {
-            method: "POST",
-            keepalive: true,
-            headers: { "Content-Type": "application/json" },
-            body: body,
-          });
+      if (navigator.sendBeacon && !data) {
+        var sent = navigator.sendBeacon(
+          endpoint,
+          new Blob([body], { type: "application/json" }),
+        );
+        if (sent) return;
+      }
+
+      fetch(endpoint, {
+        method: "POST",
+        keepalive: true,
+        headers: { "Content-Type": "application/json" },
+        body: body,
+      }).catch(function () {});
     } catch (_) {}
   }
 
@@ -75,11 +79,22 @@
     };
   }
 
+  function scriptOrigin() {
+    try {
+      return new URL(currentScript.src, location.href).origin;
+    } catch (_) {
+      return "";
+    }
+  }
+
   window.goFetch = window.goFetch || {};
   window.goFetch.track = track;
   hook("pushState");
   hook("replaceState");
   window.addEventListener("popstate", function () {
+    routeChanged(location.href);
+  });
+  window.addEventListener("hashchange", function () {
     routeChanged(location.href);
   });
 

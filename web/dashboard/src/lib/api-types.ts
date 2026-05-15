@@ -318,26 +318,8 @@ export interface operations {
           "application/json": components["schemas"]["OK"]
         }
       }
-      /** @description Bad Request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -369,35 +351,8 @@ export interface operations {
           "application/json": components["schemas"]["LoginResponse"]
         }
       }
-      /** @description Bad Request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -425,8 +380,8 @@ export interface operations {
           "application/json": components["schemas"]["OK"]
         }
       }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -454,17 +409,8 @@ export interface operations {
           "application/json": components["schemas"]["User"]
         }
       }
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -492,17 +438,8 @@ export interface operations {
           "application/json": components["schemas"]["Website"][] | null
         }
       }
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -534,35 +471,8 @@ export interface operations {
           "application/json": components["schemas"]["Website"]
         }
       }
-      /** @description Bad Request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -592,35 +502,8 @@ export interface operations {
           "application/json": components["schemas"]["Website"]
         }
       }
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -650,35 +533,8 @@ export interface operations {
           "application/json": components["schemas"]["OK"]
         }
       }
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -712,44 +568,8 @@ export interface operations {
           "application/json": components["schemas"]["Website"]
         }
       }
-      /** @description Bad Request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -784,44 +604,8 @@ export interface operations {
           "application/json": components["schemas"]["MetricRow"][] | null
         }
       }
-      /** @description Bad Request */
-      400: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -855,35 +639,8 @@ export interface operations {
           "application/json": components["schemas"]["PageviewPoint"][] | null
         }
       }
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }
@@ -916,35 +673,8 @@ export interface operations {
           "application/json": components["schemas"]["WebsiteStats"]
         }
       }
-      /** @description Unauthorized */
-      401: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Not Found */
-      404: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Unprocessable Entity */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          "application/problem+json": components["schemas"]["ErrorModel"]
-        }
-      }
-      /** @description Internal Server Error */
-      500: {
+      /** @description Error */
+      default: {
         headers: {
           [name: string]: unknown
         }

@@ -64,9 +64,6 @@ func (handler StatsHandler) GetWebsitePageviews(ctx context.Context, input *page
 func (handler StatsHandler) GetWebsiteMetrics(ctx context.Context, input *metricsRequest) (*responsedto.MetricsOutput, error) {
 	rows, err := handler.stats.WebsiteMetrics(ctx, handler.currentUser(ctx).ID, input.WebsiteID, requestdto.OptionalTimeParam(input.StartAt), requestdto.OptionalTimeParam(input.EndAt), string(input.Type), int(input.Limit))
 	if err != nil {
-		if errors.Is(err, domain.ErrUnsupportedMetricType) {
-			return nil, huma.Error400BadRequest(err.Error())
-		}
 		return nil, handler.statsError(err, "加载指标数据失败")
 	}
 
@@ -74,6 +71,9 @@ func (handler StatsHandler) GetWebsiteMetrics(ctx context.Context, input *metric
 }
 
 func (handler StatsHandler) statsError(err error, fallbackMessage string) error {
+	if errors.Is(err, domain.ErrUnsupportedMetricType) || errors.Is(err, service.ErrInvalidDateRange) {
+		return huma.Error400BadRequest(err.Error())
+	}
 	if service.IsWebsiteAccessError(err) {
 		return handler.websiteLookupError(err)
 	}

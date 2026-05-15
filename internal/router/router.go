@@ -12,6 +12,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
@@ -31,39 +32,11 @@ func New(dataStore *repository.Store) http.Handler {
 	chiRouter.Use(chimiddleware.Recoverer)
 	chiRouter.Use(chimiddleware.Logger)
 	chiRouter.Use(chimiddleware.Timeout(60 * time.Second))
+	chiRouter.Use(collectCORSMiddleware)
 	chiRouter.Use(sessions.LoadAndSave)
 
-	type contextKey string
-	const (
-		userContextKey    contextKey = "user"
-		requestContextKey contextKey = "request"
-	)
-
-	isNotFound := func(err error) bool {
-		return errors.Is(err, repository.ErrNotFound)
-	}
-	userFromContext := func(ctx context.Context) domain.User {
-		user, _ := ctx.Value(userContextKey).(domain.User)
-		return user
-	}
-	requestFromContext := func(ctx context.Context) *http.Request {
-		request, _ := ctx.Value(requestContextKey).(*http.Request)
-		return request
-	}
-	websiteLookupError := func(err error) error {
-		if err == nil {
-			return nil
-		}
-		if isNotFound(err) {
-			return huma.Error404NotFound("站点不存在")
-		}
-		return huma.Error500InternalServerError("加载站点失败")
-	}
-
 	api := humachi.New(chiRouter, humaConfig())
-	api.UseMiddleware(servermiddleware.CaptureRequest(func(ctx context.Context, request *http.Request) context.Context {
-		return context.WithValue(ctx, requestContextKey, request)
-	}))
+	api.UseMiddleware(servermiddleware.CaptureRequest(withRequest))
 	authMiddleware := huma.Middlewares{servermiddleware.RequireAuth(
 		api,
 		func(ctx context.Context) (domain.User, bool, error) {
@@ -82,9 +55,7 @@ func New(dataStore *repository.Store) http.Handler {
 
 			return user, true, nil
 		},
-		func(ctx context.Context, user domain.User) context.Context {
-			return context.WithValue(ctx, userContextKey, user)
-		},
+		withUser,
 	)}
 
 	registerAPI(
@@ -134,6 +105,63 @@ func New(dataStore *repository.Store) http.Handler {
 	})
 
 	return chiRouter
+}
+
+type contextKey string
+
+const (
+	userContextKey    contextKey = "user"
+	requestContextKey contextKey = "request"
+)
+
+func collectCORSMiddleware(next http.Handler) http.Handler {
+	corsHandler := cors.Handler(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{http.MethodPost, http.MethodOptions},
+		AllowedHeaders: []string{"Content-Type"},
+		MaxAge:         300,
+	})(next)
+
+	return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
+		if request.URL.Path == "/api/collect" {
+			corsHandler.ServeHTTP(responseWriter, request)
+			return
+		}
+
+		next.ServeHTTP(responseWriter, request)
+	})
+}
+
+func isNotFound(err error) bool {
+	return errors.Is(err, repository.ErrNotFound)
+}
+
+func userFromContext(ctx context.Context) domain.User {
+	user, _ := ctx.Value(userContextKey).(domain.User)
+	return user
+}
+
+func requestFromContext(ctx context.Context) *http.Request {
+	request, _ := ctx.Value(requestContextKey).(*http.Request)
+	return request
+}
+
+func withRequest(ctx context.Context, request *http.Request) context.Context {
+	return context.WithValue(ctx, requestContextKey, request)
+}
+
+func withUser(ctx context.Context, user domain.User) context.Context {
+	return context.WithValue(ctx, userContextKey, user)
+}
+
+func websiteLookupError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if isNotFound(err) {
+		return huma.Error404NotFound("站点不存在")
+	}
+	return huma.Error500InternalServerError("加载站点失败")
 }
 
 func OpenAPIJSON() ([]byte, error) {
