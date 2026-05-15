@@ -7,17 +7,20 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/repository"
 )
 
 var ErrInvalidCredentials = errors.New("invalid username or password")
 
+type AuthStore interface {
+	GetUserByUsername(ctx context.Context, username string) (domain.User, error)
+}
+
 type Auth struct {
-	users      repository.AuthRepository
+	users      AuthStore
 	isNotFound func(error) bool
 }
 
-func NewAuth(users repository.AuthRepository, isNotFound func(error) bool) Auth {
+func NewAuth(users AuthStore, isNotFound func(error) bool) Auth {
 	return Auth{users: users, isNotFound: isNotFound}
 }
 

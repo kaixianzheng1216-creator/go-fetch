@@ -2,20 +2,27 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/database"
 )
 
 func main() {
-	appConfig, err := config.Load()
+	databaseURL, err := config.LoadDatabaseURL()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("load database config", "error", err)
+		os.Exit(1)
 	}
 
-	if err := database.Migrate(context.Background(), appConfig.DatabaseURL); err != nil {
-		log.Fatal(fmt.Errorf("run database migrations: %w", err))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	if err := database.Migrate(ctx, databaseURL); err != nil {
+		slog.Error("run database migrations", "error", err)
+		os.Exit(1)
 	}
 }

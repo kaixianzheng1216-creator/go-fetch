@@ -8,10 +8,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/repository"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/router"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
+)
+
+var (
+	testUserID    = uuid.MustParse("2f931f32-9707-4ff1-8ca6-e851352d1451")
+	testWebsiteID = uuid.MustParse("8a7e7a10-7b51-43ef-9e85-874df7dd5f8b")
 )
 
 func TestCollectPreflightUsesCORS(t *testing.T) {
@@ -20,7 +26,7 @@ func TestCollectPreflightUsesCORS(t *testing.T) {
 	request.Header.Set("Access-Control-Request-Method", http.MethodPost)
 	response := httptest.NewRecorder()
 
-	router.New(&repository.Store{}).ServeHTTP(response, request)
+	httpapi.New(&repository.Store{}, nil, httpapi.Config{}).ServeHTTP(response, request)
 
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
@@ -48,7 +54,6 @@ func TestCollectErrors(t *testing.T) {
 			name:           "missing http request after website lookup",
 			collectionType: "event",
 			expectedError:  service.ErrMissingHTTPRequest,
-			expectedLookup: 1,
 		},
 	}
 
@@ -58,7 +63,7 @@ func TestCollectErrors(t *testing.T) {
 			collect := service.NewCollect(store)
 
 			err := collect.Collect(context.Background(), testCase.request, testCase.collectionType, domain.CollectPayload{
-				WebsiteID: "8a7e7a10-7b51-43ef-9e85-874df7dd5f8b",
+				WebsiteID: testWebsiteID,
 				URL:       "https://example.com/",
 			})
 
@@ -86,21 +91,21 @@ func TestStatsRejectsInvalidDateRange(t *testing.T) {
 		{
 			name: "stats",
 			call: func(stats service.Stats) error {
-				_, err := stats.WebsiteStats(context.Background(), "user-1", "website-1", &startAt, &endAt)
+				_, err := stats.WebsiteStats(context.Background(), testUserID, testWebsiteID, &startAt, &endAt)
 				return err
 			},
 		},
 		{
 			name: "pageviews",
 			call: func(stats service.Stats) error {
-				_, err := stats.WebsitePageviews(context.Background(), "user-1", "website-1", &startAt, &endAt, "hour")
+				_, err := stats.WebsitePageviews(context.Background(), testUserID, testWebsiteID, &startAt, &endAt, "hour")
 				return err
 			},
 		},
 		{
 			name: "metrics",
 			call: func(stats service.Stats) error {
-				_, err := stats.WebsiteMetrics(context.Background(), "user-1", "website-1", &startAt, &endAt, "path", 10)
+				_, err := stats.WebsiteMetrics(context.Background(), testUserID, testWebsiteID, &startAt, &endAt, "path", 10)
 				return err
 			},
 		},
@@ -137,7 +142,7 @@ func TestStatsWebsiteMetricsNormalizesLimit(t *testing.T) {
 			store := &fakeStatsStore{}
 			stats := service.NewStats(store)
 
-			_, err := stats.WebsiteMetrics(context.Background(), "user-1", "website-1", nil, nil, "path", testCase.limit)
+			_, err := stats.WebsiteMetrics(context.Background(), testUserID, testWebsiteID, nil, nil, "path", testCase.limit)
 			if err != nil {
 				t.Fatalf("WebsiteMetrics() error = %v", err)
 			}
@@ -153,7 +158,7 @@ type fakeTrackingStore struct {
 	saveCalls   int
 }
 
-func (store *fakeTrackingStore) GetWebsiteForCollection(_ context.Context, websiteID string) (domain.Website, error) {
+func (store *fakeTrackingStore) GetWebsiteForCollection(_ context.Context, websiteID uuid.UUID) (domain.Website, error) {
 	store.lookupCalls++
 	return domain.Website{ID: websiteID, Name: "Example"}, nil
 }
@@ -168,20 +173,20 @@ type fakeStatsStore struct {
 	metricLimit int
 }
 
-func (store *fakeStatsStore) GetWebsite(_ context.Context, _ string, websiteID string) (domain.Website, error) {
+func (store *fakeStatsStore) GetWebsite(_ context.Context, _ uuid.UUID, websiteID uuid.UUID) (domain.Website, error) {
 	store.accessCalls++
 	return domain.Website{ID: websiteID, Name: "Example"}, nil
 }
 
-func (*fakeStatsStore) WebsiteStats(_ context.Context, _ string, _, _ time.Time) (domain.WebsiteStats, error) {
+func (*fakeStatsStore) WebsiteStats(_ context.Context, _ uuid.UUID, _, _ time.Time) (domain.WebsiteStats, error) {
 	return domain.WebsiteStats{}, nil
 }
 
-func (*fakeStatsStore) WebsitePageviews(_ context.Context, _ string, _, _ time.Time, _ domain.DateUnit) ([]domain.PageviewPoint, error) {
+func (*fakeStatsStore) WebsitePageviews(_ context.Context, _ uuid.UUID, _, _ time.Time, _ domain.DateUnit) ([]domain.PageviewPoint, error) {
 	return nil, nil
 }
 
-func (store *fakeStatsStore) WebsiteMetrics(_ context.Context, _ string, _, _ time.Time, _ domain.MetricType, limit int) ([]domain.MetricRow, error) {
+func (store *fakeStatsStore) WebsiteMetrics(_ context.Context, _ uuid.UUID, _, _ time.Time, _ domain.MetricType, limit int) ([]domain.MetricRow, error) {
 	store.metricLimit = limit
 	return nil, nil
 }

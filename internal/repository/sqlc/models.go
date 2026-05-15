@@ -45,7 +45,7 @@ type EventDatum struct {
 	EventID     uuid.UUID          `json:"event_id"`
 	DataKey     string             `json:"data_key"`
 	StringValue pgtype.Text        `json:"string_value"`
-	NumberValue pgtype.Numeric     `json:"number_value"`
+	NumberValue pgtype.Float8      `json:"number_value"`
 	DateValue   pgtype.Timestamptz `json:"date_value"`
 	DataType    int32              `json:"data_type"`
 	CreatedAt   time.Time          `json:"created_at"`

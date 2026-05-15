@@ -69,7 +69,7 @@ create table if not exists event_data
     event_id     uuid         not null references events (id) on delete cascade,
     data_key     varchar(500) not null,
     string_value varchar(500),
-    number_value decimal(19, 4),
+    number_value double precision,
     date_value   timestamptz,
     data_type    integer      not null,
     created_at   timestamptz not null default now()
@@ -82,3 +82,21 @@ create table if not exists app_sessions
     data   bytea       not null,
     expiry timestamptz not null
 );
+
+create index if not exists websites_user_active_idx
+    on websites (user_id, deleted_at);
+
+create index if not exists events_website_created_type_idx
+    on events (website_id, created_at, event_type);
+
+create index if not exists events_session_website_idx
+    on events (session_id, website_id);
+
+create index if not exists sessions_website_idx
+    on sessions (website_id);
+
+create index if not exists event_data_event_idx
+    on event_data (event_id);
+
+create index if not exists app_sessions_expiry_idx
+    on app_sessions (expiry);

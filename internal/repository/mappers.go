@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"math"
-	"math/big"
 	"time"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
@@ -13,7 +11,7 @@ import (
 
 func toUser(id uuid.UUID, username, passwordHash string, createdAt time.Time, updatedAt, deletedAt pgtype.Timestamptz) domain.User {
 	return domain.User{
-		ID:           id.String(),
+		ID:           id,
 		Username:     username,
 		PasswordHash: passwordHash,
 		CreatedAt:    createdAt,
@@ -24,24 +22,21 @@ func toUser(id uuid.UUID, username, passwordHash string, createdAt time.Time, up
 
 func toWebsite(id uuid.UUID, name, domainName string, createdAt time.Time) domain.Website {
 	return domain.Website{
-		ID:        id.String(),
+		ID:        id,
 		Name:      name,
 		Domain:    domainName,
 		CreatedAt: createdAt,
 	}
 }
 
-func pgNumeric(value *float64) pgtype.Numeric {
+func pgFloat8(value *float64) pgtype.Float8 {
 	if value == nil {
-		return pgtype.Numeric{}
+		return pgtype.Float8{}
 	}
 
-	scaled := math.Round(*value * 10000)
-
-	return pgtype.Numeric{
-		Int:   big.NewInt(int64(scaled)),
-		Exp:   -4,
-		Valid: true,
+	return pgtype.Float8{
+		Float64: *value,
+		Valid:   true,
 	}
 }
 

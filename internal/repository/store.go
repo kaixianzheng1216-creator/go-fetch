@@ -20,7 +20,3 @@ func (store *Store) Close() {
 		store.databasePool.Close()
 	}
 }
-
-func (store *Store) Pool() *pgxpool.Pool {
-	return store.databasePool
-}

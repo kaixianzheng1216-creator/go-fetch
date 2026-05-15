@@ -39,7 +39,7 @@ func buildEventInput(request *http.Request, payload domain.CollectPayload, now t
 	userAgent := request.UserAgent()
 	ip := clientIP(request)
 	browser, osName, device := parseUserAgent(userAgent, payload.Screen)
-	pageURL := parsePageURL(payload.URL, payload.WebsiteID)
+	pageURL := parsePageURL(payload.URL, payload.WebsiteID.String())
 	referrerURL := parseReferrerURL(payload.Referrer, pageURL)
 	distinctID := truncate(payload.DistinctID, maxDistinctIDLength)
 	eventType := domain.EventTypePageView
@@ -47,8 +47,8 @@ func buildEventInput(request *http.Request, payload domain.CollectPayload, now t
 		eventType = domain.EventTypeCustom
 	}
 
-	sessionID := stableUUID(payload.WebsiteID + "|" + visitorIdentity(distinctID, ip, userAgent) + "|" + now.UTC().Format(sessionWindowFormat))
-	visitID := stableUUID(sessionID + "|" + strconv.FormatInt(now.Unix()/visitWindowSeconds, 10))
+	sessionID := stableUUID(payload.WebsiteID.String() + "|" + visitorIdentity(distinctID, ip, userAgent) + "|" + now.UTC().Format(sessionWindowFormat))
+	visitID := stableUUID(sessionID.String() + "|" + strconv.FormatInt(now.Unix()/visitWindowSeconds, 10))
 
 	return domain.EventInput{
 		WebsiteID:      payload.WebsiteID,
@@ -109,8 +109,8 @@ func parseUserAgent(userAgentValue, screen string) (browser, osName, device stri
 	return browser, osName, device
 }
 
-func stableUUID(value string) string {
-	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(value)).String()
+func stableUUID(value string) uuid.UUID {
+	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(value))
 }
 
 func visitorIdentity(distinctID, clientIP, userAgent string) string {

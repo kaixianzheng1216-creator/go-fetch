@@ -45,13 +45,8 @@ func (store *Store) GetUserByUsername(ctx context.Context, username string) (dom
 	return toUser(row.ID, row.Username, row.PasswordHash, row.CreatedAt, row.UpdatedAt, row.DeletedAt), nil
 }
 
-func (store *Store) GetUserByID(ctx context.Context, userID string) (domain.User, error) {
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		return domain.User{}, fmt.Errorf("parse user ID: %w", err)
-	}
-
-	row, err := store.queries.GetUserByID(ctx, userUUID)
+func (store *Store) GetUserByID(ctx context.Context, userID uuid.UUID) (domain.User, error) {
+	row, err := store.queries.GetUserByID(ctx, userID)
 	if err != nil {
 		return domain.User{}, fmt.Errorf("get user by ID: %w", mapNotFound(err))
 	}

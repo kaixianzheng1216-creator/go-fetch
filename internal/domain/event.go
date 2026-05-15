@@ -2,6 +2,8 @@ package domain
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -44,7 +46,7 @@ type MetricRow struct {
 }
 
 type CollectPayload struct {
-	WebsiteID  string
+	WebsiteID  uuid.UUID
 	URL        string
 	Referrer   string
 	Title      string
@@ -56,9 +58,9 @@ type CollectPayload struct {
 }
 
 type EventInput struct {
-	WebsiteID      string
-	SessionID      string
-	VisitID        string
+	WebsiteID      uuid.UUID
+	SessionID      uuid.UUID
+	VisitID        uuid.UUID
 	EventType      EventType
 	EventName      string
 	URLPath        string
