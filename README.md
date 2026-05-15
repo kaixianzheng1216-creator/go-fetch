@@ -6,7 +6,9 @@ Go analytics service with a React frontend. The backend owns the API, storage, m
 
 - `cmd/server`: HTTP server entrypoint.
 - `cmd/openapi`: OpenAPI JSON generator.
-- `internal/server`: routes, middleware, DTOs, and frontend serving.
+- `internal/server`: routes, handlers, OpenAPI configuration, and frontend serving.
+- `internal/middleware`: HTTP and API middleware.
+- `internal/session`: session manager configuration.
 - `internal/domain`: application types and business rules, split by domain.
 - `internal/store`: PostgreSQL access, sqlc generated code, and migrations.
 - `internal/collector`: request parsing and analytics event construction.

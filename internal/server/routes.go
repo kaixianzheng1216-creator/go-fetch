@@ -7,18 +7,18 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/middleware"
 	eventhandler "github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/event"
 	summaryhandler "github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/summary"
 	userhandler "github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/user"
 	websitehandler "github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/website"
-	servermiddleware "github.com/kaixianzheng1216-creator/go-fetch/internal/server/middleware"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/session"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
 func (a *App) Routes() http.Handler {
 	r := chi.NewRouter()
 
-	servermiddleware.UseHTTP(r, a.sessions)
+	middleware.UseHTTP(r, a.sessions)
 
 	api := humachi.New(r, humaConfig())
 	registerAPIRoutes(api, a)
@@ -31,8 +31,8 @@ func (a *App) Routes() http.Handler {
 }
 
 func registerAPIRoutes(api huma.API, app *App) {
-	api.UseMiddleware(servermiddleware.CaptureRequest(withRequest))
-	authMiddleware := huma.Middlewares{servermiddleware.RequireAuth(api, app.currentUser, withUser)}
+	api.UseMiddleware(middleware.CaptureRequest(withRequest))
+	authMiddleware := huma.Middlewares{middleware.RequireAuth(api, app.currentUser, withUser)}
 
 	authHandler := userhandler.New(app.store, app.sessions, session.UserIDKey, userFromContext, isNotFound)
 	collectHandler := eventhandler.New(app.store, requestFromContext, isNotFound)

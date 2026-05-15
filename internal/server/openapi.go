@@ -7,7 +7,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/session"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
 func OpenAPIJSON() ([]byte, error) {
