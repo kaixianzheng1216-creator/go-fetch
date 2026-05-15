@@ -1,4 +1,4 @@
-package eventhandler
+package events
 
 type EventOK struct {
 	OK bool `json:"ok"`

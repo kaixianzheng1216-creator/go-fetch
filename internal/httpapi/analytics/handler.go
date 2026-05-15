@@ -1,4 +1,4 @@
-package summaryhandler
+package analytics
 
 import (
 	"context"

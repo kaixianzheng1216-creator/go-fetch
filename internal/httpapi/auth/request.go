@@ -1,4 +1,4 @@
-package userhandler
+package auth
 
 type LoginRequest struct {
 	Username string `json:"username" required:"true" minLength:"1"`

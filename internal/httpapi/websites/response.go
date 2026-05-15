@@ -1,4 +1,4 @@
-package websitehandler
+package websites
 
 import (
 	"time"
