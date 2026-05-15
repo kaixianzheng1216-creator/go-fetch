@@ -28,6 +28,7 @@ func (app *App) Routes() http.Handler {
 	router.Use(app.sessions.LoadAndSave)
 
 	api := humachi.New(router, humaConfig())
+
 	registerAPIRoutes(api, app)
 
 	router.Get("/assets/*", app.handleFrontendAsset)
@@ -39,6 +40,7 @@ func (app *App) Routes() http.Handler {
 
 func registerAPIRoutes(api huma.API, app *App) {
 	api.UseMiddleware(middleware.CaptureRequest(withRequest))
+
 	authMiddleware := huma.Middlewares{middleware.RequireAuth(api, app.currentUser, withUser)}
 
 	authHandler := auth.New(app.store, app.sessions, session.UserIDKey, userFromContext, isNotFound)

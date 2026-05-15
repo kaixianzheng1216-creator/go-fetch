@@ -15,24 +15,8 @@ const (
 	requestContextKey contextKey = "request"
 )
 
-func withUser(ctx context.Context, user userdomain.User) context.Context {
-	return context.WithValue(ctx, userContextKey, user)
-}
-
-func userFromContext(ctx context.Context) userdomain.User {
-	user, _ := ctx.Value(userContextKey).(userdomain.User)
-
-	return user
-}
-
 func withRequest(ctx context.Context, request *http.Request) context.Context {
 	return context.WithValue(ctx, requestContextKey, request)
-}
-
-func requestFromContext(ctx context.Context) *http.Request {
-	request, _ := ctx.Value(requestContextKey).(*http.Request)
-
-	return request
 }
 
 func (app *App) currentUser(ctx context.Context) (userdomain.User, bool, error) {
@@ -53,4 +37,20 @@ func (app *App) currentUser(ctx context.Context) (userdomain.User, bool, error) 
 	}
 
 	return user, true, nil
+}
+
+func withUser(ctx context.Context, user userdomain.User) context.Context {
+	return context.WithValue(ctx, userContextKey, user)
+}
+
+func userFromContext(ctx context.Context) userdomain.User {
+	user, _ := ctx.Value(userContextKey).(userdomain.User)
+
+	return user
+}
+
+func requestFromContext(ctx context.Context) *http.Request {
+	request, _ := ctx.Value(requestContextKey).(*http.Request)
+
+	return request
 }
