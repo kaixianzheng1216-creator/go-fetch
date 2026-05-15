@@ -7,11 +7,11 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/handler/eventhandler"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/handler/summaryhandler"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/handler/userhandler"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/handler/websitehandler"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/middleware"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/eventhandler"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/summaryhandler"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/userhandler"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/server/handler/websitehandler"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 

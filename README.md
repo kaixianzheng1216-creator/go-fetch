@@ -5,16 +5,17 @@ Go analytics service with a React frontend. The backend owns the API, storage, m
 ## Project Layout
 
 - `cmd/server`: HTTP server entrypoint.
-- `cmd/openapi`: OpenAPI JSON generator.
+- `cmd/openapi`: CLI wrapper for generating the OpenAPI JSON artifact.
 - `internal/collector`: request parsing and analytics event construction.
 - `internal/event`, `internal/user`, `internal/website`: application types and business rules.
+- `internal/handler`: HTTP API handlers and Huma request/response DTOs.
 - `internal/middleware`: HTTP and API middleware.
-- `internal/server`: routes, handlers, OpenAPI configuration, and frontend serving.
+- `internal/server`: route registration, OpenAPI configuration, and frontend serving.
 - `internal/session`: session manager configuration.
-- `internal/static`: embedded tracking script and production frontend build output.
+- `internal/static`: embedded tracking script and production frontend build output. This is intentional for single-binary deployment.
 - `internal/store`: PostgreSQL access, sqlc generated code, and migrations.
 - `frontend`: Vite React application. It has its own empty `go.mod` so root-level Go commands do not scan `node_modules`.
-- `api`: generated OpenAPI artifact.
+- `api`: generated OpenAPI artifact output. Runtime OpenAPI configuration lives in `internal/server/openapi.go`.
 
 ## Development
 
@@ -46,13 +47,13 @@ npm --prefix frontend run lint
 npm --prefix frontend run build
 ```
 
-On systems with `make`, the common workflow is:
+`make` is the primary local workflow entrypoint:
 
 ```sh
 make check
 ```
 
-PowerShell and POSIX shell formatting helpers are also available:
+PowerShell and POSIX shell scripts mirror the format checks for environments without `make`:
 
 ```sh
 powershell -ExecutionPolicy Bypass -File scripts/check-format.ps1
