@@ -30,8 +30,6 @@ const (
 	contentTypeHTML        = "text/html; charset=utf-8"
 	contentTypeJS          = "application/javascript; charset=utf-8"
 	contentTypeProblemJSON = "application/problem+json"
-
-	maxCollectBodyBytes = 256 * 1024
 )
 
 type contextKey string
@@ -80,6 +78,20 @@ func OpenAPIJSON() ([]byte, error) {
 	return json.MarshalIndent(api.OpenAPI(), "", "  ")
 }
 
+func registerAPI(
+	api huma.API,
+	authHandler handler.AuthHandler,
+	collectHandler handler.CollectHandler,
+	websiteHandler handler.WebsiteHandler,
+	statsHandler handler.StatsHandler,
+	authMiddleware huma.Middlewares,
+) {
+	registerCollectRoutes(api, collectHandler)
+	registerAuthRoutes(api, authHandler, authMiddleware)
+	registerWebsiteRoutes(api, websiteHandler, authMiddleware)
+	registerStatsRoutes(api, statsHandler, authMiddleware)
+}
+
 func humaConfig() huma.Config {
 	config := huma.DefaultConfig("go-fetch Analytics API", "0.1.0")
 	config.DocsPath = "/api/docs"
@@ -96,239 +108,13 @@ func humaConfig() huma.Config {
 	return config
 }
 
-func registerAPI(
-	api huma.API,
-	authHandler handler.AuthHandler,
-	collectHandler handler.CollectHandler,
-	websiteHandler handler.WebsiteHandler,
-	statsHandler handler.StatsHandler,
-	authMiddleware huma.Middlewares,
-) {
-	registerCollect(api, collectHandler)
-	registerAuth(api, authHandler, authMiddleware)
-	registerWebsite(api, websiteHandler, authMiddleware)
-	registerStats(api, statsHandler, authMiddleware)
-}
-
-func registerAuth(api huma.API, authHandler handler.AuthHandler, authMiddleware huma.Middlewares) {
-	huma.Register(
-		api,
-		operation(
-			http.MethodPost,
-			"/api/login",
-			"login",
-			"登录",
-			"Auth",
-			http.StatusBadRequest,
-			http.StatusUnauthorized,
-			http.StatusUnprocessableEntity,
-			http.StatusInternalServerError,
-		),
-		authHandler.Login,
-	)
-
-	huma.Register(
-		api,
-		operation(
-			http.MethodPost,
-			"/api/logout",
-			"logout",
-			"退出登录",
-			"Auth",
-			http.StatusInternalServerError,
-		),
-		authHandler.Logout,
-	)
-
-	huma.Register(
-		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/me",
-				"getCurrentUser",
-				"获取当前用户",
-				"Auth",
-				http.StatusUnauthorized,
-			),
-			authMiddleware,
-		),
-		authHandler.CurrentUser,
-	)
-}
-
-func registerCollect(api huma.API, collectHandler handler.CollectHandler) {
-	op := operation(
-		http.MethodPost,
-		"/api/collect",
-		"collect",
-		"采集事件",
-		"Collection",
-		http.StatusBadRequest,
-		http.StatusUnprocessableEntity,
-		http.StatusInternalServerError,
-	)
-	op.MaxBodyBytes = maxCollectBodyBytes
-	huma.Register(api, op, collectHandler.CollectEvent)
-}
-
-func registerWebsite(api huma.API, websiteHandler handler.WebsiteHandler, authMiddleware huma.Middlewares) {
-	huma.Register(
-		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/websites",
-				"listWebsites",
-				"列出站点",
-				"Websites",
-				http.StatusUnauthorized,
-				http.StatusInternalServerError,
-			),
-			authMiddleware,
-		),
-		websiteHandler.ListWebsites,
-	)
-
-	createOperation := requireAuth(
-		operation(
-			http.MethodPost,
-			"/api/websites",
-			"createWebsite",
-			"创建站点",
-			"Websites",
-			http.StatusBadRequest,
-			http.StatusUnauthorized,
-			http.StatusUnprocessableEntity,
-			http.StatusInternalServerError,
-		),
-		authMiddleware,
-	)
-	createOperation.DefaultStatus = http.StatusCreated
-	huma.Register(api, createOperation, websiteHandler.CreateWebsite)
-
-	huma.Register(
-		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/websites/{websiteID}",
-				"getWebsite",
-				"获取站点",
-				"Websites",
-				http.StatusUnauthorized,
-				http.StatusNotFound,
-				http.StatusInternalServerError,
-			),
-			authMiddleware,
-		),
-		websiteHandler.GetWebsite,
-	)
-
-	huma.Register(
-		api,
-		requireAuth(
-			operation(
-				http.MethodPatch,
-				"/api/websites/{websiteID}",
-				"updateWebsite",
-				"更新站点",
-				"Websites",
-				http.StatusBadRequest,
-				http.StatusUnauthorized,
-				http.StatusNotFound,
-				http.StatusUnprocessableEntity,
-				http.StatusInternalServerError,
-			),
-			authMiddleware,
-		),
-		websiteHandler.UpdateWebsite,
-	)
-
-	huma.Register(
-		api,
-		requireAuth(
-			operation(
-				http.MethodDelete,
-				"/api/websites/{websiteID}",
-				"deleteWebsite",
-				"删除站点",
-				"Websites",
-				http.StatusUnauthorized,
-				http.StatusNotFound,
-				http.StatusInternalServerError,
-			),
-			authMiddleware,
-		),
-		websiteHandler.DeleteWebsite,
-	)
-}
-
-func registerStats(api huma.API, statsHandler handler.StatsHandler, authMiddleware huma.Middlewares) {
-	huma.Register(
-		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/websites/{websiteID}/stats",
-				"websiteStats",
-				"获取站点统计",
-				"Analytics",
-				http.StatusUnauthorized,
-				http.StatusNotFound,
-				http.StatusInternalServerError,
-			),
-			authMiddleware,
-		),
-		statsHandler.GetWebsiteStats,
-	)
-
-	huma.Register(
-		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/websites/{websiteID}/pageviews",
-				"websitePageviews",
-				"获取页面浏览趋势",
-				"Analytics",
-				http.StatusUnauthorized,
-				http.StatusNotFound,
-				http.StatusInternalServerError,
-			),
-			authMiddleware,
-		),
-		statsHandler.GetWebsitePageviews,
-	)
-
-	huma.Register(
-		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/websites/{websiteID}/metrics",
-				"websiteMetrics",
-				"获取站点指标",
-				"Analytics",
-				http.StatusBadRequest,
-				http.StatusUnauthorized,
-				http.StatusNotFound,
-				http.StatusInternalServerError,
-			),
-			authMiddleware,
-		),
-		statsHandler.GetWebsiteMetrics,
-	)
-}
-
-func operation(method, path, operationID, summary, tag string, statusCodes ...int) huma.Operation {
+func operation(method, path, operationID, summary, tag string) huma.Operation {
 	return huma.Operation{
 		Method:      method,
 		Path:        path,
 		OperationID: operationID,
 		Summary:     summary,
 		Tags:        []string{tag},
-		Errors:      statusCodes,
 	}
 }
 
