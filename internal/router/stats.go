@@ -11,46 +11,43 @@ import (
 func registerStatsRoutes(api huma.API, statsHandler handler.StatsHandler, authMiddleware huma.Middlewares) {
 	huma.Register(
 		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/websites/{websiteID}/stats",
-				"websiteStats",
-				"获取站点统计",
-				"Analytics",
-			),
-			authMiddleware,
-		),
+		huma.Operation{
+			Method:      http.MethodGet,
+			Path:        "/api/websites/{websiteID}/stats",
+			OperationID: "websiteStats",
+			Summary:     "获取站点统计",
+			Tags:        []string{"Analytics"},
+			Security:    []map[string][]string{{"sessionCookie": {}}},
+			Middlewares: authMiddleware,
+		},
 		statsHandler.GetWebsiteStats,
 	)
 
 	huma.Register(
 		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/websites/{websiteID}/pageviews",
-				"websitePageviews",
-				"获取页面浏览趋势",
-				"Analytics",
-			),
-			authMiddleware,
-		),
+		huma.Operation{
+			Method:      http.MethodGet,
+			Path:        "/api/websites/{websiteID}/pageviews",
+			OperationID: "websitePageviews",
+			Summary:     "获取页面浏览趋势",
+			Tags:        []string{"Analytics"},
+			Security:    []map[string][]string{{"sessionCookie": {}}},
+			Middlewares: authMiddleware,
+		},
 		statsHandler.GetWebsitePageviews,
 	)
 
 	huma.Register(
 		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/websites/{websiteID}/metrics",
-				"websiteMetrics",
-				"获取站点指标",
-				"Analytics",
-			),
-			authMiddleware,
-		),
+		huma.Operation{
+			Method:      http.MethodGet,
+			Path:        "/api/websites/{websiteID}/metrics",
+			OperationID: "websiteMetrics",
+			Summary:     "获取站点指标",
+			Tags:        []string{"Analytics"},
+			Security:    []map[string][]string{{"sessionCookie": {}}},
+			Middlewares: authMiddleware,
+		},
 		statsHandler.GetWebsiteMetrics,
 	)
 }

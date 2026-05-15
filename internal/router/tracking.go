@@ -11,13 +11,13 @@ import (
 const maxCollectBodyBytes = 256 * 1024
 
 func registerCollectRoutes(api huma.API, collectHandler handler.CollectHandler) {
-	op := operation(
-		http.MethodPost,
-		"/api/collect",
-		"collect",
-		"采集事件",
-		"Collection",
-	)
+	op := huma.Operation{
+		Method:      http.MethodPost,
+		Path:        "/api/collect",
+		OperationID: "collect",
+		Summary:     "采集事件",
+		Tags:        []string{"Collection"},
+	}
 	op.MaxBodyBytes = maxCollectBodyBytes
 	huma.Register(api, op, collectHandler.CollectEvent)
 }

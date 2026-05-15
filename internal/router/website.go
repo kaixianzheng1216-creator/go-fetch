@@ -11,74 +11,69 @@ import (
 func registerWebsiteRoutes(api huma.API, websiteHandler handler.WebsiteHandler, authMiddleware huma.Middlewares) {
 	huma.Register(
 		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/websites",
-				"listWebsites",
-				"列出站点",
-				"Websites",
-			),
-			authMiddleware,
-		),
+		huma.Operation{
+			Method:      http.MethodGet,
+			Path:        "/api/websites",
+			OperationID: "listWebsites",
+			Summary:     "列出站点",
+			Tags:        []string{"Websites"},
+			Security:    []map[string][]string{{"sessionCookie": {}}},
+			Middlewares: authMiddleware,
+		},
 		websiteHandler.ListWebsites,
 	)
 
-	createOperation := requireAuth(
-		operation(
-			http.MethodPost,
-			"/api/websites",
-			"createWebsite",
-			"创建站点",
-			"Websites",
-		),
-		authMiddleware,
-	)
+	createOperation := huma.Operation{
+		Method:      http.MethodPost,
+		Path:        "/api/websites",
+		OperationID: "createWebsite",
+		Summary:     "创建站点",
+		Tags:        []string{"Websites"},
+		Security:    []map[string][]string{{"sessionCookie": {}}},
+		Middlewares: authMiddleware,
+	}
 	createOperation.DefaultStatus = http.StatusCreated
 	huma.Register(api, createOperation, websiteHandler.CreateWebsite)
 
 	huma.Register(
 		api,
-		requireAuth(
-			operation(
-				http.MethodGet,
-				"/api/websites/{websiteID}",
-				"getWebsite",
-				"获取站点",
-				"Websites",
-			),
-			authMiddleware,
-		),
+		huma.Operation{
+			Method:      http.MethodGet,
+			Path:        "/api/websites/{websiteID}",
+			OperationID: "getWebsite",
+			Summary:     "获取站点",
+			Tags:        []string{"Websites"},
+			Security:    []map[string][]string{{"sessionCookie": {}}},
+			Middlewares: authMiddleware,
+		},
 		websiteHandler.GetWebsite,
 	)
 
 	huma.Register(
 		api,
-		requireAuth(
-			operation(
-				http.MethodPatch,
-				"/api/websites/{websiteID}",
-				"updateWebsite",
-				"更新站点",
-				"Websites",
-			),
-			authMiddleware,
-		),
+		huma.Operation{
+			Method:      http.MethodPatch,
+			Path:        "/api/websites/{websiteID}",
+			OperationID: "updateWebsite",
+			Summary:     "更新站点",
+			Tags:        []string{"Websites"},
+			Security:    []map[string][]string{{"sessionCookie": {}}},
+			Middlewares: authMiddleware,
+		},
 		websiteHandler.UpdateWebsite,
 	)
 
 	huma.Register(
 		api,
-		requireAuth(
-			operation(
-				http.MethodDelete,
-				"/api/websites/{websiteID}",
-				"deleteWebsite",
-				"删除站点",
-				"Websites",
-			),
-			authMiddleware,
-		),
+		huma.Operation{
+			Method:      http.MethodDelete,
+			Path:        "/api/websites/{websiteID}",
+			OperationID: "deleteWebsite",
+			Summary:     "删除站点",
+			Tags:        []string{"Websites"},
+			Security:    []map[string][]string{{"sessionCookie": {}}},
+			Middlewares: authMiddleware,
+		},
 		websiteHandler.DeleteWebsite,
 	)
 }
