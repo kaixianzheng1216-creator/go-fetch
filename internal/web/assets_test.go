@@ -8,6 +8,6 @@ func TestIndexHTMLIsEmbedded(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(html) == 0 {
-		t.Fatal("期望嵌入 index.html")
+		t.Fatal("expected embedded index.html")
 	}
 }

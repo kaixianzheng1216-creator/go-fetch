@@ -23,10 +23,20 @@ func TestDateRangeUsesProvidedValues(t *testing.T) {
 }
 
 func TestMetricTypeEventType(t *testing.T) {
-	if MetricTypeEvent.EventType() != EventTypeCustom {
-		t.Fatalf("event metric should use custom event type")
+	tests := []struct {
+		name   string
+		metric MetricType
+		want   EventType
+	}{
+		{name: "custom event metric", metric: MetricTypeEvent, want: EventTypeCustom},
+		{name: "page path metric", metric: MetricTypePath, want: EventTypePageView},
 	}
-	if MetricTypePath.EventType() != EventTypePageView {
-		t.Fatalf("path metric should use pageview event type")
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.metric.EventType(); got != tt.want {
+				t.Fatalf("EventType() = %d, want %d", got, tt.want)
+			}
+		})
 	}
 }

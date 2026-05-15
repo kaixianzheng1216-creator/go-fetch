@@ -8,24 +8,22 @@ func TestLoadDefaults(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if cfg.DatabaseURL != "postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable" {
-		t.Fatalf("DatabaseURL = %q", cfg.DatabaseURL)
-	}
-
-	if cfg.ListenAddr != ":8080" {
-		t.Fatalf("ListenAddr = %q", cfg.ListenAddr)
-	}
-
-	if cfg.AdminUsername != "admin" {
-		t.Fatalf("AdminUsername = %q", cfg.AdminUsername)
-	}
-
-	if cfg.AdminPassword != "change-me" {
-		t.Fatalf("AdminPassword = %q", cfg.AdminPassword)
-	}
+	assertConfig(t, cfg, Config{
+		DatabaseURL:   "postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable",
+		ListenAddr:    ":8080",
+		AdminUsername: "admin",
+		AdminPassword: "change-me",
+	})
 }
 
 func TestLoadOverrides(t *testing.T) {
+	want := Config{
+		DatabaseURL:   "postgres://example",
+		ListenAddr:    ":3000",
+		AdminUsername: "root",
+		AdminPassword: "secret",
+	}
+
 	t.Setenv("DATABASE_URL", "postgres://example")
 	t.Setenv("LISTEN_ADDR", ":3000")
 	t.Setenv("ADMIN_USERNAME", "root")
@@ -36,21 +34,7 @@ func TestLoadOverrides(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if cfg.DatabaseURL != "postgres://example" {
-		t.Fatalf("DatabaseURL = %q", cfg.DatabaseURL)
-	}
-
-	if cfg.ListenAddr != ":3000" {
-		t.Fatalf("ListenAddr = %q", cfg.ListenAddr)
-	}
-
-	if cfg.AdminUsername != "root" {
-		t.Fatalf("AdminUsername = %q", cfg.AdminUsername)
-	}
-
-	if cfg.AdminPassword != "secret" {
-		t.Fatalf("AdminPassword = %q", cfg.AdminPassword)
-	}
+	assertConfig(t, cfg, want)
 }
 
 func TestLoadRejectsEmptyRequiredValues(t *testing.T) {
@@ -70,8 +54,16 @@ func TestLoadRejectsEmptyRequiredValues(t *testing.T) {
 
 			_, err := Load()
 			if err == nil {
-				t.Fatal("期望返回错误")
+				t.Fatal("expected error")
 			}
 		})
+	}
+}
+
+func assertConfig(t *testing.T, got, want Config) {
+	t.Helper()
+
+	if got != want {
+		t.Fatalf("Config = %#v, want %#v", got, want)
 	}
 }

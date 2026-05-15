@@ -17,19 +17,34 @@ func TestFlattenEventDataKeepsValueTypes(t *testing.T) {
 		byKey[item.Key] = item
 	}
 
-	if byKey["plan"].DataType != EventDataTypeString {
-		t.Fatalf("plan DataType = %d", byKey["plan"].DataType)
+	tests := []struct {
+		key      string
+		dataType EventDataType
+		hasNum   bool
+		hasDate  bool
+	}{
+		{key: "plan", dataType: EventDataTypeString},
+		{key: "paid", dataType: EventDataTypeBoolean},
+		{key: "amount", dataType: EventDataTypeNumber, hasNum: true},
+		{key: "items", dataType: EventDataTypeArray},
+		{key: "since", dataType: EventDataTypeDate, hasDate: true},
 	}
-	if byKey["paid"].DataType != EventDataTypeBoolean {
-		t.Fatalf("paid DataType = %d", byKey["paid"].DataType)
-	}
-	if byKey["amount"].DataType != EventDataTypeNumber || byKey["amount"].NumberValue == nil {
-		t.Fatalf("amount = %#v", byKey["amount"])
-	}
-	if byKey["items"].DataType != EventDataTypeArray {
-		t.Fatalf("items DataType = %d", byKey["items"].DataType)
-	}
-	if byKey["since"].DataType != EventDataTypeDate || byKey["since"].DateValue == nil {
-		t.Fatalf("since = %#v", byKey["since"])
+
+	for _, tt := range tests {
+		t.Run(tt.key, func(t *testing.T) {
+			item, ok := byKey[tt.key]
+			if !ok {
+				t.Fatalf("missing key %q", tt.key)
+			}
+			if item.DataType != tt.dataType {
+				t.Fatalf("DataType = %d, want %d", item.DataType, tt.dataType)
+			}
+			if (item.NumberValue != nil) != tt.hasNum {
+				t.Fatalf("NumberValue present = %t, want %t", item.NumberValue != nil, tt.hasNum)
+			}
+			if (item.DateValue != nil) != tt.hasDate {
+				t.Fatalf("DateValue present = %t, want %t", item.DateValue != nil, tt.hasDate)
+			}
+		})
 	}
 }
