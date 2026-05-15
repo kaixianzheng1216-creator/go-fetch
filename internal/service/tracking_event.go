@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-	visitorhash "github.com/kaixianzheng1216-creator/go-fetch/internal/pkg/hash"
-	ua "github.com/kaixianzheng1216-creator/go-fetch/internal/pkg/useragent"
+	"github.com/mileusna/useragent"
 )
 
 const (
@@ -31,12 +31,14 @@ const (
 	maxScreenLength     = 11
 	maxLanguageLength   = 35
 	maxDistinctIDLength = 50
+
+	laptopMaxScreenWidth = 1280
 )
 
 func buildEventInput(request *http.Request, payload domain.CollectPayload, now time.Time) domain.EventInput {
 	userAgent := request.UserAgent()
 	ip := clientIP(request)
-	browser, osName, device := ua.Parse(userAgent, payload.Screen)
+	browser, osName, device := parseUserAgent(userAgent, payload.Screen)
 	pageURL := parsePageURL(payload.URL, payload.WebsiteID)
 	referrerURL := parseReferrerURL(payload.Referrer, pageURL)
 	distinctID := truncate(payload.DistinctID, maxDistinctIDLength)
@@ -45,8 +47,8 @@ func buildEventInput(request *http.Request, payload domain.CollectPayload, now t
 		eventType = domain.EventTypeCustom
 	}
 
-	sessionID := visitorhash.StableUUID(payload.WebsiteID + "|" + visitorhash.VisitorIdentity(distinctID, ip, userAgent) + "|" + now.UTC().Format(sessionWindowFormat))
-	visitID := visitorhash.StableUUID(sessionID + "|" + strconv.FormatInt(now.Unix()/visitWindowSeconds, 10))
+	sessionID := stableUUID(payload.WebsiteID + "|" + visitorIdentity(distinctID, ip, userAgent) + "|" + now.UTC().Format(sessionWindowFormat))
+	visitID := stableUUID(sessionID + "|" + strconv.FormatInt(now.Unix()/visitWindowSeconds, 10))
 
 	return domain.EventInput{
 		WebsiteID:      payload.WebsiteID,
@@ -75,6 +77,47 @@ func buildEventInput(request *http.Request, payload domain.CollectPayload, now t
 		CreatedAt:      now,
 		Data:           payload.Data,
 	}
+}
+
+func parseUserAgent(userAgentValue, screen string) (browser, osName, device string) {
+	agent := useragent.Parse(userAgentValue)
+
+	browser = agent.Name
+	if browser == "" || agent.IsUnknown() {
+		browser = "Unknown"
+	}
+
+	osName = agent.OS
+	if osName == "" {
+		osName = "Unknown"
+	}
+
+	switch {
+	case agent.Mobile:
+		device = "mobile"
+	case agent.Tablet:
+		device = "tablet"
+	default:
+		device = "desktop"
+		if width, _, hasHeight := strings.Cut(screen, "x"); hasHeight {
+			if screenWidth, err := strconv.Atoi(width); err == nil && screenWidth <= laptopMaxScreenWidth {
+				device = "laptop"
+			}
+		}
+	}
+
+	return browser, osName, device
+}
+
+func stableUUID(value string) string {
+	return uuid.NewSHA1(uuid.NameSpaceURL, []byte(value)).String()
+}
+
+func visitorIdentity(distinctID, clientIP, userAgent string) string {
+	if distinctID != "" {
+		return distinctID
+	}
+	return clientIP + "|" + userAgent
 }
 
 func parsePageURL(rawURL, fallbackHost string) *url.URL {

@@ -43,10 +43,9 @@ func run(ctx context.Context, appConfig config.Config) error {
 		return fmt.Errorf("initialize admin user: %w", err)
 	}
 
-	application := router.New(dataStore)
 	httpServer := &http.Server{
 		Addr:         appConfig.ListenAddr,
-		Handler:      application.Routes(),
+		Handler:      router.New(dataStore),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,

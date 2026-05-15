@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/pkg/useragent"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/repository"
+	"github.com/mileusna/useragent"
 )
 
 var (
@@ -38,9 +38,13 @@ func (service Collect) Collect(ctx context.Context, request *http.Request, colle
 		return ErrMissingHTTPRequest
 	}
 
-	if useragent.IsBot(request.UserAgent()) {
+	if isBot(request.UserAgent()) {
 		return nil
 	}
 
 	return service.store.SaveEvent(ctx, buildEventInput(request, payload, service.now()))
+}
+
+func isBot(userAgentValue string) bool {
+	return useragent.Parse(userAgentValue).Bot
 }
