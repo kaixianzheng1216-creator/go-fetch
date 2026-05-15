@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/server"
@@ -18,7 +20,6 @@ func main() {
 	}
 
 	ctx := context.Background()
-
 	if err := run(ctx, cfg); err != nil {
 		log.Fatal(err)
 	}
@@ -42,11 +43,14 @@ func run(ctx context.Context, cfg config.Config) error {
 	app := server.New(db)
 
 	srv := &http.Server{
-		Addr:    cfg.ListenAddr,
-		Handler: app.Routes(),
+		Addr:         cfg.ListenAddr,
+		Handler:      app.Routes(),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
+	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("start HTTP server: %w", err)
 	}
 
