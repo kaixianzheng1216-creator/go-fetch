@@ -2,10 +2,12 @@ package server
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi/analytics"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi/auth"
@@ -18,7 +20,12 @@ import (
 func (app *App) Routes() http.Handler {
 	router := chi.NewRouter()
 
-	middleware.UseHTTP(router, app.sessions)
+	router.Use(chimiddleware.RealIP)
+	router.Use(chimiddleware.RequestID)
+	router.Use(chimiddleware.Recoverer)
+	router.Use(chimiddleware.Logger)
+	router.Use(chimiddleware.Timeout(60 * time.Second))
+	router.Use(app.sessions.LoadAndSave)
 
 	api := humachi.New(router, humaConfig())
 
