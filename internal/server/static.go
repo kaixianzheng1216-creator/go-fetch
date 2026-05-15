@@ -1,19 +1,15 @@
 package server
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
-
-	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/web"
 )
 
 const (
-	contentTypeHTML        = "text/html; charset=utf-8"
-	contentTypeJS          = "application/javascript; charset=utf-8"
-	contentTypeProblemJSON = "application/problem+json"
+	contentTypeHTML = "text/html; charset=utf-8"
+	contentTypeJS   = "application/javascript; charset=utf-8"
 
 	apiPrefix = "/api/"
 )
@@ -48,15 +44,4 @@ func (a *App) handleFrontend(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", contentTypeHTML)
 
 	_, _ = w.Write(indexHTML)
-}
-
-func writeProblemError(w http.ResponseWriter, status int, message string) {
-	w.Header().Set("Content-Type", contentTypeProblemJSON)
-	w.WriteHeader(status)
-
-	_ = json.NewEncoder(w).Encode(huma.ErrorModel{
-		Title:  message,
-		Status: status,
-		Detail: message,
-	})
 }
