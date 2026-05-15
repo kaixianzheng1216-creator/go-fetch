@@ -54,18 +54,18 @@ func (h Handler) Login(ctx context.Context, request *loginRequest) (*loginOutput
 	user, err := h.store.GetUserByUsername(ctx, request.Body.Username)
 	if err != nil {
 		if h.isNotFound(err) {
-			return nil, huma.Error401Unauthorized("invalid username or password")
+			return nil, huma.Error401Unauthorized("用户名或密码错误")
 		}
 
-		return nil, huma.Error500InternalServerError("load user failed")
+		return nil, huma.Error500InternalServerError("加载用户失败")
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(request.Body.Password)) != nil {
-		return nil, huma.Error401Unauthorized("invalid username or password")
+		return nil, huma.Error401Unauthorized("用户名或密码错误")
 	}
 
 	if err := h.startSession(ctx, user.ID); err != nil {
-		return nil, huma.Error500InternalServerError("create login session failed")
+		return nil, huma.Error500InternalServerError("创建登录会话失败")
 	}
 
 	response := LoginResponse{
@@ -77,7 +77,7 @@ func (h Handler) Login(ctx context.Context, request *loginRequest) (*loginOutput
 
 func (h Handler) Logout(ctx context.Context, _ *emptyRequest) (*okOutput, error) {
 	if err := h.sessions.Destroy(ctx); err != nil {
-		return nil, huma.Error500InternalServerError("logout failed")
+		return nil, huma.Error500InternalServerError("退出登录失败")
 	}
 
 	return newOKOutput(), nil
@@ -91,7 +91,7 @@ func (h Handler) Me(ctx context.Context, _ *emptyRequest) (*userOutput, error) {
 
 func (h Handler) startSession(ctx context.Context, userID string) error {
 	if err := h.sessions.RenewToken(ctx); err != nil {
-		return fmt.Errorf("renew session token: %w", err)
+		return fmt.Errorf("刷新会话令牌失败: %w", err)
 	}
 
 	h.sessions.Put(ctx, h.userIDKey, userID)

@@ -27,17 +27,17 @@ func main() {
 
 func run(ctx context.Context, cfg config.Config) error {
 	if err := store.Migrate(ctx, cfg.DatabaseURL); err != nil {
-		return fmt.Errorf("run database migrations: %w", err)
+		return fmt.Errorf("执行数据库迁移失败: %w", err)
 	}
 
 	db, err := store.Open(ctx, cfg.DatabaseURL)
 	if err != nil {
-		return fmt.Errorf("open database connection: %w", err)
+		return fmt.Errorf("打开数据库连接失败: %w", err)
 	}
 	defer db.Close()
 
 	if err := db.EnsureAdmin(ctx, cfg.AdminUsername, cfg.AdminPassword); err != nil {
-		return fmt.Errorf("ensure admin user: %w", err)
+		return fmt.Errorf("初始化管理员用户失败: %w", err)
 	}
 
 	app := server.New(db)
@@ -51,7 +51,7 @@ func run(ctx context.Context, cfg config.Config) error {
 	}
 
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return fmt.Errorf("start HTTP server: %w", err)
+		return fmt.Errorf("启动 HTTP 服务失败: %w", err)
 	}
 
 	return nil

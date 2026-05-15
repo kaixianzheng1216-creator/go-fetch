@@ -14,7 +14,7 @@ import (
 func (s *Store) WebsiteStats(ctx context.Context, websiteID string, start, end time.Time) (eventdomain.WebsiteStats, error) {
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
-		return eventdomain.WebsiteStats{}, fmt.Errorf("parse website ID: %w", err)
+		return eventdomain.WebsiteStats{}, fmt.Errorf("解析站点 ID 失败: %w", err)
 	}
 
 	row, err := s.queries.WebsiteStats(ctx, storesqlc.WebsiteStatsParams{
@@ -24,7 +24,7 @@ func (s *Store) WebsiteStats(ctx context.Context, websiteID string, start, end t
 		PageviewEventType: int32(eventdomain.EventTypePageView),
 	})
 	if err != nil {
-		return eventdomain.WebsiteStats{}, fmt.Errorf("load website stats: %w", err)
+		return eventdomain.WebsiteStats{}, fmt.Errorf("加载站点统计失败: %w", err)
 	}
 
 	stats := eventdomain.WebsiteStats{
@@ -45,7 +45,7 @@ func (s *Store) WebsiteStats(ctx context.Context, websiteID string, start, end t
 func (s *Store) Pageviews(ctx context.Context, websiteID string, start, end time.Time, unit eventdomain.DateUnit) ([]eventdomain.PageviewPoint, error) {
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
-		return nil, fmt.Errorf("parse website ID: %w", err)
+		return nil, fmt.Errorf("解析站点 ID 失败: %w", err)
 	}
 
 	rows, err := s.queries.Pageviews(ctx, storesqlc.PageviewsParams{
@@ -56,7 +56,7 @@ func (s *Store) Pageviews(ctx context.Context, websiteID string, start, end time
 		PageviewEventType: int32(eventdomain.EventTypePageView),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("load pageviews: %w", err)
+		return nil, fmt.Errorf("加载页面浏览量失败: %w", err)
 	}
 
 	points := make([]eventdomain.PageviewPoint, 0, len(rows))
@@ -81,7 +81,7 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 	limit = eventdomain.NormalizeMetricLimit(limit)
 	websiteUUID, err := uuid.Parse(websiteID)
 	if err != nil {
-		return nil, fmt.Errorf("parse website ID: %w", err)
+		return nil, fmt.Errorf("解析站点 ID 失败: %w", err)
 	}
 
 	if metric.IsSessionDimension() {
@@ -94,7 +94,7 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 			LimitCount: int32(limit),
 		})
 		if err != nil {
-			return nil, fmt.Errorf("load session metrics: %w", err)
+			return nil, fmt.Errorf("加载会话指标失败: %w", err)
 		}
 
 		metrics := make([]eventdomain.MetricRow, 0, len(rows))
@@ -118,7 +118,7 @@ func (s *Store) Metrics(ctx context.Context, websiteID string, start, end time.T
 		LimitCount: int32(limit),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("load event metrics: %w", err)
+		return nil, fmt.Errorf("加载事件指标失败: %w", err)
 	}
 
 	metrics := make([]eventdomain.MetricRow, 0, len(rows))

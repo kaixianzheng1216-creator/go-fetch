@@ -54,7 +54,7 @@ type emptyRequest struct{}
 func (h Handler) List(ctx context.Context, _ *emptyRequest) (*listOutput, error) {
 	websites, err := h.store.ListWebsites(ctx, h.currentUser(ctx).ID)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("load websites failed")
+		return nil, huma.Error500InternalServerError("加载站点列表失败")
 	}
 
 	return newListOutput(ToWebsites(websites)), nil
@@ -63,12 +63,12 @@ func (h Handler) List(ctx context.Context, _ *emptyRequest) (*listOutput, error)
 func (h Handler) Create(ctx context.Context, request *websiteRequest) (*websiteOutput, error) {
 	body := normalizeWebsiteRequest(request.Body)
 	if body.Name == "" {
-		return nil, huma.Error400BadRequest("name cannot be empty")
+		return nil, huma.Error400BadRequest("站点名称不能为空")
 	}
 
 	website, err := h.store.CreateWebsite(ctx, h.currentUser(ctx).ID, body.Name, body.Domain)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("create website failed")
+		return nil, huma.Error500InternalServerError("创建站点失败")
 	}
 
 	return newWebsiteOutput(ToWebsite(website)), nil
@@ -86,7 +86,7 @@ func (h Handler) Get(ctx context.Context, request *websiteIDRequest) (*websiteOu
 func (h Handler) Update(ctx context.Context, request *updateWebsiteRequest) (*websiteOutput, error) {
 	body := normalizeWebsiteRequest(request.Body)
 	if body.Name == "" {
-		return nil, huma.Error400BadRequest("name cannot be empty")
+		return nil, huma.Error400BadRequest("站点名称不能为空")
 	}
 
 	user := h.currentUser(ctx)

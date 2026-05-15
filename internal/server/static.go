@@ -31,13 +31,13 @@ func (a *App) handleFrontend(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case strings.HasPrefix(r.URL.Path, apiPrefix):
-		writeProblemError(w, http.StatusNotFound, "not found")
+		writeProblemError(w, http.StatusNotFound, "接口不存在")
 		return
 	}
 
 	indexHTML, err := assets.IndexHTML()
 	if err != nil {
-		http.Error(w, "frontend build output missing", http.StatusInternalServerError)
+		http.Error(w, "前端构建产物不存在", http.StatusInternalServerError)
 		return
 	}
 

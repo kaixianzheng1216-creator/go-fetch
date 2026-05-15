@@ -66,7 +66,7 @@ func (h Handler) Stats(ctx context.Context, request *statsRequest) (*statsOutput
 	start, end, _ := eventdomain.DateRange(OptionalTimeParam(request.StartAt), OptionalTimeParam(request.EndAt), "")
 	stats, err := h.store.WebsiteStats(ctx, request.WebsiteID, start, end)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("load stats failed")
+		return nil, huma.Error500InternalServerError("加载统计数据失败")
 	}
 
 	return newStatsOutput(ToWebsiteStats(stats)), nil
@@ -80,7 +80,7 @@ func (h Handler) Pageviews(ctx context.Context, request *pageviewsRequest) (*pag
 	start, end, unit := eventdomain.DateRange(OptionalTimeParam(request.StartAt), OptionalTimeParam(request.EndAt), string(request.Unit))
 	points, err := h.store.Pageviews(ctx, request.WebsiteID, start, end, unit)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("load pageviews failed")
+		return nil, huma.Error500InternalServerError("加载页面浏览量失败")
 	}
 
 	return newPageviewsOutput(ToPageviewPoints(points)), nil
@@ -108,7 +108,7 @@ func (h Handler) Metrics(ctx context.Context, request *metricsRequest) (*metrics
 			return nil, huma.Error400BadRequest(err.Error())
 		}
 
-		return nil, huma.Error500InternalServerError("load metrics failed")
+		return nil, huma.Error500InternalServerError("加载指标数据失败")
 	}
 
 	return newMetricsOutput(ToMetricRows(rows)), nil

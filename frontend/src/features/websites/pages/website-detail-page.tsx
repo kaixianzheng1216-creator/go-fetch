@@ -76,7 +76,7 @@ export function WebsiteDetailPage() {
   }
 
   if (!websiteID) {
-    return <ErrorBanner message="Website id is missing." />
+    return <ErrorBanner message="缺少站点 ID。" />
   }
 
   if (dashboardQuery.isPending) return <DetailSkeleton />
@@ -87,7 +87,7 @@ export function WebsiteDetailPage() {
         <PageHeader
           eyebrow="Overview"
           title="Website"
-          description="The selected website could not be loaded."
+          description="无法加载选中的站点。"
           actions={
             <Button variant="outline" onClick={() => navigate("/websites")}>
               <ArrowLeft />

@@ -19,12 +19,12 @@ func RequireAuth(api huma.API, currentUser CurrentUserFunc, withUser WithUserFun
 		user, ok, err := currentUser(ctx.Context())
 
 		if err != nil {
-			_ = huma.WriteErr(api, ctx, http.StatusInternalServerError, "load current user failed")
+			_ = huma.WriteErr(api, ctx, http.StatusInternalServerError, "加载当前用户失败")
 			return
 		}
 
 		if !ok {
-			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "not authenticated")
+			_ = huma.WriteErr(api, ctx, http.StatusUnauthorized, "未登录")
 			return
 		}
 

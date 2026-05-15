@@ -42,7 +42,7 @@ type collectRequest struct {
 func (h Handler) Collect(ctx context.Context, request *collectRequest) (*okResponse, error) {
 	collectionType, ok := eventdomain.ParseCollectionType(string(request.Body.Type))
 	if !ok {
-		return nil, huma.Error400BadRequest("unsupported collection type")
+		return nil, huma.Error400BadRequest("不支持的采集类型")
 	}
 
 	request.Body.Type = CollectionType(collectionType)
@@ -50,15 +50,15 @@ func (h Handler) Collect(ctx context.Context, request *collectRequest) (*okRespo
 	payload := ToCollectPayload(request.Body.Payload)
 	if _, err := h.store.GetWebsiteForCollection(ctx, payload.WebsiteID); err != nil {
 		if h.isNotFound(err) {
-			return nil, huma.Error400BadRequest("website not found")
+			return nil, huma.Error400BadRequest("站点不存在")
 		}
 
-		return nil, huma.Error500InternalServerError("load website failed")
+		return nil, huma.Error500InternalServerError("加载站点失败")
 	}
 
 	r := h.requestFromContext(ctx)
 	if r == nil {
-		return nil, huma.Error500InternalServerError("read request failed")
+		return nil, huma.Error500InternalServerError("读取请求失败")
 	}
 
 	if collector.IsBot(r.UserAgent()) {
@@ -66,7 +66,7 @@ func (h Handler) Collect(ctx context.Context, request *collectRequest) (*okRespo
 	}
 
 	if err := h.store.SaveEvent(ctx, collector.BuildEventInput(r, payload, time.Now())); err != nil {
-		return nil, huma.Error500InternalServerError("save event failed")
+		return nil, huma.Error500InternalServerError("保存事件失败")
 	}
 
 	return newOKResponse(), nil

@@ -59,7 +59,7 @@ export function WebsitesPage() {
               message={
                 websitesQuery.error instanceof Error
                   ? websitesQuery.error.message
-                  : "Failed to load websites"
+                  : "加载站点列表失败"
               }
             />
           )}

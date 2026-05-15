@@ -17,17 +17,17 @@ type Store struct {
 func Open(ctx context.Context, databaseURL string) (*Store, error) {
 	poolConfig, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("parse database URL: %w", err)
+		return nil, fmt.Errorf("解析数据库 URL 失败: %w", err)
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
-		return nil, fmt.Errorf("create database pool: %w", err)
+		return nil, fmt.Errorf("创建数据库连接池失败: %w", err)
 	}
 
 	if err := pool.Ping(ctx); err != nil {
 		pool.Close()
-		return nil, fmt.Errorf("ping database: %w", err)
+		return nil, fmt.Errorf("连接数据库失败: %w", err)
 	}
 
 	return &Store{db: pool, queries: storesqlc.New(pool)}, nil

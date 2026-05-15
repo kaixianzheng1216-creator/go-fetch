@@ -13,7 +13,7 @@ import (
 func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("begin save event transaction: %w", err)
+		return fmt.Errorf("开启保存事件事务失败: %w", err)
 	}
 	defer func() {
 		_ = tx.Rollback(ctx)
@@ -21,17 +21,17 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 
 	websiteUUID, err := uuid.Parse(input.WebsiteID)
 	if err != nil {
-		return fmt.Errorf("parse website ID: %w", err)
+		return fmt.Errorf("解析站点 ID 失败: %w", err)
 	}
 
 	sessionID, err := uuid.Parse(input.SessionID)
 	if err != nil {
-		return fmt.Errorf("parse session ID: %w", err)
+		return fmt.Errorf("解析会话 ID 失败: %w", err)
 	}
 
 	visitID, err := uuid.Parse(input.VisitID)
 	if err != nil {
-		return fmt.Errorf("parse visit ID: %w", err)
+		return fmt.Errorf("解析访问 ID 失败: %w", err)
 	}
 
 	qtx := s.queries.WithTx(tx)
@@ -49,7 +49,7 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 		DistinctID: input.DistinctID,
 		CreatedAt:  input.CreatedAt,
 	}); err != nil {
-		return fmt.Errorf("insert session: %w", err)
+		return fmt.Errorf("写入会话失败: %w", err)
 	}
 
 	eventID := uuid.New()
@@ -74,7 +74,7 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 		UtmTerm:        input.UTMTerm,
 		CreatedAt:      input.CreatedAt,
 	}); err != nil {
-		return fmt.Errorf("insert event: %w", err)
+		return fmt.Errorf("写入事件失败: %w", err)
 	}
 
 	for _, item := range eventdomain.FlattenEventData(input.Data) {
@@ -89,12 +89,12 @@ func (s *Store) SaveEvent(ctx context.Context, input eventdomain.EventInput) err
 			DataType:    int32(item.DataType),
 			CreatedAt:   input.CreatedAt,
 		}); err != nil {
-			return fmt.Errorf("insert event data: %w", err)
+			return fmt.Errorf("写入事件数据失败: %w", err)
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("commit save event transaction: %w", err)
+		return fmt.Errorf("提交保存事件事务失败: %w", err)
 	}
 
 	return nil

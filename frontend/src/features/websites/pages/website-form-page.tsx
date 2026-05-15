@@ -53,7 +53,7 @@ export function WebsiteFormPage({ mode }: { mode: "create" | "edit" }) {
   })
 
   if (mode === "edit" && !websiteID) {
-    return <ErrorBanner message="Website id is missing." />
+    return <ErrorBanner message="缺少站点 ID。" />
   }
 
   return (
@@ -118,7 +118,7 @@ export function WebsiteFormPage({ mode }: { mode: "create" | "edit" }) {
                   message={
                     websiteQuery.error instanceof Error
                       ? websiteQuery.error.message
-                      : "Failed to load website"
+                      : "加载站点失败"
                   }
                 />
               )}
@@ -127,7 +127,7 @@ export function WebsiteFormPage({ mode }: { mode: "create" | "edit" }) {
                   message={
                     saveWebsite.error instanceof Error
                       ? saveWebsite.error.message
-                      : "Failed to save website"
+                      : "保存站点失败"
                   }
                 />
               )}
