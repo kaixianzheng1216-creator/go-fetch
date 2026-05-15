@@ -15,17 +15,17 @@ func main() {
 
 	openAPIJSON, err := server.OpenAPIJSON()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "生成 OpenAPI 失败: %v\n", err)
+		fmt.Fprintf(os.Stderr, "generate OpenAPI: %v\n", err)
 		os.Exit(1)
 	}
 	openAPIJSON = append(openAPIJSON, '\n')
 
 	if err := os.MkdirAll(filepath.Dir(*outputPath), 0o755); err != nil {
-		fmt.Fprintf(os.Stderr, "创建输出目录失败: %v\n", err)
+		fmt.Fprintf(os.Stderr, "create output directory: %v\n", err)
 		os.Exit(1)
 	}
 	if err := os.WriteFile(*outputPath, openAPIJSON, 0o644); err != nil {
-		fmt.Fprintf(os.Stderr, "写入 OpenAPI 文件失败: %v\n", err)
+		fmt.Fprintf(os.Stderr, "write OpenAPI file: %v\n", err)
 		os.Exit(1)
 	}
 }

@@ -1,8 +1,8 @@
 $ErrorActionPreference = "Stop"
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..")
-$frontend = Join-Path $root "frontend"
-$trackingScript = Join-Path $root "internal\static\js\script.js"
+$dashboard = Join-Path $root "web\dashboard"
+$trackingScript = Join-Path $root "web\tracker\script.js"
 
 function Assert-LastExitCode {
   if ($LASTEXITCODE -ne 0) {
@@ -19,7 +19,7 @@ if ($goFiles.Count -gt 0) {
   Assert-LastExitCode
 }
 
-Push-Location $frontend
+Push-Location $dashboard
 try {
   npm run format
   Assert-LastExitCode
@@ -28,5 +28,5 @@ finally {
   Pop-Location
 }
 
-npm --prefix $frontend exec prettier -- --write $trackingScript
+npm --prefix $dashboard exec prettier -- --write $trackingScript
 Assert-LastExitCode

@@ -9,45 +9,48 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi/analytics"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi/auth"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi/events"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi/websites"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/handler"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/router"
+	servermiddleware "github.com/kaixianzheng1216-creator/go-fetch/internal/server/middleware"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 )
 
-func (app *App) Routes() http.Handler {
-	router := chi.NewRouter()
+func (server *Server) Routes() http.Handler {
+	chiRouter := chi.NewRouter()
 
-	router.Use(chimiddleware.RealIP)
-	router.Use(chimiddleware.RequestID)
-	router.Use(chimiddleware.Recoverer)
-	router.Use(chimiddleware.Logger)
-	router.Use(chimiddleware.Timeout(60 * time.Second))
-	router.Use(app.sessions.LoadAndSave)
+	chiRouter.Use(chimiddleware.RealIP)
+	chiRouter.Use(chimiddleware.RequestID)
+	chiRouter.Use(chimiddleware.Recoverer)
+	chiRouter.Use(chimiddleware.Logger)
+	chiRouter.Use(chimiddleware.Timeout(60 * time.Second))
+	chiRouter.Use(server.sessions.LoadAndSave)
 
-	api := humachi.New(router, humaConfig())
+	api := humachi.New(chiRouter, humaConfig())
+	registerAPIRoutes(api, server)
 
-	registerAPIRoutes(api, app)
+	chiRouter.Get("/assets/*", server.handleFrontendAsset)
+	chiRouter.Get("/script.js", server.handleScript)
+	chiRouter.Get("/*", server.handleFrontend)
 
-	router.Get("/assets/*", app.handleFrontendAsset)
-	router.Get("/script.js", app.handleScript)
-	router.Get("/*", app.handleFrontend)
-
-	return router
+	return chiRouter
 }
 
-func registerAPIRoutes(api huma.API, app *App) {
-	api.UseMiddleware(captureRequestMiddleware(withRequest))
+func registerAPIRoutes(api huma.API, server *Server) {
+	api.UseMiddleware(servermiddleware.CaptureRequest(withRequest))
 
-	authMiddleware := huma.Middlewares{requireAuthMiddleware(api, app.currentUser, withUser)}
-
-	authHandler := auth.New(app.store, app.sessions, userIDSessionKey, userFromContext, isNotFound)
-	eventsHandler := events.New(app.store, requestFromContext, isNotFound)
-	websitesHandler := websites.New(app.store, userFromContext, websiteLookupError)
-	analyticsHandler := analytics.New(app.store, userFromContext, websiteLookupError)
-
-	events.Register(api, eventsHandler)
-	auth.Register(api, authHandler, authMiddleware)
-	websites.Register(api, websitesHandler, authMiddleware)
-	analytics.Register(api, analyticsHandler, authMiddleware)
+	authMiddleware := huma.Middlewares{servermiddleware.RequireAuth(api, server.currentUser, withUser)}
+	router.Register(api, router.Handlers{
+		Auth:    handler.NewAuth(service.NewAuth(server.store, isNotFound), server.sessions, userIDSessionKey, userFromContext),
+		Collect: handler.NewCollect(service.NewCollect(server.store), requestFromContext, isNotFound),
+		Website: handler.NewWebsite(
+			service.NewWebsite(server.store),
+			userFromContext,
+			websiteLookupError,
+		),
+		Stats: handler.NewStats(
+			service.NewStats(server.store),
+			userFromContext,
+			websiteLookupError,
+		),
+	}, authMiddleware)
 }

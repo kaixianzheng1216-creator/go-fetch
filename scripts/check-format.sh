@@ -2,8 +2,8 @@
 set -eu
 
 root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
-frontend="$root/frontend"
-tracking_script="$root/internal/static/js/script.js"
+dashboard="$root/web/dashboard"
+tracking_script="$root/web/tracker/script.js"
 
 go_files="$(go list -f '{{range .GoFiles}}{{$.Dir}}/{{.}}{{println}}{{end}}{{range .TestGoFiles}}{{$.Dir}}/{{.}}{{println}}{{end}}' ./...)"
 if [ -n "$go_files" ]; then
@@ -15,5 +15,5 @@ if [ -n "$go_files" ]; then
   fi
 fi
 
-npm --prefix "$frontend" run format:check
-npm --prefix "$frontend" exec prettier -- --check "$tracking_script"
+npm --prefix "$dashboard" run format:check
+npm --prefix "$dashboard" exec prettier -- --check "$tracking_script"

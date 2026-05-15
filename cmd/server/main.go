@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/config"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/repository"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/server"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/store"
 )
 
 func main() {
@@ -26,32 +26,31 @@ func main() {
 }
 
 func run(ctx context.Context, appConfig config.Config) error {
-	if err := store.Migrate(ctx, appConfig.DatabaseURL); err != nil {
-		return fmt.Errorf("执行数据库迁移失败: %w", err)
+	if err := repository.Migrate(ctx, appConfig.DatabaseURL); err != nil {
+		return fmt.Errorf("run database migrations: %w", err)
 	}
 
-	dataStore, err := store.Open(ctx, appConfig.DatabaseURL)
+	dataStore, err := repository.Open(ctx, appConfig.DatabaseURL)
 	if err != nil {
-		return fmt.Errorf("打开数据库连接失败: %w", err)
+		return fmt.Errorf("open database connection: %w", err)
 	}
 	defer dataStore.Close()
 
 	if err := dataStore.EnsureAdminUser(ctx, appConfig.AdminUsername, appConfig.AdminPassword); err != nil {
-		return fmt.Errorf("初始化管理员用户失败: %w", err)
+		return fmt.Errorf("initialize admin user: %w", err)
 	}
 
-	app := server.New(dataStore)
-
+	application := server.New(dataStore)
 	httpServer := &http.Server{
 		Addr:         appConfig.ListenAddr,
-		Handler:      app.Routes(),
+		Handler:      application.Routes(),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
 	if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return fmt.Errorf("启动 HTTP 服务失败: %w", err)
+		return fmt.Errorf("start HTTP server: %w", err)
 	}
 
 	return nil

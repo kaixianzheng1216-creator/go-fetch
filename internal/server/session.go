@@ -7,7 +7,7 @@ import (
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/store"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/repository"
 )
 
 const (
@@ -15,20 +15,16 @@ const (
 	userIDSessionKey  = "user_id"
 )
 
-func newSessionManager(dataStore *store.Store) *scs.SessionManager {
+func newSessionManager(dataStore *repository.Store) *scs.SessionManager {
 	sessionManager := scs.New()
-
 	sessionManager.Store = pgxstore.NewWithConfig(dataStore.Pool(), pgxstore.Config{
 		TableName:       "app_sessions",
 		CleanUpInterval: 10 * time.Minute,
 	})
-
 	sessionManager.Cookie.Name = sessionCookieName
 	sessionManager.Cookie.Secure = true
 	sessionManager.Cookie.HttpOnly = true
 	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
-
 	sessionManager.Lifetime = 24 * time.Hour
-
 	return sessionManager
 }
