@@ -1,9 +1,9 @@
 package repository
 
 import (
-	storesqlc "github.com/kaixianzheng1216-creator/go-fetch/internal/repository/sqlc"
-
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	storesqlc "github.com/kaixianzheng1216-creator/go-fetch/internal/repository/sqlc"
 )
 
 type Store struct {

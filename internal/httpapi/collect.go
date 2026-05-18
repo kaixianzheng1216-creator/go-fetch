@@ -29,8 +29,9 @@ type CollectionTypeParam string
 
 func (CollectionTypeParam) Schema(huma.Registry) *huma.Schema {
 	return &huma.Schema{
-		Type: huma.TypeString,
-		Enum: enumValues(domain.CollectionTypeValues()),
+		Type:    huma.TypeString,
+		Enum:    enumValues(domain.CollectionTypeValues()),
+		Default: string(domain.CollectionTypeEvent),
 	}
 }
 
@@ -46,26 +47,26 @@ type CollectEventPayloadRequest struct {
 	Data       map[string]any `json:"data,omitempty"`
 }
 
-func (apiServer server) registerCollectRoutes(humaAPI huma.API) {
+func (srv server) registerCollectRoutes(humaAPI huma.API) {
 	operation := publicOperation(http.MethodPost, "/api/collect", "collect", "Collect event", "Collection")
 	operation.MaxBodyBytes = maxCollectBodyBytes
-	huma.Register(humaAPI, operation, apiServer.collectEvent)
+	huma.Register(humaAPI, operation, srv.collectEvent)
 }
 
-func (apiServer server) collectEvent(ctx context.Context, input *collectInput) (*okOutput, error) {
-	err := apiServer.collect.CollectEvent(ctx, service.CollectEventParams{
-		Client:  apiServer.clientInfoFromRequest(requestFromContext(ctx)),
+func (srv server) collectEvent(ctx context.Context, input *collectInput) (*okOutput, error) {
+	err := srv.collect.CollectEvent(ctx, service.CollectEventParams{
+		Client:  srv.clientInfoFromRequest(requestFromContext(ctx)),
 		Type:    domain.CollectionType(input.Body.Type),
-		Payload: toDomainCollectPayload(input.Body.Payload),
+		Payload: newCollectPayload(input.Body.Payload),
 	})
 	if err != nil {
 		return nil, collectionError(err)
 	}
 
-	return toOKOutput(), nil
+	return newOKOutput(), nil
 }
 
-func toDomainCollectPayload(payload CollectEventPayloadRequest) domain.CollectPayload {
+func newCollectPayload(payload CollectEventPayloadRequest) domain.CollectPayload {
 	return domain.CollectPayload{
 		WebsiteID:  payload.WebsiteID,
 		URL:        payload.URL,
@@ -79,7 +80,7 @@ func toDomainCollectPayload(payload CollectEventPayloadRequest) domain.CollectPa
 	}
 }
 
-func (apiServer server) clientInfoFromRequest(request *http.Request) service.ClientInfo {
+func (srv server) clientInfoFromRequest(request *http.Request) service.ClientInfo {
 	if request == nil {
 		return service.ClientInfo{}
 	}
@@ -88,7 +89,7 @@ func (apiServer server) clientInfoFromRequest(request *http.Request) service.Cli
 		IP:        clientIP(request.RemoteAddr),
 		UserAgent: request.UserAgent(),
 	}
-	if apiServer.config.TrustProxyHeaders {
+	if srv.config.TrustProxyHeaders {
 		client.Country = countryHeader(request.Header)
 		client.Region = geoHeader(request.Header, "CF-IPRegionCode", "CF-IPRegion", "X-Vercel-IP-Country-Region", "X-Appengine-Region", "CloudFront-Viewer-Country-Region", "X-Geo-Region")
 		client.City = geoHeader(request.Header, "CF-IPCity", "X-Vercel-IP-City", "X-Appengine-City", "CloudFront-Viewer-City", "X-Geo-City")

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -12,17 +13,24 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		slog.Error("server failed", "error", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	appConfig, err := config.Load()
 	if err != nil {
-		slog.Error("load config", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("load config: %w", err)
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	if err := app.Run(ctx, appConfig); err != nil {
-		slog.Error("run application", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("run application: %w", err)
 	}
+
+	return nil
 }

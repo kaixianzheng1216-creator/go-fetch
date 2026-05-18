@@ -26,76 +26,143 @@ type FlatEventData struct {
 	DataType    EventDataType
 }
 
+type eventDataFlattener struct {
+	items []FlatEventData
+}
+
 func FlattenEventData(data map[string]any) []FlatEventData {
-	var result []FlatEventData
-
-	var walk func(prefix string, value any)
-	walk = func(prefix string, value any) {
-		switch typedValue := value.(type) {
-		case map[string]any:
-			for _, key := range eventDataKeys(typedValue) {
-				child := typedValue[key]
-				walk(joinEventDataKey(prefix, key), child)
-			}
-		case []any:
-			bytes, err := json.Marshal(typedValue)
-			if err != nil {
-				bytes = []byte(fmt.Sprint(typedValue))
-			}
-			result = append(result, FlatEventData{
-				Key:         eventDataKey(prefix),
-				StringValue: textutil.TruncateRunes(string(bytes), maxEventDataValueLength),
-				DataType:    EventDataTypeArray,
-			})
-		case float64:
-			if !math.IsNaN(typedValue) && !math.IsInf(typedValue, 0) {
-				numberValue := typedValue
-				result = append(result, FlatEventData{
-					Key:         eventDataKey(prefix),
-					StringValue: fmt.Sprintf("%g", typedValue),
-					NumberValue: &numberValue,
-					DataType:    EventDataTypeNumber,
-				})
-			}
-		case bool:
-			result = append(result, FlatEventData{
-				Key:         eventDataKey(prefix),
-				StringValue: strconv.FormatBool(typedValue),
-				DataType:    EventDataTypeBoolean,
-			})
-		case string:
-			if dateValue, hasDateValue := parseEventDataTime(typedValue); hasDateValue {
-				result = append(result, FlatEventData{
-					Key:         eventDataKey(prefix),
-					StringValue: dateValue.UTC().Format(time.RFC3339Nano),
-					DateValue:   &dateValue,
-					DataType:    EventDataTypeDate,
-				})
-				break
-			}
-
-			result = append(result, FlatEventData{
-				Key:         eventDataKey(prefix),
-				StringValue: textutil.TruncateRunes(typedValue, maxEventDataValueLength),
-				DataType:    EventDataTypeString,
-			})
-		case nil:
-			result = append(result, FlatEventData{Key: eventDataKey(prefix), DataType: EventDataTypeString})
-		default:
-			result = append(result, FlatEventData{
-				Key:         eventDataKey(prefix),
-				StringValue: textutil.TruncateRunes(fmt.Sprint(typedValue), maxEventDataValueLength),
-				DataType:    EventDataTypeString,
-			})
-		}
-	}
-
+	flattener := eventDataFlattener{}
 	for _, key := range eventDataKeys(data) {
-		value := data[key]
-		walk(key, value)
+		flattener.walk(key, data[key])
 	}
 
-	return result
+	return flattener.items
+}
+
+func (flattener *eventDataFlattener) walk(prefix string, value any) {
+	switch typedValue := value.(type) {
+	case map[string]any:
+		for _, key := range eventDataKeys(typedValue) {
+			flattener.walk(joinEventDataKey(prefix, key), typedValue[key])
+		}
+	case []any:
+		flattener.appendArray(prefix, typedValue)
+	case bool:
+		flattener.appendBool(prefix, typedValue)
+	case string:
+		flattener.appendString(prefix, typedValue)
+	case nil:
+		flattener.appendNull(prefix)
+	default:
+		if numberValue, ok := eventDataNumber(typedValue); ok {
+			flattener.appendNumber(prefix, numberValue)
+			return
+		}
+		flattener.appendText(prefix, fmt.Sprint(typedValue))
+	}
+}
+
+func (flattener *eventDataFlattener) appendArray(key string, value []any) {
+	bytes, err := json.Marshal(value)
+	if err != nil {
+		bytes = []byte(fmt.Sprint(value))
+	}
+
+	flattener.items = append(flattener.items, FlatEventData{
+		Key:         eventDataKey(key),
+		StringValue: textutil.TruncateRunes(string(bytes), maxEventDataValueLength),
+		DataType:    EventDataTypeArray,
+	})
+}
+
+func (flattener *eventDataFlattener) appendBool(key string, value bool) {
+	flattener.items = append(flattener.items, FlatEventData{
+		Key:         eventDataKey(key),
+		StringValue: strconv.FormatBool(value),
+		DataType:    EventDataTypeBoolean,
+	})
+}
+
+func (flattener *eventDataFlattener) appendString(key, value string) {
+	if dateValue, ok := parseEventDataTime(value); ok {
+		flattener.appendDate(key, dateValue)
+		return
+	}
+
+	flattener.appendText(key, value)
+}
+
+func (flattener *eventDataFlattener) appendText(key, value string) {
+	flattener.items = append(flattener.items, FlatEventData{
+		Key:         eventDataKey(key),
+		StringValue: textutil.TruncateRunes(value, maxEventDataValueLength),
+		DataType:    EventDataTypeString,
+	})
+}
+
+func (flattener *eventDataFlattener) appendDate(key string, value time.Time) {
+	value = value.UTC()
+	flattener.items = append(flattener.items, FlatEventData{
+		Key:         eventDataKey(key),
+		StringValue: value.Format(time.RFC3339Nano),
+		DateValue:   &value,
+		DataType:    EventDataTypeDate,
+	})
+}
+
+func (flattener *eventDataFlattener) appendNumber(key string, value float64) {
+	if math.IsNaN(value) || math.IsInf(value, 0) {
+		return
+	}
+
+	numberValue := value
+	flattener.items = append(flattener.items, FlatEventData{
+		Key:         eventDataKey(key),
+		StringValue: strconv.FormatFloat(value, 'g', -1, 64),
+		NumberValue: &numberValue,
+		DataType:    EventDataTypeNumber,
+	})
+}
+
+func (flattener *eventDataFlattener) appendNull(key string) {
+	flattener.items = append(flattener.items, FlatEventData{
+		Key:      eventDataKey(key),
+		DataType: EventDataTypeString,
+	})
+}
+
+func eventDataNumber(value any) (float64, bool) {
+	switch typedValue := value.(type) {
+	case float64:
+		return typedValue, true
+	case float32:
+		return float64(typedValue), true
+	case int:
+		return float64(typedValue), true
+	case int8:
+		return float64(typedValue), true
+	case int16:
+		return float64(typedValue), true
+	case int32:
+		return float64(typedValue), true
+	case int64:
+		return float64(typedValue), true
+	case uint:
+		return float64(typedValue), true
+	case uint8:
+		return float64(typedValue), true
+	case uint16:
+		return float64(typedValue), true
+	case uint32:
+		return float64(typedValue), true
+	case uint64:
+		return float64(typedValue), true
+	case json.Number:
+		numberValue, err := typedValue.Float64()
+		return numberValue, err == nil
+	default:
+		return 0, false
+	}
 }
 
 func parseEventDataTime(value string) (time.Time, bool) {
@@ -103,7 +170,11 @@ func parseEventDataTime(value string) (time.Time, bool) {
 		return time.Time{}, false
 	}
 
-	for _, layout := range []string{time.RFC3339Nano, "2006-01-02T15:04:05.000", "2006-01-02T15:04:05"} {
+	for _, layout := range [...]string{
+		time.RFC3339Nano,
+		"2006-01-02T15:04:05.000",
+		"2006-01-02T15:04:05",
+	} {
 		parsed, err := time.Parse(layout, value)
 		if err == nil {
 			return parsed.UTC(), true

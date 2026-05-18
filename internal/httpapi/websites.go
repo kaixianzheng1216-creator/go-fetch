@@ -45,47 +45,47 @@ type websiteOutput struct {
 	Body WebsiteResponse
 }
 
-func (apiServer server) registerWebsiteRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
+func (srv server) registerWebsiteRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
 	huma.Register(
 		humaAPI,
 		securedOperation(http.MethodGet, "/api/websites", "listWebsites", "List websites", "Websites", authMiddleware),
-		apiServer.listWebsites,
+		srv.listWebsites,
 	)
 
 	createOperation := securedOperation(http.MethodPost, "/api/websites", "createWebsite", "Create website", "Websites", authMiddleware)
 	createOperation.DefaultStatus = http.StatusCreated
-	huma.Register(humaAPI, createOperation, apiServer.createWebsite)
+	huma.Register(humaAPI, createOperation, srv.createWebsite)
 
 	huma.Register(
 		humaAPI,
 		securedOperation(http.MethodGet, "/api/websites/{websiteID}", "getWebsite", "Get website", "Websites", authMiddleware),
-		apiServer.getWebsite,
+		srv.getWebsite,
 	)
 
 	huma.Register(
 		humaAPI,
 		securedOperation(http.MethodPatch, "/api/websites/{websiteID}", "updateWebsite", "Update website", "Websites", authMiddleware),
-		apiServer.updateWebsite,
+		srv.updateWebsite,
 	)
 
 	huma.Register(
 		humaAPI,
 		securedOperation(http.MethodDelete, "/api/websites/{websiteID}", "deleteWebsite", "Delete website", "Websites", authMiddleware),
-		apiServer.deleteWebsite,
+		srv.deleteWebsite,
 	)
 }
 
-func (apiServer server) listWebsites(ctx context.Context, _ *emptyInput) (*websiteListOutput, error) {
-	websites, err := apiServer.websites.List(ctx, currentUser(ctx).ID)
+func (srv server) listWebsites(ctx context.Context, _ *emptyInput) (*websiteListOutput, error) {
+	websites, err := srv.websites.List(ctx, currentUser(ctx).ID)
 	if err != nil {
 		return nil, huma.Error500InternalServerError(errorMessageWebsiteListLoadFailed)
 	}
 
-	return &websiteListOutput{Body: toWebsiteResponses(websites)}, nil
+	return &websiteListOutput{Body: newWebsiteResponses(websites)}, nil
 }
 
-func (apiServer server) createWebsite(ctx context.Context, input *createWebsiteInput) (*websiteOutput, error) {
-	website, err := apiServer.websites.Create(ctx, currentUser(ctx).ID, service.CreateWebsiteParams{
+func (srv server) createWebsite(ctx context.Context, input *createWebsiteInput) (*websiteOutput, error) {
+	website, err := srv.websites.Create(ctx, currentUser(ctx).ID, service.WebsiteInput{
 		Name:   input.Body.Name,
 		Domain: input.Body.Domain,
 	})
@@ -93,20 +93,20 @@ func (apiServer server) createWebsite(ctx context.Context, input *createWebsiteI
 		return nil, websiteMutationError(err, errorMessageWebsiteCreateFailed)
 	}
 
-	return &websiteOutput{Body: toWebsiteResponse(website)}, nil
+	return &websiteOutput{Body: newWebsiteResponse(website)}, nil
 }
 
-func (apiServer server) getWebsite(ctx context.Context, input *websiteIDInput) (*websiteOutput, error) {
-	website, err := apiServer.websites.Get(ctx, currentUser(ctx).ID, input.WebsiteID)
+func (srv server) getWebsite(ctx context.Context, input *websiteIDInput) (*websiteOutput, error) {
+	website, err := srv.websites.Get(ctx, currentUser(ctx).ID, input.WebsiteID)
 	if err != nil {
 		return nil, websiteLookupError(err)
 	}
 
-	return &websiteOutput{Body: toWebsiteResponse(website)}, nil
+	return &websiteOutput{Body: newWebsiteResponse(website)}, nil
 }
 
-func (apiServer server) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*websiteOutput, error) {
-	website, err := apiServer.websites.Update(ctx, currentUser(ctx).ID, input.WebsiteID, service.UpdateWebsiteParams{
+func (srv server) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*websiteOutput, error) {
+	website, err := srv.websites.Update(ctx, currentUser(ctx).ID, input.WebsiteID, service.WebsiteInput{
 		Name:   input.Body.Name,
 		Domain: input.Body.Domain,
 	})
@@ -114,18 +114,18 @@ func (apiServer server) updateWebsite(ctx context.Context, input *updateWebsiteI
 		return nil, websiteMutationError(err, errorMessageWebsiteUpdateFailed)
 	}
 
-	return &websiteOutput{Body: toWebsiteResponse(website)}, nil
+	return &websiteOutput{Body: newWebsiteResponse(website)}, nil
 }
 
-func (apiServer server) deleteWebsite(ctx context.Context, input *websiteIDInput) (*okOutput, error) {
-	if err := apiServer.websites.Delete(ctx, currentUser(ctx).ID, input.WebsiteID); err != nil {
+func (srv server) deleteWebsite(ctx context.Context, input *websiteIDInput) (*okOutput, error) {
+	if err := srv.websites.Delete(ctx, currentUser(ctx).ID, input.WebsiteID); err != nil {
 		return nil, websiteLookupError(err)
 	}
 
-	return toOKOutput(), nil
+	return newOKOutput(), nil
 }
 
-func toWebsiteResponse(website domain.Website) WebsiteResponse {
+func newWebsiteResponse(website domain.Website) WebsiteResponse {
 	return WebsiteResponse{
 		ID:        website.ID,
 		Name:      website.Name,
@@ -134,10 +134,10 @@ func toWebsiteResponse(website domain.Website) WebsiteResponse {
 	}
 }
 
-func toWebsiteResponses(websites []domain.Website) []WebsiteResponse {
-	result := make([]WebsiteResponse, 0, len(websites))
-	for _, website := range websites {
-		result = append(result, toWebsiteResponse(website))
+func newWebsiteResponses(websites []domain.Website) []WebsiteResponse {
+	result := make([]WebsiteResponse, len(websites))
+	for i, website := range websites {
+		result[i] = newWebsiteResponse(website)
 	}
 	return result
 }

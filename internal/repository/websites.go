@@ -16,9 +16,9 @@ func (store *Store) ListWebsites(ctx context.Context, userID uuid.UUID) ([]domai
 		return nil, fmt.Errorf("list websites: %w", err)
 	}
 
-	websites := make([]domain.Website, 0, len(rows))
-	for _, row := range rows {
-		websites = append(websites, toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt))
+	websites := make([]domain.Website, len(rows))
+	for i, row := range rows {
+		websites[i] = toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt)
 	}
 
 	return websites, nil

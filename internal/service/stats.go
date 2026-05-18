@@ -76,12 +76,8 @@ func NewStatsService(repository StatsRepository) StatsService {
 
 // Summary returns aggregate website stats.
 func (svc StatsService) Summary(ctx context.Context, query StatsQuery) (domain.WebsiteStats, error) {
-	start, end, err := statsDateRange(svc.now(), query.Range)
+	start, end, err := svc.resolveStatsQuery(ctx, query)
 	if err != nil {
-		return domain.WebsiteStats{}, err
-	}
-
-	if err := svc.requireWebsiteAccess(ctx, query.UserID, query.WebsiteID); err != nil {
 		return domain.WebsiteStats{}, err
 	}
 
@@ -90,12 +86,8 @@ func (svc StatsService) Summary(ctx context.Context, query StatsQuery) (domain.W
 
 // Pageviews returns pageview buckets for a website.
 func (svc StatsService) Pageviews(ctx context.Context, query PageviewsQuery) ([]domain.PageviewBucket, error) {
-	start, end, err := statsDateRange(svc.now(), query.Range)
+	start, end, err := svc.resolveStatsQuery(ctx, query.StatsQuery)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := svc.requireWebsiteAccess(ctx, query.UserID, query.WebsiteID); err != nil {
 		return nil, err
 	}
 
@@ -109,12 +101,8 @@ func (svc StatsService) Pageviews(ctx context.Context, query PageviewsQuery) ([]
 
 // Metrics returns top metrics for a website.
 func (svc StatsService) Metrics(ctx context.Context, query MetricsQuery) ([]domain.Metric, error) {
-	start, end, err := statsDateRange(svc.now(), query.Range)
+	start, end, err := svc.resolveStatsQuery(ctx, query.StatsQuery)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := svc.requireWebsiteAccess(ctx, query.UserID, query.WebsiteID); err != nil {
 		return nil, err
 	}
 
@@ -123,6 +111,19 @@ func (svc StatsService) Metrics(ctx context.Context, query MetricsQuery) ([]doma
 	}
 
 	return svc.repository.WebsiteMetrics(ctx, query.WebsiteID, start, end, query.Type, domain.NormalizeMetricLimit(query.Limit))
+}
+
+func (svc StatsService) resolveStatsQuery(ctx context.Context, query StatsQuery) (time.Time, time.Time, error) {
+	start, end, err := statsDateRange(svc.now(), query.Range)
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+
+	if err := svc.requireWebsiteAccess(ctx, query.UserID, query.WebsiteID); err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+
+	return start, end, nil
 }
 
 func (svc StatsService) requireWebsiteAccess(ctx context.Context, userID, websiteID uuid.UUID) error {

@@ -57,7 +57,7 @@ type server struct {
 
 func New(dataStore DataStore, sessions *scs.SessionManager, config Config) http.Handler {
 	config = config.withDefaults()
-	apiServer := server{
+	srv := server{
 		store:    dataStore,
 		sessions: sessions,
 		auth:     service.NewAuthService(dataStore),
@@ -75,15 +75,15 @@ func New(dataStore DataStore, sessions *scs.SessionManager, config Config) http.
 	chiRouter.Use(chimiddleware.Recoverer)
 	chiRouter.Use(chimiddleware.Logger)
 	chiRouter.Use(chimiddleware.Timeout(config.RequestTimeout))
-	chiRouter.Use(apiServer.collectCORSMiddleware)
+	chiRouter.Use(srv.collectCORSMiddleware)
 	if sessions != nil {
 		chiRouter.Use(sessions.LoadAndSave)
 	}
 
 	humaAPI := humachi.New(chiRouter, humaConfig())
 	humaAPI.UseMiddleware(captureRequest)
-	apiServer.registerRoutes(humaAPI)
-	apiServer.registerAssets(chiRouter)
+	srv.registerRoutes(humaAPI)
+	srv.registerAssets(chiRouter)
 
 	return chiRouter
 }
@@ -98,16 +98,16 @@ func (config Config) withDefaults() Config {
 	return config
 }
 
-func (apiServer server) registerRoutes(humaAPI huma.API) {
-	authMiddleware := huma.Middlewares{apiServer.requireAuth(humaAPI)}
+func (srv server) registerRoutes(humaAPI huma.API) {
+	authMiddleware := huma.Middlewares{srv.requireAuth(humaAPI)}
 
-	apiServer.registerCollectRoutes(humaAPI)
-	apiServer.registerAuthRoutes(humaAPI, authMiddleware)
-	apiServer.registerWebsiteRoutes(humaAPI, authMiddleware)
-	apiServer.registerStatsRoutes(humaAPI, authMiddleware)
+	srv.registerCollectRoutes(humaAPI)
+	srv.registerAuthRoutes(humaAPI, authMiddleware)
+	srv.registerWebsiteRoutes(humaAPI, authMiddleware)
+	srv.registerStatsRoutes(humaAPI, authMiddleware)
 }
 
-func (apiServer server) registerAssets(chiRouter chi.Router) {
+func (srv server) registerAssets(chiRouter chi.Router) {
 	chiRouter.Get("/assets/*", http.FileServer(http.FS(webassets.DashboardFS())).ServeHTTP)
 	chiRouter.Get("/script.js", func(responseWriter http.ResponseWriter, _ *http.Request) {
 		script, err := webassets.TrackerScript()
@@ -124,9 +124,9 @@ func (apiServer server) registerAssets(chiRouter chi.Router) {
 	chiRouter.Get("/*", spaHandler)
 }
 
-func (apiServer server) collectCORSMiddleware(next http.Handler) http.Handler {
+func (srv server) collectCORSMiddleware(next http.Handler) http.Handler {
 	corsHandler := cors.Handler(cors.Options{
-		AllowedOrigins: apiServer.config.CollectCORSAllowedOrigins,
+		AllowedOrigins: srv.config.CollectCORSAllowedOrigins,
 		AllowedMethods: []string{http.MethodPost, http.MethodOptions},
 		AllowedHeaders: []string{"Content-Type"},
 		MaxAge:         300,
@@ -206,14 +206,14 @@ func securedOperation(method, path, operationID, summary, tag string, authMiddle
 }
 
 func enumValues(values []string) []any {
-	result := make([]any, 0, len(values))
-	for _, value := range values {
-		result = append(result, value)
+	result := make([]any, len(values))
+	for i, value := range values {
+		result[i] = value
 	}
 	return result
 }
 
-func toOKOutput() *okOutput {
+func newOKOutput() *okOutput {
 	return &okOutput{Body: OKResponse{OK: true}}
 }
 

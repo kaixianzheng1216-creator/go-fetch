@@ -42,67 +42,67 @@ type userOutput struct {
 	Body UserResponse
 }
 
-func (apiServer server) registerAuthRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
+func (srv server) registerAuthRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
 	huma.Register(
 		humaAPI,
 		publicOperation(http.MethodPost, "/api/login", "login", "Log in", "Auth"),
-		apiServer.login,
+		srv.login,
 	)
 
 	huma.Register(
 		humaAPI,
 		publicOperation(http.MethodPost, "/api/logout", "logout", "Log out", "Auth"),
-		apiServer.logout,
+		srv.logout,
 	)
 
 	huma.Register(
 		humaAPI,
 		securedOperation(http.MethodGet, "/api/me", "getCurrentUser", "Get current user", "Auth", authMiddleware),
-		apiServer.getCurrentUser,
+		srv.getCurrentUser,
 	)
 }
 
-func (apiServer server) login(ctx context.Context, input *loginInput) (*loginOutput, error) {
-	user, err := apiServer.auth.Login(ctx, input.Body.Username, input.Body.Password)
+func (srv server) login(ctx context.Context, input *loginInput) (*loginOutput, error) {
+	user, err := srv.auth.Login(ctx, input.Body.Username, input.Body.Password)
 	if err != nil {
 		return nil, loginError(err)
 	}
 
-	if err := apiServer.startUserSession(ctx, user.ID); err != nil {
+	if err := srv.startUserSession(ctx, user.ID); err != nil {
 		return nil, huma.Error500InternalServerError(errorMessageLoginSessionCreate)
 	}
 
-	return &loginOutput{Body: LoginResponse{User: toUserResponse(user)}}, nil
+	return &loginOutput{Body: LoginResponse{User: newUserResponse(user)}}, nil
 }
 
-func (apiServer server) logout(ctx context.Context, _ *emptyInput) (*okOutput, error) {
-	if apiServer.sessions == nil {
-		return toOKOutput(), nil
+func (srv server) logout(ctx context.Context, _ *emptyInput) (*okOutput, error) {
+	if srv.sessions == nil {
+		return newOKOutput(), nil
 	}
-	if err := apiServer.sessions.Destroy(ctx); err != nil {
+	if err := srv.sessions.Destroy(ctx); err != nil {
 		return nil, huma.Error500InternalServerError(errorMessageLogoutFailed)
 	}
 
-	return toOKOutput(), nil
+	return newOKOutput(), nil
 }
 
-func (apiServer server) getCurrentUser(ctx context.Context, _ *emptyInput) (*userOutput, error) {
-	return &userOutput{Body: toUserResponse(currentUser(ctx))}, nil
+func (srv server) getCurrentUser(ctx context.Context, _ *emptyInput) (*userOutput, error) {
+	return &userOutput{Body: newUserResponse(currentUser(ctx))}, nil
 }
 
-func (apiServer server) startUserSession(ctx context.Context, userID uuid.UUID) error {
-	if apiServer.sessions == nil {
+func (srv server) startUserSession(ctx context.Context, userID uuid.UUID) error {
+	if srv.sessions == nil {
 		return fmt.Errorf("session manager is not configured")
 	}
-	if err := apiServer.sessions.RenewToken(ctx); err != nil {
+	if err := srv.sessions.RenewToken(ctx); err != nil {
 		return fmt.Errorf("renew session token: %w", err)
 	}
 
-	apiServer.sessions.Put(ctx, session.UserIDKey, userID.String())
+	srv.sessions.Put(ctx, session.UserIDKey, userID.String())
 	return nil
 }
 
-func toUserResponse(user domain.User) UserResponse {
+func newUserResponse(user domain.User) UserResponse {
 	return UserResponse{
 		ID:        user.ID,
 		Username:  user.Username,

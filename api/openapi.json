@@ -49,6 +49,7 @@
             "$ref": "#/components/schemas/CollectEventPayloadRequest"
           },
           "type": {
+            "default": "event",
             "enum": [
               "event"
             ],

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
@@ -67,10 +68,12 @@ func (svc CollectionService) CollectEvent(ctx context.Context, params CollectEve
 		return err
 	}
 
-	clock := svc.clock
-	if clock == nil {
-		clock = systemClock
-	}
+	return svc.repository.SaveEvent(ctx, buildEventRecord(client, params.Payload, website, svc.now()))
+}
 
-	return svc.repository.SaveEvent(ctx, buildEventRecord(client, params.Payload, website, clock()))
+func (svc CollectionService) now() time.Time {
+	if svc.clock == nil {
+		return systemClock()
+	}
+	return svc.clock()
 }

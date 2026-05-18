@@ -23,9 +23,9 @@ func captureRequest(ctx huma.Context, next func(huma.Context)) {
 	next(huma.WithContext(ctx, withRequest(ctx.Context(), request)))
 }
 
-func (apiServer server) requireAuth(humaAPI huma.API) func(huma.Context, func(huma.Context)) {
+func (srv server) requireAuth(humaAPI huma.API) func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {
-		user, isAuthenticated, err := apiServer.currentSessionUser(ctx.Context())
+		user, isAuthenticated, err := srv.currentSessionUser(ctx.Context())
 		if err != nil {
 			if err := huma.WriteErr(humaAPI, ctx, http.StatusInternalServerError, errorMessageCurrentUserLoadFailed); err != nil {
 				slog.Debug("write current user error", "error", err)
@@ -43,12 +43,12 @@ func (apiServer server) requireAuth(humaAPI huma.API) func(huma.Context, func(hu
 	}
 }
 
-func (apiServer server) currentSessionUser(ctx context.Context) (domain.User, bool, error) {
-	if apiServer.sessions == nil {
+func (srv server) currentSessionUser(ctx context.Context) (domain.User, bool, error) {
+	if srv.sessions == nil {
 		return domain.User{}, false, nil
 	}
 
-	userIDValue := apiServer.sessions.GetString(ctx, session.UserIDKey)
+	userIDValue := srv.sessions.GetString(ctx, session.UserIDKey)
 	if userIDValue == "" {
 		return domain.User{}, false, nil
 	}
@@ -58,7 +58,7 @@ func (apiServer server) currentSessionUser(ctx context.Context) (domain.User, bo
 		return domain.User{}, false, nil
 	}
 
-	user, err := apiServer.store.GetUserByID(ctx, userID)
+	user, err := srv.store.GetUserByID(ctx, userID)
 	if err != nil {
 		if isNotFound(err) {
 			return domain.User{}, false, nil

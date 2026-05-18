@@ -100,25 +100,25 @@ func (store *Store) WebsiteMetrics(ctx context.Context, websiteID uuid.UUID, sta
 }
 
 func toSessionMetrics(rows []storesqlc.SessionMetricsRow) []domain.Metric {
-	metrics := make([]domain.Metric, 0, len(rows))
-	for _, row := range rows {
-		metrics = append(metrics, domain.Metric{
+	metrics := make([]domain.Metric, len(rows))
+	for i, row := range rows {
+		metrics[i] = domain.Metric{
 			Name:     row.Name,
 			Views:    row.Views,
 			Visitors: row.Visitors,
-		})
+		}
 	}
 	return metrics
 }
 
 func toEventMetrics(rows []storesqlc.EventMetricsRow) []domain.Metric {
-	metrics := make([]domain.Metric, 0, len(rows))
-	for _, row := range rows {
-		metrics = append(metrics, domain.Metric{
+	metrics := make([]domain.Metric, len(rows))
+	for i, row := range rows {
+		metrics[i] = domain.Metric{
 			Name:     row.Name,
 			Views:    row.Views,
 			Visitors: row.Visitors,
-		})
+		}
 	}
 	return metrics
 }
