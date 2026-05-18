@@ -10,13 +10,10 @@ import (
 )
 
 var (
-	// ErrMissingClientInfo indicates a collection request was not bound to an HTTP request.
-	ErrMissingClientInfo = errors.New("missing client info")
-	// ErrUnsupportedEventType indicates an unknown tracking event type.
+	ErrMissingClientInfo    = errors.New("missing client info")
 	ErrUnsupportedEventType = errors.New("unsupported event type")
 )
 
-// CollectionRepository persists collected analytics events.
 type CollectionRepository interface {
 	GetWebsiteForCollection(ctx context.Context, websiteID uuid.UUID) (domain.Website, error)
 	SaveEvent(ctx context.Context, event domain.EventRecord) error

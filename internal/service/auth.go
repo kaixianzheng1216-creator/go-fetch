@@ -1,4 +1,3 @@
-// Package service contains application business operations.
 package service
 
 import (
@@ -11,10 +10,8 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 )
 
-// ErrInvalidCredentials indicates an invalid login attempt.
 var ErrInvalidCredentials = errors.New("invalid username or password")
 
-// AuthUserRepository provides user lookups for authentication.
 type AuthUserRepository interface {
 	GetUserByUsername(ctx context.Context, username string) (domain.User, error)
 }

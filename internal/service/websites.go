@@ -10,10 +10,8 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 )
 
-// ErrInvalidWebsiteName indicates an empty website name.
 var ErrInvalidWebsiteName = errors.New("website name cannot be empty")
 
-// WebsiteRepository persists user-owned websites.
 type WebsiteRepository interface {
 	ListWebsites(ctx context.Context, userID uuid.UUID) ([]domain.Website, error)
 	CreateWebsite(ctx context.Context, userID uuid.UUID, name, domain string) (domain.Website, error)

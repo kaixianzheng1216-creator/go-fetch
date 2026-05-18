@@ -1,12 +1,9 @@
-// Package domain defines application business entities and value objects.
 package domain
 
 import "time"
 
-// DateUnit is the supported bucket size for time-series analytics.
 type DateUnit string
 
-// Supported date units and defaults for time-series analytics.
 const (
 	DateUnitHour  DateUnit = "hour"
 	DateUnitDay   DateUnit = "day"

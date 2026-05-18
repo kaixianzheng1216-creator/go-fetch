@@ -1,4 +1,3 @@
-// Package session configures browser-backed user sessions.
 package session
 
 import (
@@ -11,10 +10,8 @@ import (
 )
 
 const (
-	// CookieName is the browser session cookie name.
 	CookieName = "go_fetch_session"
-	// UserIDKey is the session key storing the authenticated user ID.
-	UserIDKey = "user_id"
+	UserIDKey  = "user_id"
 )
 
 type Config struct {

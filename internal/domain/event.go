@@ -6,28 +6,22 @@ import (
 	"github.com/google/uuid"
 )
 
-// EventType identifies the kind of analytics event.
 type EventType int
 
-// Event types stored in the analytics event table.
 const (
 	EventTypePageView EventType = 1
 	EventTypeCustom   EventType = 2
 )
 
-// TrackedEventType identifies the browser-submitted event type.
 type TrackedEventType string
 
-// Browser-submitted event types.
 const (
 	TrackedEventTypePageView TrackedEventType = "pageview"
 	TrackedEventTypeCustom   TrackedEventType = "event"
 )
 
-// EventDataType identifies the normalized type of custom event data.
 type EventDataType int
 
-// Event data types stored in the custom event data table.
 const (
 	EventDataTypeString  EventDataType = 1
 	EventDataTypeNumber  EventDataType = 2

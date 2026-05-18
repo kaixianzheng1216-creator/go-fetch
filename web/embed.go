@@ -1,4 +1,3 @@
-// Package web embeds dashboard and tracker assets.
 package web
 
 import (

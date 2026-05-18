@@ -1,4 +1,3 @@
-// Package app wires dependencies and runs the HTTP server.
 package app
 
 import (

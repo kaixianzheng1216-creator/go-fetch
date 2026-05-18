@@ -1,4 +1,3 @@
-// Package repository persists domain data with PostgreSQL.
 package repository
 
 import (

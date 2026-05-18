@@ -1,4 +1,3 @@
-// Package textutil provides small text helpers.
 package textutil
 
 func TruncateRunes(value string, limit int) string {

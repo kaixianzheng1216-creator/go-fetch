@@ -10,10 +10,8 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 )
 
-// ErrInvalidDateRange indicates a stats query has startAt after endAt.
 var ErrInvalidDateRange = errors.New("startAt must be before or equal to endAt")
 
-// StatsRepository reads analytics data for the stats service.
 type StatsRepository interface {
 	GetWebsite(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error)
 	WebsiteStats(ctx context.Context, websiteID uuid.UUID, start, end time.Time) (domain.WebsiteStats, error)

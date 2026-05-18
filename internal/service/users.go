@@ -11,7 +11,6 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 )
 
-// UserStore persists user records.
 type UserStore interface {
 	CountUsers(ctx context.Context) (int64, error)
 	CreateUser(ctx context.Context, user domain.User) error

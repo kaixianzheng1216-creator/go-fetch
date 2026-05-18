@@ -1,4 +1,3 @@
-// Package httpapi exposes the HTTP API and embedded web assets.
 package httpapi
 
 import (

@@ -1,9 +1,7 @@
 package domain
 
-// MetricType is a supported analytics dimension.
 type MetricType string
 
-// Supported metric types and limits.
 const (
 	MetricTypePath     MetricType = "path"
 	MetricTypeReferrer MetricType = "referrer"
