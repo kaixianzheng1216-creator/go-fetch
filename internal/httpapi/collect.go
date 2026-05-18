@@ -56,12 +56,21 @@ func (apiServer server) registerCollectRoutes(humaAPI huma.API) {
 }
 
 func (apiServer server) collectEvent(ctx context.Context, input *collectInput) (*okOutput, error) {
+	collectionType, isSupportedCollectionType := domain.ParseCollectionType(string(input.Body.Type))
+	if !isSupportedCollectionType {
+		return nil, huma.Error400BadRequest("不支持的采集类型")
+	}
+
 	payload, err := toDomainCollectPayload(input.Body.Payload)
 	if err != nil {
 		return nil, err
 	}
 
-	err = apiServer.collect.Collect(ctx, requestFromContext(ctx), string(input.Body.Type), payload)
+	err = apiServer.collect.Collect(ctx, service.CollectionInput{
+		Request: requestFromContext(ctx),
+		Type:    collectionType,
+		Payload: payload,
+	})
 	if err != nil {
 		switch {
 		case errors.Is(err, service.ErrUnsupportedCollectionType):

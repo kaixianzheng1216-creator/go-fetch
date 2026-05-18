@@ -51,7 +51,7 @@ func TestCollectErrors(t *testing.T) {
 			expectedError:  service.ErrUnsupportedCollectionType,
 		},
 		{
-			name:           "missing http request after website lookup",
+			name:           "missing http request",
 			collectionType: "event",
 			expectedError:  service.ErrMissingHTTPRequest,
 		},
@@ -62,9 +62,13 @@ func TestCollectErrors(t *testing.T) {
 			store := &fakeTrackingStore{}
 			collect := service.NewCollector(store)
 
-			err := collect.Collect(context.Background(), testCase.request, testCase.collectionType, domain.CollectPayload{
-				WebsiteID: testWebsiteID,
-				URL:       "https://example.com/",
+			err := collect.Collect(context.Background(), service.CollectionInput{
+				Request: testCase.request,
+				Type:    domain.CollectionType(testCase.collectionType),
+				Payload: domain.CollectPayload{
+					WebsiteID: testWebsiteID,
+					URL:       "https://example.com/",
+				},
 			})
 
 			if !errors.Is(err, testCase.expectedError) {
@@ -91,21 +95,40 @@ func TestStatsRejectsInvalidDateRange(t *testing.T) {
 		{
 			name: "stats",
 			call: func(stats service.Stats) error {
-				_, err := stats.WebsiteStats(context.Background(), testUserID, testWebsiteID, &startAt, &endAt)
+				_, err := stats.Summary(context.Background(), service.StatsQuery{
+					UserID:    testUserID,
+					WebsiteID: testWebsiteID,
+					Range:     testDateRange(startAt, endAt),
+				})
 				return err
 			},
 		},
 		{
 			name: "pageviews",
 			call: func(stats service.Stats) error {
-				_, err := stats.WebsitePageviews(context.Background(), testUserID, testWebsiteID, &startAt, &endAt, "hour")
+				_, err := stats.Pageviews(context.Background(), service.PageviewsQuery{
+					StatsQuery: service.StatsQuery{
+						UserID:    testUserID,
+						WebsiteID: testWebsiteID,
+						Range:     testDateRange(startAt, endAt),
+					},
+					Unit: domain.DateUnitHour,
+				})
 				return err
 			},
 		},
 		{
 			name: "metrics",
 			call: func(stats service.Stats) error {
-				_, err := stats.WebsiteMetrics(context.Background(), testUserID, testWebsiteID, &startAt, &endAt, "path", 10)
+				_, err := stats.Metrics(context.Background(), service.MetricsQuery{
+					StatsQuery: service.StatsQuery{
+						UserID:    testUserID,
+						WebsiteID: testWebsiteID,
+						Range:     testDateRange(startAt, endAt),
+					},
+					Type:  domain.MetricTypePath,
+					Limit: 10,
+				})
 				return err
 			},
 		},
@@ -142,15 +165,28 @@ func TestStatsWebsiteMetricsNormalizesLimit(t *testing.T) {
 			store := &fakeStatsStore{}
 			stats := service.NewStats(store)
 
-			_, err := stats.WebsiteMetrics(context.Background(), testUserID, testWebsiteID, nil, nil, "path", testCase.limit)
+			_, err := stats.Metrics(context.Background(), service.MetricsQuery{
+				StatsQuery: service.StatsQuery{
+					UserID:    testUserID,
+					WebsiteID: testWebsiteID,
+				},
+				Type:  domain.MetricTypePath,
+				Limit: testCase.limit,
+			})
 			if err != nil {
-				t.Fatalf("WebsiteMetrics() error = %v", err)
+				t.Fatalf("Metrics() error = %v", err)
 			}
 			if store.metricLimit != testCase.expected {
 				t.Fatalf("metricLimit = %d, want %d", store.metricLimit, testCase.expected)
 			}
 		})
 	}
+}
+
+func testDateRange(startAt, endAt int64) service.DateRange {
+	start := time.UnixMilli(startAt).UTC()
+	end := time.UnixMilli(endAt).UTC()
+	return service.DateRange{StartAt: &start, EndAt: &end}
 }
 
 type fakeTrackingStore struct {

@@ -15,35 +15,44 @@ var (
 	ErrMissingHTTPRequest        = errors.New("missing http request")
 )
 
-type CollectionStore interface {
+// CollectionRepository persists collected analytics events.
+type CollectionRepository interface {
 	GetWebsiteForCollection(ctx context.Context, websiteID uuid.UUID) (domain.Website, error)
 	SaveEvent(ctx context.Context, event domain.EventInput) error
 }
 
+// CollectionInput contains the request data needed to collect an event.
+type CollectionInput struct {
+	Request *http.Request
+	Type    domain.CollectionType
+	Payload domain.CollectPayload
+}
+
 type Collector struct {
-	store CollectionStore
-	clock Clock
+	repository CollectionRepository
+	clock      Clock
 }
 
-func NewCollector(store CollectionStore) Collector {
-	return Collector{store: store, clock: systemClock}
+func NewCollector(repository CollectionRepository) Collector {
+	return Collector{repository: repository, clock: systemClock}
 }
 
-func (service Collector) Collect(ctx context.Context, request *http.Request, collectionType string, payload domain.CollectPayload) error {
-	_, isSupportedCollectionType := domain.ParseCollectionType(collectionType)
+func (service Collector) Collect(ctx context.Context, input CollectionInput) error {
+	_, isSupportedCollectionType := domain.ParseCollectionType(string(input.Type))
 	if !isSupportedCollectionType {
 		return ErrUnsupportedCollectionType
 	}
 
-	if request == nil {
+	if input.Request == nil {
 		return ErrMissingHTTPRequest
 	}
 
-	if isBot(request.UserAgent()) {
+	if isBot(input.Request.UserAgent()) {
 		return nil
 	}
 
-	if _, err := service.store.GetWebsiteForCollection(ctx, payload.WebsiteID); err != nil {
+	website, err := service.repository.GetWebsiteForCollection(ctx, input.Payload.WebsiteID)
+	if err != nil {
 		return err
 	}
 
@@ -52,7 +61,7 @@ func (service Collector) Collect(ctx context.Context, request *http.Request, col
 		clock = systemClock
 	}
 
-	return service.store.SaveEvent(ctx, buildEventInput(request, payload, clock()))
+	return service.repository.SaveEvent(ctx, buildEventInput(input.Request, input.Payload, website, clock()))
 }
 
 func isBot(userAgentValue string) bool {

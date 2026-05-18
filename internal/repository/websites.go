@@ -68,7 +68,7 @@ func (store *Store) UpdateWebsite(ctx context.Context, userID, websiteID uuid.UU
 	}
 
 	if rows == 0 {
-		return ErrNotFound
+		return domain.ErrNotFound
 	}
 
 	return nil
@@ -81,7 +81,7 @@ func (store *Store) DeleteWebsite(ctx context.Context, userID, websiteID uuid.UU
 	}
 
 	if rows == 0 {
-		return ErrNotFound
+		return domain.ErrNotFound
 	}
 
 	return nil

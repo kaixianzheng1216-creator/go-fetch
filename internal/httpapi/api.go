@@ -14,8 +14,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/google/uuid"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/repository"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 	webassets "github.com/kaixianzheng1216-creator/go-fetch/web"
@@ -32,8 +33,18 @@ type sessionStore interface {
 	GetString(ctx context.Context, key string) string
 }
 
+// DataStore is the persistence contract required by the HTTP API.
+type DataStore interface {
+	service.UserRepository
+	service.CollectionRepository
+	service.WebsiteRepository
+	service.AnalyticsRepository
+
+	GetUserByID(ctx context.Context, userID uuid.UUID) (domain.User, error)
+}
+
 type server struct {
-	store    *repository.Store
+	store    DataStore
 	sessions sessionStore
 	auth     service.Auth
 	collect  service.Collector
@@ -42,14 +53,14 @@ type server struct {
 	config   Config
 }
 
-func New(store *repository.Store, sessions *scs.SessionManager, config Config) http.Handler {
+func New(dataStore DataStore, sessions *scs.SessionManager, config Config) http.Handler {
 	apiServer := server{
-		store:    store,
+		store:    dataStore,
 		sessions: sessions,
-		auth:     service.NewAuth(store, isNotFound),
-		collect:  service.NewCollector(store),
-		websites: service.NewWebsites(store),
-		stats:    service.NewStats(store),
+		auth:     service.NewAuth(dataStore),
+		collect:  service.NewCollector(dataStore),
+		websites: service.NewWebsites(dataStore),
+		stats:    service.NewStats(dataStore),
 		config:   config.withDefaults(),
 	}
 

@@ -8,12 +8,11 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/repository"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 )
 
 func isNotFound(err error) bool {
-	return errors.Is(err, repository.ErrNotFound)
+	return errors.Is(err, domain.ErrNotFound)
 }
 
 func parseUUID(value, field string) (uuid.UUID, error) {
@@ -28,7 +27,7 @@ func websiteLookupError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if isNotFound(err) || service.IsWebsiteAccessError(err) {
+	if isNotFound(err) {
 		return huma.Error404NotFound("站点不存在")
 	}
 	return huma.Error500InternalServerError("加载站点失败")

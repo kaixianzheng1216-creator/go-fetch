@@ -126,7 +126,10 @@ func (apiServer server) listWebsites(ctx context.Context, _ *emptyInput) (*websi
 }
 
 func (apiServer server) createWebsite(ctx context.Context, input *createWebsiteInput) (*websiteOutput, error) {
-	website, err := apiServer.websites.Create(ctx, currentUser(ctx).ID, input.Body.Name, input.Body.Domain)
+	website, err := apiServer.websites.Create(ctx, currentUser(ctx).ID, service.WebsiteInput{
+		Name:   input.Body.Name,
+		Domain: input.Body.Domain,
+	})
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidWebsiteName) {
 			return nil, huma.Error400BadRequest("站点名称不能为空")
@@ -157,7 +160,10 @@ func (apiServer server) updateWebsite(ctx context.Context, input *updateWebsiteI
 		return nil, err
 	}
 
-	website, err := apiServer.websites.Update(ctx, currentUser(ctx).ID, websiteID, input.Body.Name, input.Body.Domain)
+	website, err := apiServer.websites.Update(ctx, currentUser(ctx).ID, websiteID, service.WebsiteInput{
+		Name:   input.Body.Name,
+		Domain: input.Body.Domain,
+	})
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidWebsiteName) {
 			return nil, huma.Error400BadRequest("站点名称不能为空")

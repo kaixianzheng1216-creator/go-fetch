@@ -12,7 +12,8 @@ import (
 
 var ErrInvalidWebsiteName = errors.New("website name cannot be empty")
 
-type WebsiteStore interface {
+// WebsiteRepository persists user-owned websites.
+type WebsiteRepository interface {
 	ListWebsites(ctx context.Context, userID uuid.UUID) ([]domain.Website, error)
 	CreateWebsite(ctx context.Context, userID uuid.UUID, name, domainName string) (domain.Website, error)
 	GetWebsite(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error)
@@ -20,46 +21,54 @@ type WebsiteStore interface {
 	DeleteWebsite(ctx context.Context, userID, websiteID uuid.UUID) error
 }
 
-type Websites struct {
-	store WebsiteStore
+// WebsiteInput contains editable website fields.
+type WebsiteInput struct {
+	Name   string
+	Domain string
 }
 
-func NewWebsites(store WebsiteStore) Websites {
-	return Websites{store: store}
+type Websites struct {
+	repository WebsiteRepository
+}
+
+func NewWebsites(repository WebsiteRepository) Websites {
+	return Websites{repository: repository}
 }
 
 func (service Websites) List(ctx context.Context, userID uuid.UUID) ([]domain.Website, error) {
-	return service.store.ListWebsites(ctx, userID)
+	return service.repository.ListWebsites(ctx, userID)
 }
 
-func (service Websites) Create(ctx context.Context, userID uuid.UUID, name, domainName string) (domain.Website, error) {
-	name, domainName = normalizeWebsiteInput(name, domainName)
-	if name == "" {
+func (service Websites) Create(ctx context.Context, userID uuid.UUID, input WebsiteInput) (domain.Website, error) {
+	input = normalizeWebsiteInput(input)
+	if input.Name == "" {
 		return domain.Website{}, ErrInvalidWebsiteName
 	}
-	return service.store.CreateWebsite(ctx, userID, name, domainName)
+	return service.repository.CreateWebsite(ctx, userID, input.Name, input.Domain)
 }
 
 func (service Websites) Get(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error) {
-	return service.store.GetWebsite(ctx, userID, websiteID)
+	return service.repository.GetWebsite(ctx, userID, websiteID)
 }
 
-func (service Websites) Update(ctx context.Context, userID, websiteID uuid.UUID, name, domainName string) (domain.Website, error) {
-	name, domainName = normalizeWebsiteInput(name, domainName)
-	if name == "" {
+func (service Websites) Update(ctx context.Context, userID, websiteID uuid.UUID, input WebsiteInput) (domain.Website, error) {
+	input = normalizeWebsiteInput(input)
+	if input.Name == "" {
 		return domain.Website{}, ErrInvalidWebsiteName
 	}
 
-	if err := service.store.UpdateWebsite(ctx, userID, websiteID, name, domainName); err != nil {
+	if err := service.repository.UpdateWebsite(ctx, userID, websiteID, input.Name, input.Domain); err != nil {
 		return domain.Website{}, err
 	}
-	return service.store.GetWebsite(ctx, userID, websiteID)
+	return service.repository.GetWebsite(ctx, userID, websiteID)
 }
 
 func (service Websites) Delete(ctx context.Context, userID, websiteID uuid.UUID) error {
-	return service.store.DeleteWebsite(ctx, userID, websiteID)
+	return service.repository.DeleteWebsite(ctx, userID, websiteID)
 }
 
-func normalizeWebsiteInput(name, domain string) (string, string) {
-	return strings.TrimSpace(name), strings.TrimSpace(domain)
+func normalizeWebsiteInput(input WebsiteInput) WebsiteInput {
+	input.Name = strings.TrimSpace(input.Name)
+	input.Domain = strings.TrimSpace(input.Domain)
+	return input
 }

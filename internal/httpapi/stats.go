@@ -8,6 +8,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 )
 
 type statsInput struct {
@@ -147,7 +148,11 @@ func (apiServer server) getWebsiteStats(ctx context.Context, input *statsInput) 
 		return nil, err
 	}
 
-	stats, err := apiServer.stats.WebsiteStats(ctx, currentUser(ctx).ID, websiteID, optionalTimeParam(input.StartAt), optionalTimeParam(input.EndAt))
+	stats, err := apiServer.stats.Summary(ctx, service.StatsQuery{
+		UserID:    currentUser(ctx).ID,
+		WebsiteID: websiteID,
+		Range:     dateRangeFromInput(input.StartAt, input.EndAt),
+	})
 	if err != nil {
 		return nil, statsError(err, "加载统计数据失败")
 	}
@@ -161,7 +166,14 @@ func (apiServer server) getWebsitePageviews(ctx context.Context, input *pageview
 		return nil, err
 	}
 
-	points, err := apiServer.stats.WebsitePageviews(ctx, currentUser(ctx).ID, websiteID, optionalTimeParam(input.StartAt), optionalTimeParam(input.EndAt), string(input.Unit))
+	points, err := apiServer.stats.Pageviews(ctx, service.PageviewsQuery{
+		StatsQuery: service.StatsQuery{
+			UserID:    currentUser(ctx).ID,
+			WebsiteID: websiteID,
+			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
+		},
+		Unit: domain.ParseDateUnit(string(input.Unit)),
+	})
 	if err != nil {
 		return nil, statsError(err, "加载页面浏览量失败")
 	}
@@ -175,7 +187,20 @@ func (apiServer server) getWebsiteMetrics(ctx context.Context, input *metricsInp
 		return nil, err
 	}
 
-	rows, err := apiServer.stats.WebsiteMetrics(ctx, currentUser(ctx).ID, websiteID, optionalTimeParam(input.StartAt), optionalTimeParam(input.EndAt), string(input.Type), int(input.Limit))
+	metricType, isSupportedMetricType := domain.ParseMetricType(string(input.Type))
+	if !isSupportedMetricType {
+		return nil, huma.Error400BadRequest(domain.ErrUnsupportedMetricType.Error())
+	}
+
+	rows, err := apiServer.stats.Metrics(ctx, service.MetricsQuery{
+		StatsQuery: service.StatsQuery{
+			UserID:    currentUser(ctx).ID,
+			WebsiteID: websiteID,
+			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
+		},
+		Type:  metricType,
+		Limit: int(input.Limit),
+	})
 	if err != nil {
 		return nil, statsError(err, "加载指标数据失败")
 	}
@@ -183,11 +208,19 @@ func (apiServer server) getWebsiteMetrics(ctx context.Context, input *metricsInp
 	return &metricsOutput{Body: toMetricRowResponses(rows)}, nil
 }
 
-func optionalTimeParam(value int64) *int64 {
+func dateRangeFromInput(startAt, endAt int64) service.DateRange {
+	return service.DateRange{
+		StartAt: optionalTimeParam(startAt),
+		EndAt:   optionalTimeParam(endAt),
+	}
+}
+
+func optionalTimeParam(value int64) *time.Time {
 	if value == 0 {
 		return nil
 	}
-	return &value
+	timestamp := time.UnixMilli(value).UTC()
+	return &timestamp
 }
 
 func toWebsiteStatsResponse(stats domain.WebsiteStats) WebsiteStatsResponse {

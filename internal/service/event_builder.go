@@ -36,9 +36,9 @@ const (
 	laptopMaxScreenWidth = 1280
 )
 
-func buildEventInput(request *http.Request, payload domain.CollectPayload, now time.Time) domain.EventInput {
+func buildEventInput(request *http.Request, payload domain.CollectPayload, website domain.Website, now time.Time) domain.EventInput {
 	client := newEventClient(request, payload.Screen)
-	eventURLs := newEventURLs(payload)
+	eventURLs := newEventURLs(payload, website)
 	distinctID := textutil.TruncateRunes(payload.DistinctID, maxDistinctIDLength)
 	sessionID := sessionIDFor(payload.WebsiteID, distinctID, client.ip, client.userAgent, now)
 	visitID := visitIDFor(sessionID, now)
@@ -98,8 +98,8 @@ type eventURLs struct {
 	referrer *url.URL
 }
 
-func newEventURLs(payload domain.CollectPayload) eventURLs {
-	pageURL := parsePageURL(payload.URL, payload.WebsiteID.String())
+func newEventURLs(payload domain.CollectPayload, website domain.Website) eventURLs {
+	pageURL := parsePageURL(payload.URL, websiteFallbackHost(website))
 	return eventURLs{
 		page:     pageURL,
 		referrer: parseReferrerURL(payload.Referrer, pageURL),
@@ -175,6 +175,23 @@ func parsePageURL(rawURL, fallbackHost string) *url.URL {
 	}
 
 	return base.ResolveReference(parsedURL)
+}
+
+func websiteFallbackHost(website domain.Website) string {
+	domainName := strings.TrimSpace(website.Domain)
+	if domainName == "" {
+		return website.ID.String()
+	}
+
+	if !strings.Contains(domainName, "://") && !strings.HasPrefix(domainName, "//") {
+		domainName = "//" + domainName
+	}
+
+	if parsedURL, err := url.Parse(domainName); err == nil && parsedURL.Host != "" {
+		return parsedURL.Host
+	}
+
+	return website.ID.String()
 }
 
 func parseReferrerURL(rawURL string, pageURL *url.URL) *url.URL {
