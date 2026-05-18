@@ -60,9 +60,9 @@ func TestCollectErrors(t *testing.T) {
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 			store := &fakeTrackingStore{}
-			collect := service.NewCollector(store)
+			collect := service.NewCollectionService(store)
 
-			params := service.CollectionParams{
+			params := service.CollectEventParams{
 				Client: testClientInfo(testCase.request),
 				Type:   domain.CollectionType(testCase.collectionType),
 				Payload: domain.CollectPayload{
@@ -70,7 +70,7 @@ func TestCollectErrors(t *testing.T) {
 					URL:       "https://example.com/",
 				},
 			}
-			err := collect.Collect(context.Background(), params)
+			err := collect.CollectEvent(context.Background(), params)
 
 			if !errors.Is(err, testCase.expectedError) {
 				t.Fatalf("error = %v, want %v", err, testCase.expectedError)
@@ -91,12 +91,12 @@ func TestStatsRejectsInvalidDateRange(t *testing.T) {
 
 	tests := []struct {
 		name string
-		call func(service.Stats) error
+		call func(service.StatsService) error
 	}{
 		{
 			name: "stats",
-			call: func(stats service.Stats) error {
-				_, err := stats.Summary(context.Background(), service.StatsParams{
+			call: func(stats service.StatsService) error {
+				_, err := stats.Summary(context.Background(), service.StatsQuery{
 					UserID:    testUserID,
 					WebsiteID: testWebsiteID,
 					Range:     testDateRange(startAt, endAt),
@@ -106,9 +106,9 @@ func TestStatsRejectsInvalidDateRange(t *testing.T) {
 		},
 		{
 			name: "pageviews",
-			call: func(stats service.Stats) error {
-				_, err := stats.Pageviews(context.Background(), service.PageviewsParams{
-					StatsParams: service.StatsParams{
+			call: func(stats service.StatsService) error {
+				_, err := stats.Pageviews(context.Background(), service.PageviewsQuery{
+					StatsQuery: service.StatsQuery{
 						UserID:    testUserID,
 						WebsiteID: testWebsiteID,
 						Range:     testDateRange(startAt, endAt),
@@ -120,9 +120,9 @@ func TestStatsRejectsInvalidDateRange(t *testing.T) {
 		},
 		{
 			name: "metrics",
-			call: func(stats service.Stats) error {
-				_, err := stats.Metrics(context.Background(), service.MetricsParams{
-					StatsParams: service.StatsParams{
+			call: func(stats service.StatsService) error {
+				_, err := stats.Metrics(context.Background(), service.MetricsQuery{
+					StatsQuery: service.StatsQuery{
 						UserID:    testUserID,
 						WebsiteID: testWebsiteID,
 						Range:     testDateRange(startAt, endAt),
@@ -138,7 +138,7 @@ func TestStatsRejectsInvalidDateRange(t *testing.T) {
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 			store := &fakeStatsStore{}
-			err := testCase.call(service.NewStats(store))
+			err := testCase.call(service.NewStatsService(store))
 
 			if !errors.Is(err, service.ErrInvalidDateRange) {
 				t.Fatalf("error = %v, want %v", err, service.ErrInvalidDateRange)
@@ -164,10 +164,10 @@ func TestStatsWebsiteMetricsNormalizesLimit(t *testing.T) {
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 			store := &fakeStatsStore{}
-			stats := service.NewStats(store)
+			stats := service.NewStatsService(store)
 
-			_, err := stats.Metrics(context.Background(), service.MetricsParams{
-				StatsParams: service.StatsParams{
+			_, err := stats.Metrics(context.Background(), service.MetricsQuery{
+				StatsQuery: service.StatsQuery{
 					UserID:    testUserID,
 					WebsiteID: testWebsiteID,
 				},

@@ -24,18 +24,18 @@ type Event struct {
 	VisitID        uuid.UUID   `json:"visit_id"`
 	EventType      int32       `json:"event_type"`
 	EventName      pgtype.Text `json:"event_name"`
-	UrlPath        string      `json:"url_path"`
-	UrlQuery       pgtype.Text `json:"url_query"`
+	URLPath        string      `json:"url_path"`
+	URLQuery       pgtype.Text `json:"url_query"`
 	ReferrerPath   pgtype.Text `json:"referrer_path"`
 	ReferrerQuery  pgtype.Text `json:"referrer_query"`
 	ReferrerDomain pgtype.Text `json:"referrer_domain"`
 	PageTitle      pgtype.Text `json:"page_title"`
 	Hostname       pgtype.Text `json:"hostname"`
-	UtmSource      pgtype.Text `json:"utm_source"`
-	UtmMedium      pgtype.Text `json:"utm_medium"`
-	UtmCampaign    pgtype.Text `json:"utm_campaign"`
-	UtmContent     pgtype.Text `json:"utm_content"`
-	UtmTerm        pgtype.Text `json:"utm_term"`
+	UTMSource      pgtype.Text `json:"utm_source"`
+	UTMMedium      pgtype.Text `json:"utm_medium"`
+	UTMCampaign    pgtype.Text `json:"utm_campaign"`
+	UTMContent     pgtype.Text `json:"utm_content"`
+	UTMTerm        pgtype.Text `json:"utm_term"`
 	CreatedAt      time.Time   `json:"created_at"`
 }
 
@@ -55,7 +55,7 @@ type Session struct {
 	ID         uuid.UUID   `json:"id"`
 	WebsiteID  uuid.UUID   `json:"website_id"`
 	Browser    pgtype.Text `json:"browser"`
-	Os         pgtype.Text `json:"os"`
+	OS         pgtype.Text `json:"os"`
 	Device     pgtype.Text `json:"device"`
 	Screen     pgtype.Text `json:"screen"`
 	Language   pgtype.Text `json:"language"`

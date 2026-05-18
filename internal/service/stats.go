@@ -12,8 +12,8 @@ import (
 
 var ErrInvalidDateRange = errors.New("startAt must be before or equal to endAt")
 
-// AnalyticsRepository reads analytics data for the stats service.
-type AnalyticsRepository interface {
+// StatsRepository reads analytics data for the stats service.
+type StatsRepository interface {
 	GetWebsite(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error)
 	WebsiteStats(ctx context.Context, websiteID uuid.UUID, start, end time.Time) (domain.WebsiteStats, error)
 	WebsitePageviews(ctx context.Context, websiteID uuid.UUID, start, end time.Time, unit domain.DateUnit) ([]domain.PageviewBucket, error)
@@ -26,22 +26,22 @@ type DateRange struct {
 	EndAt   *time.Time
 }
 
-// StatsParams scopes a website analytics request to a user-owned website.
-type StatsParams struct {
+// StatsQuery scopes a website analytics request to a user-owned website.
+type StatsQuery struct {
 	UserID    uuid.UUID
 	WebsiteID uuid.UUID
 	Range     DateRange
 }
 
-// PageviewsParams requests pageview buckets for a website.
-type PageviewsParams struct {
-	StatsParams
+// PageviewsQuery requests pageview buckets for a website.
+type PageviewsQuery struct {
+	StatsQuery
 	Unit domain.DateUnit
 }
 
-// MetricsParams requests top metrics for a website.
-type MetricsParams struct {
-	StatsParams
+// MetricsQuery requests top metrics for a website.
+type MetricsQuery struct {
+	StatsQuery
 	Type  domain.MetricType
 	Limit int
 }
@@ -63,70 +63,80 @@ func IsWebsiteAccessError(err error) bool {
 	return errors.As(err, &accessError)
 }
 
-type Stats struct {
-	repository AnalyticsRepository
+// StatsService reads analytics reports.
+type StatsService struct {
+	repository StatsRepository
 	clock      Clock
 }
 
-func NewStats(repository AnalyticsRepository) Stats {
-	return Stats{repository: repository, clock: systemClock}
+// NewStatsService returns a stats service.
+func NewStatsService(repository StatsRepository) StatsService {
+	return StatsService{repository: repository, clock: systemClock}
 }
 
-func (service Stats) Summary(ctx context.Context, params StatsParams) (domain.WebsiteStats, error) {
-	start, end, err := statsDateRange(service.now(), params.Range)
+// Summary returns aggregate website stats.
+func (svc StatsService) Summary(ctx context.Context, query StatsQuery) (domain.WebsiteStats, error) {
+	start, end, err := statsDateRange(svc.now(), query.Range)
 	if err != nil {
 		return domain.WebsiteStats{}, err
 	}
 
-	if err := service.requireWebsiteAccess(ctx, params.UserID, params.WebsiteID); err != nil {
+	if err := svc.requireWebsiteAccess(ctx, query.UserID, query.WebsiteID); err != nil {
 		return domain.WebsiteStats{}, err
 	}
 
-	return service.repository.WebsiteStats(ctx, params.WebsiteID, start, end)
+	return svc.repository.WebsiteStats(ctx, query.WebsiteID, start, end)
 }
 
-func (service Stats) Pageviews(ctx context.Context, params PageviewsParams) ([]domain.PageviewBucket, error) {
-	start, end, err := statsDateRange(service.now(), params.Range)
+// Pageviews returns pageview buckets for a website.
+func (svc StatsService) Pageviews(ctx context.Context, query PageviewsQuery) ([]domain.PageviewBucket, error) {
+	start, end, err := statsDateRange(svc.now(), query.Range)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := service.requireWebsiteAccess(ctx, params.UserID, params.WebsiteID); err != nil {
+	if err := svc.requireWebsiteAccess(ctx, query.UserID, query.WebsiteID); err != nil {
 		return nil, err
 	}
 
-	return service.repository.WebsitePageviews(ctx, params.WebsiteID, start, end, domain.ParseDateUnit(string(params.Unit)))
+	unit, isSupportedDateUnit := domain.ParseDateUnit(string(query.Unit))
+	if !isSupportedDateUnit {
+		return nil, domain.ErrUnsupportedDateUnit
+	}
+
+	return svc.repository.WebsitePageviews(ctx, query.WebsiteID, start, end, unit)
 }
 
-func (service Stats) Metrics(ctx context.Context, params MetricsParams) ([]domain.Metric, error) {
-	start, end, err := statsDateRange(service.now(), params.Range)
+// Metrics returns top metrics for a website.
+func (svc StatsService) Metrics(ctx context.Context, query MetricsQuery) ([]domain.Metric, error) {
+	start, end, err := statsDateRange(svc.now(), query.Range)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := service.requireWebsiteAccess(ctx, params.UserID, params.WebsiteID); err != nil {
+	if err := svc.requireWebsiteAccess(ctx, query.UserID, query.WebsiteID); err != nil {
 		return nil, err
 	}
 
-	if _, isSupportedMetricType := domain.ParseMetricType(string(params.Type)); !isSupportedMetricType {
+	if _, isSupportedMetricType := domain.ParseMetricType(string(query.Type)); !isSupportedMetricType {
 		return nil, domain.ErrUnsupportedMetricType
 	}
 
-	return service.repository.WebsiteMetrics(ctx, params.WebsiteID, start, end, params.Type, domain.NormalizeMetricLimit(params.Limit))
+	return svc.repository.WebsiteMetrics(ctx, query.WebsiteID, start, end, query.Type, domain.NormalizeMetricLimit(query.Limit))
 }
 
-func (service Stats) requireWebsiteAccess(ctx context.Context, userID, websiteID uuid.UUID) error {
-	if _, err := service.repository.GetWebsite(ctx, userID, websiteID); err != nil {
+func (svc StatsService) requireWebsiteAccess(ctx context.Context, userID, websiteID uuid.UUID) error {
+	if _, err := svc.repository.GetWebsite(ctx, userID, websiteID); err != nil {
 		return websiteAccessError{err: err}
 	}
 	return nil
 }
 
-func (service Stats) now() time.Time {
-	if service.clock == nil {
+func (svc StatsService) now() time.Time {
+	if svc.clock == nil {
 		return systemClock()
 	}
-	return service.clock()
+	return svc.clock()
 }
 
 func statsDateRange(now time.Time, dateRange DateRange) (time.Time, time.Time, error) {

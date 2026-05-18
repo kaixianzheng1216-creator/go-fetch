@@ -26,23 +26,26 @@ type ClientInfo struct {
 	UserAgent string
 }
 
-// CollectionParams contains the data needed to collect an event.
-type CollectionParams struct {
+// CollectEventParams contains the data needed to collect an event.
+type CollectEventParams struct {
 	Client  ClientInfo
 	Type    domain.CollectionType
 	Payload domain.CollectPayload
 }
 
-type Collector struct {
+// CollectionService collects analytics events.
+type CollectionService struct {
 	repository CollectionRepository
 	clock      Clock
 }
 
-func NewCollector(repository CollectionRepository) Collector {
-	return Collector{repository: repository, clock: systemClock}
+// NewCollectionService returns an event collection service.
+func NewCollectionService(repository CollectionRepository) CollectionService {
+	return CollectionService{repository: repository, clock: systemClock}
 }
 
-func (service Collector) Collect(ctx context.Context, params CollectionParams) error {
+// CollectEvent validates and persists an analytics event.
+func (svc CollectionService) CollectEvent(ctx context.Context, params CollectEventParams) error {
 	_, isSupportedCollectionType := domain.ParseCollectionType(string(params.Type))
 	if !isSupportedCollectionType {
 		return ErrUnsupportedCollectionType
@@ -56,17 +59,17 @@ func (service Collector) Collect(ctx context.Context, params CollectionParams) e
 		return nil
 	}
 
-	website, err := service.repository.GetWebsiteForCollection(ctx, params.Payload.WebsiteID)
+	website, err := svc.repository.GetWebsiteForCollection(ctx, params.Payload.WebsiteID)
 	if err != nil {
 		return err
 	}
 
-	clock := service.clock
+	clock := svc.clock
 	if clock == nil {
 		clock = systemClock
 	}
 
-	return service.repository.SaveEvent(ctx, buildEventRecord(params.Client, params.Payload, website, clock()))
+	return svc.repository.SaveEvent(ctx, buildEventRecord(params.Client, params.Payload, website, clock()))
 }
 
 func isBot(userAgentValue string) bool {

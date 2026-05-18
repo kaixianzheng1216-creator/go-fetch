@@ -78,19 +78,19 @@ func (apiServer server) registerWebsiteRoutes(humaAPI huma.API, authMiddleware h
 func (apiServer server) listWebsites(ctx context.Context, _ *emptyInput) (*websiteListOutput, error) {
 	websites, err := apiServer.websites.List(ctx, currentUser(ctx).ID)
 	if err != nil {
-		return nil, huma.Error500InternalServerError("加载站点列表失败")
+		return nil, huma.Error500InternalServerError(errorMessageWebsiteListLoadFailed)
 	}
 
 	return &websiteListOutput{Body: toWebsiteResponses(websites)}, nil
 }
 
 func (apiServer server) createWebsite(ctx context.Context, input *createWebsiteInput) (*websiteOutput, error) {
-	website, err := apiServer.websites.Create(ctx, currentUser(ctx).ID, service.WebsiteParams{
+	website, err := apiServer.websites.Create(ctx, currentUser(ctx).ID, service.CreateWebsiteParams{
 		Name:       input.Body.Name,
 		DomainName: input.Body.DomainName,
 	})
 	if err != nil {
-		return nil, websiteMutationError(err, "创建站点失败")
+		return nil, websiteMutationError(err, errorMessageWebsiteCreateFailed)
 	}
 
 	return &websiteOutput{Body: toWebsiteResponse(website)}, nil
@@ -106,12 +106,12 @@ func (apiServer server) getWebsite(ctx context.Context, input *websiteIDInput) (
 }
 
 func (apiServer server) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*websiteOutput, error) {
-	website, err := apiServer.websites.Update(ctx, currentUser(ctx).ID, input.WebsiteID, service.WebsiteParams{
+	website, err := apiServer.websites.Update(ctx, currentUser(ctx).ID, input.WebsiteID, service.UpdateWebsiteParams{
 		Name:       input.Body.Name,
 		DomainName: input.Body.DomainName,
 	})
 	if err != nil {
-		return nil, websiteMutationError(err, "更新站点失败")
+		return nil, websiteMutationError(err, errorMessageWebsiteUpdateFailed)
 	}
 
 	return &websiteOutput{Body: toWebsiteResponse(website)}, nil

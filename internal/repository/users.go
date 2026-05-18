@@ -5,32 +5,27 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	storesqlc "github.com/kaixianzheng1216-creator/go-fetch/internal/repository/sqlc"
 )
 
-func (store *Store) EnsureAdminUser(ctx context.Context, username, password string) error {
+func (store *Store) CountUsers(ctx context.Context) (int64, error) {
 	count, err := store.queries.CountUsers(ctx)
 	if err != nil {
-		return fmt.Errorf("count users: %w", err)
-	}
-	if count > 0 {
-		return nil
+		return 0, fmt.Errorf("count users: %w", err)
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return fmt.Errorf("hash admin password: %w", err)
-	}
+	return count, nil
+}
 
+func (store *Store) CreateUser(ctx context.Context, user domain.User) error {
 	if err := store.queries.CreateUser(ctx, storesqlc.CreateUserParams{
-		ID:           uuid.New(),
-		Username:     username,
-		PasswordHash: string(hash),
+		ID:           user.ID,
+		Username:     user.Username,
+		PasswordHash: user.PasswordHash,
 	}); err != nil {
-		return fmt.Errorf("create admin user: %w", err)
+		return fmt.Errorf("create user: %w", err)
 	}
 
 	return nil

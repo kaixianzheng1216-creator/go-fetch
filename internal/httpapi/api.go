@@ -37,10 +37,10 @@ type sessionStore interface {
 
 // DataStore is the persistence contract required by the HTTP API.
 type DataStore interface {
-	service.UserRepository
+	service.AuthUserRepository
 	service.CollectionRepository
 	service.WebsiteRepository
-	service.AnalyticsRepository
+	service.StatsRepository
 
 	GetUserByID(ctx context.Context, userID uuid.UUID) (domain.User, error)
 }
@@ -48,10 +48,10 @@ type DataStore interface {
 type server struct {
 	store    DataStore
 	sessions sessionStore
-	auth     service.Auth
-	collect  service.Collector
-	websites service.Websites
-	stats    service.Stats
+	auth     service.AuthService
+	collect  service.CollectionService
+	websites service.WebsiteService
+	stats    service.StatsService
 	config   Config
 }
 
@@ -60,10 +60,10 @@ func New(dataStore DataStore, sessions *scs.SessionManager, config Config) http.
 	apiServer := server{
 		store:    dataStore,
 		sessions: sessions,
-		auth:     service.NewAuth(dataStore),
-		collect:  service.NewCollector(dataStore),
-		websites: service.NewWebsites(dataStore),
-		stats:    service.NewStats(dataStore),
+		auth:     service.NewAuthService(dataStore),
+		collect:  service.NewCollectionService(dataStore),
+		websites: service.NewWebsiteService(dataStore),
+		stats:    service.NewStatsService(dataStore),
 		config:   config,
 	}
 
@@ -112,7 +112,7 @@ func (apiServer server) registerAssets(chiRouter chi.Router) {
 	chiRouter.Get("/script.js", func(responseWriter http.ResponseWriter, _ *http.Request) {
 		script, err := webassets.TrackerScript()
 		if err != nil {
-			http.Error(responseWriter, "tracking script is missing", http.StatusInternalServerError)
+			http.Error(responseWriter, errorMessageTrackerScriptMissing, http.StatusInternalServerError)
 			return
 		}
 
@@ -151,9 +151,9 @@ func spaHandler(responseWriter http.ResponseWriter, request *http.Request) {
 		responseWriter.Header().Set("Content-Type", "application/problem+json")
 		responseWriter.WriteHeader(http.StatusNotFound)
 		if err := json.NewEncoder(responseWriter).Encode(huma.ErrorModel{
-			Title:  "接口不存在",
+			Title:  errorMessageAPIEndpointNotFound,
 			Status: http.StatusNotFound,
-			Detail: "接口不存在",
+			Detail: errorMessageAPIEndpointNotFound,
 		}); err != nil {
 			slog.Debug("write API not found response", "error", err)
 		}
@@ -162,7 +162,7 @@ func spaHandler(responseWriter http.ResponseWriter, request *http.Request) {
 
 	indexHTML, err := webassets.IndexHTML()
 	if err != nil {
-		http.Error(responseWriter, "dashboard build is missing", http.StatusInternalServerError)
+		http.Error(responseWriter, errorMessageDashboardBuildMissing, http.StatusInternalServerError)
 		return
 	}
 

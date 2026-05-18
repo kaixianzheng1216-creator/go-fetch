@@ -2,5 +2,8 @@ package domain
 
 import "errors"
 
-// ErrNotFound represents a missing domain entity.
-var ErrNotFound = errors.New("not found")
+var (
+	ErrNotFound              = errors.New("not found")
+	ErrUnsupportedDateUnit   = errors.New("unsupported date unit")
+	ErrUnsupportedMetricType = errors.New("unsupported metric type")
+)

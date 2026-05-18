@@ -27,13 +27,13 @@ func (apiServer server) requireAuth(humaAPI huma.API) func(huma.Context, func(hu
 	return func(ctx huma.Context, next func(huma.Context)) {
 		user, isAuthenticated, err := apiServer.currentSessionUser(ctx.Context())
 		if err != nil {
-			if err := huma.WriteErr(humaAPI, ctx, http.StatusInternalServerError, "加载当前用户失败"); err != nil {
+			if err := huma.WriteErr(humaAPI, ctx, http.StatusInternalServerError, errorMessageCurrentUserLoadFailed); err != nil {
 				slog.Debug("write current user error", "error", err)
 			}
 			return
 		}
 		if !isAuthenticated {
-			if err := huma.WriteErr(humaAPI, ctx, http.StatusUnauthorized, "未登录"); err != nil {
+			if err := huma.WriteErr(humaAPI, ctx, http.StatusUnauthorized, errorMessageUnauthenticated); err != nil {
 				slog.Debug("write unauthenticated error", "error", err)
 			}
 			return

@@ -14,9 +14,3 @@ type Store struct {
 func New(databasePool *pgxpool.Pool) *Store {
 	return &Store{databasePool: databasePool, queries: storesqlc.New(databasePool)}
 }
-
-func (store *Store) Close() {
-	if store.databasePool != nil {
-		store.databasePool.Close()
-	}
-}

@@ -12,26 +12,29 @@ import (
 
 var ErrInvalidCredentials = errors.New("invalid username or password")
 
-// UserRepository provides user lookups for authentication.
-type UserRepository interface {
+// AuthUserRepository provides user lookups for authentication.
+type AuthUserRepository interface {
 	GetUserByUsername(ctx context.Context, username string) (domain.User, error)
 }
 
-type Auth struct {
-	users UserRepository
+// AuthService authenticates users.
+type AuthService struct {
+	users AuthUserRepository
 }
 
-func NewAuth(users UserRepository) Auth {
-	return Auth{users: users}
+// NewAuthService returns an authentication service.
+func NewAuthService(users AuthUserRepository) AuthService {
+	return AuthService{users: users}
 }
 
-func (service Auth) Login(ctx context.Context, username, password string) (domain.User, error) {
+// Login authenticates a user by username and password.
+func (svc AuthService) Login(ctx context.Context, username, password string) (domain.User, error) {
 	username = strings.TrimSpace(username)
 	if username == "" || password == "" {
 		return domain.User{}, ErrInvalidCredentials
 	}
 
-	user, err := service.users.GetUserByUsername(ctx, username)
+	user, err := svc.users.GetUserByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return domain.User{}, ErrInvalidCredentials

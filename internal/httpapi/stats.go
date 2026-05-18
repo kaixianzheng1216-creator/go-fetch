@@ -12,20 +12,20 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 )
 
-type statsInput struct {
+type websiteStatsInput struct {
 	WebsiteID uuid.UUID `path:"websiteID" format:"uuid"`
 	StartAt   int64     `query:"startAt"`
 	EndAt     int64     `query:"endAt"`
 }
 
-type pageviewsInput struct {
+type websitePageviewsInput struct {
 	WebsiteID uuid.UUID     `path:"websiteID" format:"uuid"`
 	StartAt   int64         `query:"startAt"`
 	EndAt     int64         `query:"endAt"`
 	Unit      DateUnitParam `query:"unit"`
 }
 
-type metricsInput struct {
+type websiteMetricsInput struct {
 	WebsiteID uuid.UUID       `path:"websiteID" format:"uuid"`
 	StartAt   int64           `query:"startAt"`
 	EndAt     int64           `query:"endAt"`
@@ -87,15 +87,15 @@ type MetricResponse struct {
 	Visitors int64  `json:"visitors"`
 }
 
-type statsOutput struct {
+type websiteStatsOutput struct {
 	Body WebsiteStatsResponse
 }
 
-type pageviewsOutput struct {
+type websitePageviewsOutput struct {
 	Body []PageviewResponse
 }
 
-type metricsOutput struct {
+type websiteMetricsOutput struct {
 	Body []MetricResponse
 }
 
@@ -119,43 +119,43 @@ func (apiServer server) registerStatsRoutes(humaAPI huma.API, authMiddleware hum
 	)
 }
 
-func (apiServer server) getWebsiteStats(ctx context.Context, input *statsInput) (*statsOutput, error) {
-	stats, err := apiServer.stats.Summary(ctx, service.StatsParams{
+func (apiServer server) getWebsiteStats(ctx context.Context, input *websiteStatsInput) (*websiteStatsOutput, error) {
+	stats, err := apiServer.stats.Summary(ctx, service.StatsQuery{
 		UserID:    currentUser(ctx).ID,
 		WebsiteID: input.WebsiteID,
 		Range:     dateRangeFromInput(input.StartAt, input.EndAt),
 	})
 	if err != nil {
-		return nil, statsError(err, "加载统计数据失败")
+		return nil, statsError(err, errorMessageStatsLoadFailed)
 	}
 
-	return &statsOutput{Body: toWebsiteStatsResponse(stats)}, nil
+	return &websiteStatsOutput{Body: toWebsiteStatsResponse(stats)}, nil
 }
 
-func (apiServer server) getWebsitePageviews(ctx context.Context, input *pageviewsInput) (*pageviewsOutput, error) {
-	buckets, err := apiServer.stats.Pageviews(ctx, service.PageviewsParams{
-		StatsParams: service.StatsParams{
+func (apiServer server) getWebsitePageviews(ctx context.Context, input *websitePageviewsInput) (*websitePageviewsOutput, error) {
+	buckets, err := apiServer.stats.Pageviews(ctx, service.PageviewsQuery{
+		StatsQuery: service.StatsQuery{
 			UserID:    currentUser(ctx).ID,
 			WebsiteID: input.WebsiteID,
 			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
 		},
-		Unit: domain.ParseDateUnit(string(input.Unit)),
+		Unit: domain.DateUnit(input.Unit),
 	})
 	if err != nil {
-		return nil, statsError(err, "加载页面浏览量失败")
+		return nil, statsError(err, errorMessagePageviewsLoadFailed)
 	}
 
-	return &pageviewsOutput{Body: toPageviewResponses(buckets)}, nil
+	return &websitePageviewsOutput{Body: toPageviewResponses(buckets)}, nil
 }
 
-func (apiServer server) getWebsiteMetrics(ctx context.Context, input *metricsInput) (*metricsOutput, error) {
+func (apiServer server) getWebsiteMetrics(ctx context.Context, input *websiteMetricsInput) (*websiteMetricsOutput, error) {
 	metricType, isSupportedMetricType := domain.ParseMetricType(string(input.Type))
 	if !isSupportedMetricType {
 		return nil, huma.Error400BadRequest(domain.ErrUnsupportedMetricType.Error())
 	}
 
-	metrics, err := apiServer.stats.Metrics(ctx, service.MetricsParams{
-		StatsParams: service.StatsParams{
+	metrics, err := apiServer.stats.Metrics(ctx, service.MetricsQuery{
+		StatsQuery: service.StatsQuery{
 			UserID:    currentUser(ctx).ID,
 			WebsiteID: input.WebsiteID,
 			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
@@ -164,10 +164,10 @@ func (apiServer server) getWebsiteMetrics(ctx context.Context, input *metricsInp
 		Limit: int(input.Limit),
 	})
 	if err != nil {
-		return nil, statsError(err, "加载指标数据失败")
+		return nil, statsError(err, errorMessageMetricsLoadFailed)
 	}
 
-	return &metricsOutput{Body: toMetricResponses(metrics)}, nil
+	return &websiteMetricsOutput{Body: toMetricResponses(metrics)}, nil
 }
 
 func dateRangeFromInput(startAt, endAt int64) service.DateRange {

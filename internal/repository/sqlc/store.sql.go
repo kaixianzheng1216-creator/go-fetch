@@ -289,18 +289,18 @@ type InsertEventParams struct {
 	VisitID        uuid.UUID `json:"visit_id"`
 	EventType      int32     `json:"event_type"`
 	EventName      string    `json:"event_name"`
-	UrlPath        string    `json:"url_path"`
-	UrlQuery       string    `json:"url_query"`
+	URLPath        string    `json:"url_path"`
+	URLQuery       string    `json:"url_query"`
 	ReferrerPath   string    `json:"referrer_path"`
 	ReferrerQuery  string    `json:"referrer_query"`
 	ReferrerDomain string    `json:"referrer_domain"`
 	PageTitle      string    `json:"page_title"`
 	Hostname       string    `json:"hostname"`
-	UtmSource      string    `json:"utm_source"`
-	UtmMedium      string    `json:"utm_medium"`
-	UtmCampaign    string    `json:"utm_campaign"`
-	UtmContent     string    `json:"utm_content"`
-	UtmTerm        string    `json:"utm_term"`
+	UTMSource      string    `json:"utm_source"`
+	UTMMedium      string    `json:"utm_medium"`
+	UTMCampaign    string    `json:"utm_campaign"`
+	UTMContent     string    `json:"utm_content"`
+	UTMTerm        string    `json:"utm_term"`
 	CreatedAt      time.Time `json:"created_at"`
 }
 
@@ -312,18 +312,18 @@ func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) error 
 		arg.VisitID,
 		arg.EventType,
 		arg.EventName,
-		arg.UrlPath,
-		arg.UrlQuery,
+		arg.URLPath,
+		arg.URLQuery,
 		arg.ReferrerPath,
 		arg.ReferrerQuery,
 		arg.ReferrerDomain,
 		arg.PageTitle,
 		arg.Hostname,
-		arg.UtmSource,
-		arg.UtmMedium,
-		arg.UtmCampaign,
-		arg.UtmContent,
-		arg.UtmTerm,
+		arg.UTMSource,
+		arg.UTMMedium,
+		arg.UTMCampaign,
+		arg.UTMContent,
+		arg.UTMTerm,
 		arg.CreatedAt,
 	)
 	return err
@@ -385,7 +385,7 @@ type InsertSessionParams struct {
 	ID         uuid.UUID `json:"id"`
 	WebsiteID  uuid.UUID `json:"website_id"`
 	Browser    string    `json:"browser"`
-	Os         string    `json:"os"`
+	OS         string    `json:"os"`
 	Device     string    `json:"device"`
 	Screen     string    `json:"screen"`
 	Language   string    `json:"language"`
@@ -401,7 +401,7 @@ func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) er
 		arg.ID,
 		arg.WebsiteID,
 		arg.Browser,
-		arg.Os,
+		arg.OS,
 		arg.Device,
 		arg.Screen,
 		arg.Language,

@@ -1,9 +1,6 @@
 package domain
 
-import (
-	"errors"
-	"time"
-)
+import "time"
 
 type CollectionType string
 
@@ -39,14 +36,16 @@ const (
 	DefaultDateLookback = 24 * time.Hour
 )
 
-func ParseDateUnit(value string) DateUnit {
+func ParseDateUnit(value string) (DateUnit, bool) {
+	if value == "" {
+		return DefaultDateUnit, true
+	}
+
 	switch DateUnit(value) {
-	case DateUnitMonth:
-		return DateUnitMonth
-	case DateUnitDay:
-		return DateUnitDay
+	case DateUnitHour, DateUnitDay, DateUnitMonth:
+		return DateUnit(value), true
 	default:
-		return DefaultDateUnit
+		return "", false
 	}
 }
 
@@ -55,11 +54,11 @@ func DateUnitValues() []string {
 }
 
 func DateTruncUnit(unit DateUnit) string {
-	return string(ParseDateUnit(string(unit)))
+	return string(NormalizeDateUnit(unit))
 }
 
 func FormatBucket(bucketTime time.Time, unit DateUnit) string {
-	switch ParseDateUnit(string(unit)) {
+	switch NormalizeDateUnit(unit) {
 	case DateUnitMonth:
 		return bucketTime.Format("2006-01")
 	case DateUnitDay:
@@ -67,6 +66,15 @@ func FormatBucket(bucketTime time.Time, unit DateUnit) string {
 	default:
 		return bucketTime.Format("15:04")
 	}
+}
+
+func NormalizeDateUnit(unit DateUnit) DateUnit {
+	parsedUnit, isSupportedDateUnit := ParseDateUnit(string(unit))
+	if !isSupportedDateUnit {
+		return DefaultDateUnit
+	}
+
+	return parsedUnit
 }
 
 type MetricType string
@@ -83,8 +91,6 @@ const (
 	DefaultMetricLimit = 10
 	MaxMetricLimit     = 100
 )
-
-var ErrUnsupportedMetricType = errors.New("unsupported metric type")
 
 func ParseMetricType(value string) (MetricType, bool) {
 	switch MetricType(value) {

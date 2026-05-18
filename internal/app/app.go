@@ -12,6 +12,7 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/database"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/repository"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
@@ -28,7 +29,7 @@ func Run(ctx context.Context, appConfig config.Config) error {
 	defer databasePool.Close()
 
 	dataStore := repository.New(databasePool)
-	if err := dataStore.EnsureAdminUser(ctx, appConfig.AdminUsername, appConfig.AdminPassword); err != nil {
+	if err := service.NewUserService(dataStore).EnsureAdminUser(ctx, appConfig.AdminUsername, appConfig.AdminPassword); err != nil {
 		return fmt.Errorf("initialize admin user: %w", err)
 	}
 

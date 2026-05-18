@@ -21,50 +21,69 @@ type WebsiteRepository interface {
 	DeleteWebsite(ctx context.Context, userID, websiteID uuid.UUID) error
 }
 
-// WebsiteParams contains editable website fields.
-type WebsiteParams struct {
+// CreateWebsiteParams contains website fields used during creation.
+type CreateWebsiteParams struct {
 	Name       string
 	DomainName string
 }
 
-type Websites struct {
+// UpdateWebsiteParams contains website fields used during updates.
+type UpdateWebsiteParams struct {
+	Name       string
+	DomainName string
+}
+
+// WebsiteService manages user-owned websites.
+type WebsiteService struct {
 	repository WebsiteRepository
 }
 
-func NewWebsites(repository WebsiteRepository) Websites {
-	return Websites{repository: repository}
+// NewWebsiteService returns a website service.
+func NewWebsiteService(repository WebsiteRepository) WebsiteService {
+	return WebsiteService{repository: repository}
 }
 
-func (service Websites) List(ctx context.Context, userID uuid.UUID) ([]domain.Website, error) {
-	return service.repository.ListWebsites(ctx, userID)
+// List returns websites owned by a user.
+func (svc WebsiteService) List(ctx context.Context, userID uuid.UUID) ([]domain.Website, error) {
+	return svc.repository.ListWebsites(ctx, userID)
 }
 
-func (service Websites) Create(ctx context.Context, userID uuid.UUID, params WebsiteParams) (domain.Website, error) {
-	params = normalizeWebsiteParams(params)
+// Create creates a user-owned website.
+func (svc WebsiteService) Create(ctx context.Context, userID uuid.UUID, params CreateWebsiteParams) (domain.Website, error) {
+	params = normalizeCreateWebsiteParams(params)
 	if params.Name == "" {
 		return domain.Website{}, ErrInvalidWebsiteName
 	}
-	return service.repository.CreateWebsite(ctx, userID, params.Name, params.DomainName)
+	return svc.repository.CreateWebsite(ctx, userID, params.Name, params.DomainName)
 }
 
-func (service Websites) Get(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error) {
-	return service.repository.GetWebsite(ctx, userID, websiteID)
+// Get returns a user-owned website.
+func (svc WebsiteService) Get(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error) {
+	return svc.repository.GetWebsite(ctx, userID, websiteID)
 }
 
-func (service Websites) Update(ctx context.Context, userID, websiteID uuid.UUID, params WebsiteParams) (domain.Website, error) {
-	params = normalizeWebsiteParams(params)
+// Update updates a user-owned website.
+func (svc WebsiteService) Update(ctx context.Context, userID, websiteID uuid.UUID, params UpdateWebsiteParams) (domain.Website, error) {
+	params = normalizeUpdateWebsiteParams(params)
 	if params.Name == "" {
 		return domain.Website{}, ErrInvalidWebsiteName
 	}
 
-	return service.repository.UpdateWebsite(ctx, userID, websiteID, params.Name, params.DomainName)
+	return svc.repository.UpdateWebsite(ctx, userID, websiteID, params.Name, params.DomainName)
 }
 
-func (service Websites) Delete(ctx context.Context, userID, websiteID uuid.UUID) error {
-	return service.repository.DeleteWebsite(ctx, userID, websiteID)
+// Delete deletes a user-owned website.
+func (svc WebsiteService) Delete(ctx context.Context, userID, websiteID uuid.UUID) error {
+	return svc.repository.DeleteWebsite(ctx, userID, websiteID)
 }
 
-func normalizeWebsiteParams(params WebsiteParams) WebsiteParams {
+func normalizeCreateWebsiteParams(params CreateWebsiteParams) CreateWebsiteParams {
+	params.Name = strings.TrimSpace(params.Name)
+	params.DomainName = strings.TrimSpace(params.DomainName)
+	return params
+}
+
+func normalizeUpdateWebsiteParams(params UpdateWebsiteParams) UpdateWebsiteParams {
 	params.Name = strings.TrimSpace(params.Name)
 	params.DomainName = strings.TrimSpace(params.DomainName)
 	return params

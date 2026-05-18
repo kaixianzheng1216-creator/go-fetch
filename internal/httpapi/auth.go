@@ -69,7 +69,7 @@ func (apiServer server) login(ctx context.Context, input *loginInput) (*loginOut
 	}
 
 	if err := apiServer.startUserSession(ctx, user.ID); err != nil {
-		return nil, huma.Error500InternalServerError("创建登录会话失败")
+		return nil, huma.Error500InternalServerError(errorMessageLoginSessionCreate)
 	}
 
 	return &loginOutput{Body: LoginResponse{User: toUserResponse(user)}}, nil
@@ -80,7 +80,7 @@ func (apiServer server) logout(ctx context.Context, _ *emptyInput) (*okOutput, e
 		return toOKOutput(), nil
 	}
 	if err := apiServer.sessions.Destroy(ctx); err != nil {
-		return nil, huma.Error500InternalServerError("退出登录失败")
+		return nil, huma.Error500InternalServerError(errorMessageLogoutFailed)
 	}
 
 	return toOKOutput(), nil

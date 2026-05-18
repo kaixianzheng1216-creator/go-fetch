@@ -9,6 +9,15 @@ sql:
         out: "internal/repository/sqlc"
         sql_package: "pgx/v5"
         emit_json_tags: true
+        rename:
+          os: "OS"
+          url_path: "URLPath"
+          url_query: "URLQuery"
+          utm_source: "UTMSource"
+          utm_medium: "UTMMedium"
+          utm_campaign: "UTMCampaign"
+          utm_content: "UTMContent"
+          utm_term: "UTMTerm"
         overrides:
           - db_type: "uuid"
             go_type:

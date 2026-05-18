@@ -15,12 +15,12 @@ import (
 const maxCollectBodyBytes = 256 * 1024
 
 type collectInput struct {
-	Body CollectRequest
+	Body CollectEventRequest
 }
 
-type CollectRequest struct {
-	Type    CollectionTypeParam   `json:"type,omitempty"`
-	Payload CollectPayloadRequest `json:"payload" required:"true"`
+type CollectEventRequest struct {
+	Type    CollectionTypeParam        `json:"type,omitempty"`
+	Payload CollectEventPayloadRequest `json:"payload" required:"true"`
 }
 
 type CollectionTypeParam string
@@ -32,7 +32,7 @@ func (CollectionTypeParam) Schema(huma.Registry) *huma.Schema {
 	}
 }
 
-type CollectPayloadRequest struct {
+type CollectEventPayloadRequest struct {
 	WebsiteID  uuid.UUID      `json:"website" required:"true" format:"uuid"`
 	URL        string         `json:"url" required:"true" minLength:"1"`
 	Referrer   string         `json:"referrer,omitempty"`
@@ -51,7 +51,7 @@ func (apiServer server) registerCollectRoutes(humaAPI huma.API) {
 }
 
 func (apiServer server) collectEvent(ctx context.Context, input *collectInput) (*okOutput, error) {
-	err := apiServer.collect.Collect(ctx, service.CollectionParams{
+	err := apiServer.collect.CollectEvent(ctx, service.CollectEventParams{
 		Client:  clientInfoFromRequest(requestFromContext(ctx)),
 		Type:    domain.CollectionType(input.Body.Type),
 		Payload: toDomainCollectPayload(input.Body.Payload),
@@ -63,7 +63,7 @@ func (apiServer server) collectEvent(ctx context.Context, input *collectInput) (
 	return toOKOutput(), nil
 }
 
-func toDomainCollectPayload(payload CollectPayloadRequest) domain.CollectPayload {
+func toDomainCollectPayload(payload CollectEventPayloadRequest) domain.CollectPayload {
 	return domain.CollectPayload{
 		WebsiteID:  payload.WebsiteID,
 		URL:        payload.URL,
