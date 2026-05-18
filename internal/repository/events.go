@@ -12,7 +12,7 @@ import (
 )
 
 func (store *Store) SaveEvent(ctx context.Context, event domain.EventRecord) error {
-	err := pgx.BeginFunc(ctx, store.databasePool, func(tx pgx.Tx) error {
+	err := pgx.BeginFunc(ctx, store.pool, func(tx pgx.Tx) error {
 		queries := store.queries.WithTx(tx)
 		if err := queries.InsertSession(ctx, insertSessionParams(event)); err != nil {
 			return fmt.Errorf("insert session: %w", err)

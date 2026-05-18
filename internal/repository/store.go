@@ -7,10 +7,10 @@ import (
 )
 
 type Store struct {
-	databasePool *pgxpool.Pool
-	queries      *storesqlc.Queries
+	pool    *pgxpool.Pool
+	queries *storesqlc.Queries
 }
 
-func New(databasePool *pgxpool.Pool) *Store {
-	return &Store{databasePool: databasePool, queries: storesqlc.New(databasePool)}
+func New(pool *pgxpool.Pool) *Store {
+	return &Store{pool: pool, queries: storesqlc.New(pool)}
 }

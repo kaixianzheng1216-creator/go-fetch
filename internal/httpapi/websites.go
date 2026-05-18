@@ -13,8 +13,8 @@ import (
 )
 
 type WebsiteRequest struct {
-	Name       string `json:"name" required:"true" minLength:"1" maxLength:"100"`
-	DomainName string `json:"domain,omitempty" maxLength:"500"`
+	Name   string `json:"name" required:"true" minLength:"1" maxLength:"100"`
+	Domain string `json:"domain,omitempty" maxLength:"500"`
 }
 
 type createWebsiteInput struct {
@@ -31,10 +31,10 @@ type updateWebsiteInput struct {
 }
 
 type WebsiteResponse struct {
-	ID         uuid.UUID `json:"id" format:"uuid"`
-	Name       string    `json:"name"`
-	DomainName string    `json:"domain"`
-	CreatedAt  time.Time `json:"createdAt"`
+	ID        uuid.UUID `json:"id" format:"uuid"`
+	Name      string    `json:"name"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type websiteListOutput struct {
@@ -48,29 +48,29 @@ type websiteOutput struct {
 func (apiServer server) registerWebsiteRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
 	huma.Register(
 		humaAPI,
-		securedOperation(http.MethodGet, "/api/websites", "listWebsites", "列出站点", "Websites", authMiddleware),
+		securedOperation(http.MethodGet, "/api/websites", "listWebsites", "List websites", "Websites", authMiddleware),
 		apiServer.listWebsites,
 	)
 
-	createOperation := securedOperation(http.MethodPost, "/api/websites", "createWebsite", "创建站点", "Websites", authMiddleware)
+	createOperation := securedOperation(http.MethodPost, "/api/websites", "createWebsite", "Create website", "Websites", authMiddleware)
 	createOperation.DefaultStatus = http.StatusCreated
 	huma.Register(humaAPI, createOperation, apiServer.createWebsite)
 
 	huma.Register(
 		humaAPI,
-		securedOperation(http.MethodGet, "/api/websites/{websiteID}", "getWebsite", "获取站点", "Websites", authMiddleware),
+		securedOperation(http.MethodGet, "/api/websites/{websiteID}", "getWebsite", "Get website", "Websites", authMiddleware),
 		apiServer.getWebsite,
 	)
 
 	huma.Register(
 		humaAPI,
-		securedOperation(http.MethodPatch, "/api/websites/{websiteID}", "updateWebsite", "更新站点", "Websites", authMiddleware),
+		securedOperation(http.MethodPatch, "/api/websites/{websiteID}", "updateWebsite", "Update website", "Websites", authMiddleware),
 		apiServer.updateWebsite,
 	)
 
 	huma.Register(
 		humaAPI,
-		securedOperation(http.MethodDelete, "/api/websites/{websiteID}", "deleteWebsite", "删除站点", "Websites", authMiddleware),
+		securedOperation(http.MethodDelete, "/api/websites/{websiteID}", "deleteWebsite", "Delete website", "Websites", authMiddleware),
 		apiServer.deleteWebsite,
 	)
 }
@@ -86,8 +86,8 @@ func (apiServer server) listWebsites(ctx context.Context, _ *emptyInput) (*websi
 
 func (apiServer server) createWebsite(ctx context.Context, input *createWebsiteInput) (*websiteOutput, error) {
 	website, err := apiServer.websites.Create(ctx, currentUser(ctx).ID, service.CreateWebsiteParams{
-		Name:       input.Body.Name,
-		DomainName: input.Body.DomainName,
+		Name:   input.Body.Name,
+		Domain: input.Body.Domain,
 	})
 	if err != nil {
 		return nil, websiteMutationError(err, errorMessageWebsiteCreateFailed)
@@ -107,8 +107,8 @@ func (apiServer server) getWebsite(ctx context.Context, input *websiteIDInput) (
 
 func (apiServer server) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*websiteOutput, error) {
 	website, err := apiServer.websites.Update(ctx, currentUser(ctx).ID, input.WebsiteID, service.UpdateWebsiteParams{
-		Name:       input.Body.Name,
-		DomainName: input.Body.DomainName,
+		Name:   input.Body.Name,
+		Domain: input.Body.Domain,
 	})
 	if err != nil {
 		return nil, websiteMutationError(err, errorMessageWebsiteUpdateFailed)
@@ -127,10 +127,10 @@ func (apiServer server) deleteWebsite(ctx context.Context, input *websiteIDInput
 
 func toWebsiteResponse(website domain.Website) WebsiteResponse {
 	return WebsiteResponse{
-		ID:         website.ID,
-		Name:       website.Name,
-		DomainName: website.DomainName,
-		CreatedAt:  website.CreatedAt,
+		ID:        website.ID,
+		Name:      website.Name,
+		Domain:    website.Domain,
+		CreatedAt: website.CreatedAt,
 	}
 }
 

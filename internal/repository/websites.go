@@ -24,12 +24,12 @@ func (store *Store) ListWebsites(ctx context.Context, userID uuid.UUID) ([]domai
 	return websites, nil
 }
 
-func (store *Store) CreateWebsite(ctx context.Context, userID uuid.UUID, name, domainName string) (domain.Website, error) {
+func (store *Store) CreateWebsite(ctx context.Context, userID uuid.UUID, name, siteDomain string) (domain.Website, error) {
 	row, err := store.queries.CreateWebsite(ctx, storesqlc.CreateWebsiteParams{
 		ID:     uuid.New(),
 		UserID: userID,
 		Name:   name,
-		Domain: domainName,
+		Domain: siteDomain,
 	})
 	if err != nil {
 		return domain.Website{}, fmt.Errorf("create website: %w", err)
@@ -56,12 +56,12 @@ func (store *Store) GetWebsiteForCollection(ctx context.Context, websiteID uuid.
 	return toWebsite(row.ID, row.Name, row.Domain, row.CreatedAt), nil
 }
 
-func (store *Store) UpdateWebsite(ctx context.Context, userID, websiteID uuid.UUID, name, domainName string) (domain.Website, error) {
+func (store *Store) UpdateWebsite(ctx context.Context, userID, websiteID uuid.UUID, name, siteDomain string) (domain.Website, error) {
 	row, err := store.queries.UpdateWebsite(ctx, storesqlc.UpdateWebsiteParams{
 		ID:     websiteID,
 		UserID: userID,
 		Name:   name,
-		Domain: domainName,
+		Domain: siteDomain,
 	})
 	if err != nil {
 		return domain.Website{}, fmt.Errorf("update website: %w", mapNotFound(err))

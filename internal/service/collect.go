@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-	"github.com/mileusna/useragent"
 )
 
 var (
@@ -24,6 +23,9 @@ type CollectionRepository interface {
 type ClientInfo struct {
 	IP        string
 	UserAgent string
+	Country   string
+	Region    string
+	City      string
 }
 
 // CollectEventParams contains the data needed to collect an event.
@@ -55,7 +57,8 @@ func (svc CollectionService) CollectEvent(ctx context.Context, params CollectEve
 		return ErrMissingClientInfo
 	}
 
-	if isBot(params.Client.UserAgent) {
+	client := newEventClient(params.Client, params.Payload.Screen)
+	if client.bot {
 		return nil
 	}
 
@@ -69,9 +72,5 @@ func (svc CollectionService) CollectEvent(ctx context.Context, params CollectEve
 		clock = systemClock
 	}
 
-	return svc.repository.SaveEvent(ctx, buildEventRecord(params.Client, params.Payload, website, clock()))
-}
-
-func isBot(userAgentValue string) bool {
-	return useragent.Parse(userAgentValue).Bot
+	return svc.repository.SaveEvent(ctx, buildEventRecord(client, params.Payload, website, clock()))
 }

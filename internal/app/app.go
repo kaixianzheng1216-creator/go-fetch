@@ -22,18 +22,18 @@ func Run(ctx context.Context, appConfig config.Config) error {
 		return fmt.Errorf("run database migrations: %w", err)
 	}
 
-	databasePool, err := database.Open(ctx, appConfig.DatabaseURL)
+	dbPool, err := database.Open(ctx, appConfig.DatabaseURL)
 	if err != nil {
 		return fmt.Errorf("open database connection: %w", err)
 	}
-	defer databasePool.Close()
+	defer dbPool.Close()
 
-	dataStore := repository.New(databasePool)
+	dataStore := repository.New(dbPool)
 	if err := service.NewUserService(dataStore).EnsureAdminUser(ctx, appConfig.AdminUsername, appConfig.AdminPassword); err != nil {
 		return fmt.Errorf("initialize admin user: %w", err)
 	}
 
-	sessionManager := session.NewManager(databasePool, session.Config{
+	sessionManager := session.NewManager(dbPool, session.Config{
 		CookieSecure: appConfig.SessionCookieSecure,
 		Lifetime:     appConfig.SessionLifetime,
 	})

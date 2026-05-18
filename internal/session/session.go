@@ -19,9 +19,9 @@ type Config struct {
 	Lifetime     time.Duration
 }
 
-func NewManager(databasePool *pgxpool.Pool, config Config) *scs.SessionManager {
+func NewManager(pool *pgxpool.Pool, config Config) *scs.SessionManager {
 	sessionManager := scs.New()
-	sessionManager.Store = pgxstore.NewWithConfig(databasePool, pgxstore.Config{
+	sessionManager.Store = pgxstore.NewWithConfig(pool, pgxstore.Config{
 		TableName:       "app_sessions",
 		CleanUpInterval: 10 * time.Minute,
 	})

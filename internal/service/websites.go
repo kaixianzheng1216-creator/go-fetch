@@ -15,22 +15,22 @@ var ErrInvalidWebsiteName = errors.New("website name cannot be empty")
 // WebsiteRepository persists user-owned websites.
 type WebsiteRepository interface {
 	ListWebsites(ctx context.Context, userID uuid.UUID) ([]domain.Website, error)
-	CreateWebsite(ctx context.Context, userID uuid.UUID, name, domainName string) (domain.Website, error)
+	CreateWebsite(ctx context.Context, userID uuid.UUID, name, domain string) (domain.Website, error)
 	GetWebsite(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error)
-	UpdateWebsite(ctx context.Context, userID, websiteID uuid.UUID, name, domainName string) (domain.Website, error)
+	UpdateWebsite(ctx context.Context, userID, websiteID uuid.UUID, name, domain string) (domain.Website, error)
 	DeleteWebsite(ctx context.Context, userID, websiteID uuid.UUID) error
 }
 
 // CreateWebsiteParams contains website fields used during creation.
 type CreateWebsiteParams struct {
-	Name       string
-	DomainName string
+	Name   string
+	Domain string
 }
 
 // UpdateWebsiteParams contains website fields used during updates.
 type UpdateWebsiteParams struct {
-	Name       string
-	DomainName string
+	Name   string
+	Domain string
 }
 
 // WebsiteService manages user-owned websites.
@@ -50,11 +50,11 @@ func (svc WebsiteService) List(ctx context.Context, userID uuid.UUID) ([]domain.
 
 // Create creates a user-owned website.
 func (svc WebsiteService) Create(ctx context.Context, userID uuid.UUID, params CreateWebsiteParams) (domain.Website, error) {
-	params = normalizeCreateWebsiteParams(params)
+	params.Name, params.Domain = normalizeWebsiteFields(params.Name, params.Domain)
 	if params.Name == "" {
 		return domain.Website{}, ErrInvalidWebsiteName
 	}
-	return svc.repository.CreateWebsite(ctx, userID, params.Name, params.DomainName)
+	return svc.repository.CreateWebsite(ctx, userID, params.Name, params.Domain)
 }
 
 // Get returns a user-owned website.
@@ -64,12 +64,12 @@ func (svc WebsiteService) Get(ctx context.Context, userID, websiteID uuid.UUID) 
 
 // Update updates a user-owned website.
 func (svc WebsiteService) Update(ctx context.Context, userID, websiteID uuid.UUID, params UpdateWebsiteParams) (domain.Website, error) {
-	params = normalizeUpdateWebsiteParams(params)
+	params.Name, params.Domain = normalizeWebsiteFields(params.Name, params.Domain)
 	if params.Name == "" {
 		return domain.Website{}, ErrInvalidWebsiteName
 	}
 
-	return svc.repository.UpdateWebsite(ctx, userID, websiteID, params.Name, params.DomainName)
+	return svc.repository.UpdateWebsite(ctx, userID, websiteID, params.Name, params.Domain)
 }
 
 // Delete deletes a user-owned website.
@@ -77,14 +77,6 @@ func (svc WebsiteService) Delete(ctx context.Context, userID, websiteID uuid.UUI
 	return svc.repository.DeleteWebsite(ctx, userID, websiteID)
 }
 
-func normalizeCreateWebsiteParams(params CreateWebsiteParams) CreateWebsiteParams {
-	params.Name = strings.TrimSpace(params.Name)
-	params.DomainName = strings.TrimSpace(params.DomainName)
-	return params
-}
-
-func normalizeUpdateWebsiteParams(params UpdateWebsiteParams) UpdateWebsiteParams {
-	params.Name = strings.TrimSpace(params.Name)
-	params.DomainName = strings.TrimSpace(params.DomainName)
-	return params
+func normalizeWebsiteFields(name, domain string) (string, string) {
+	return strings.TrimSpace(name), strings.TrimSpace(domain)
 }

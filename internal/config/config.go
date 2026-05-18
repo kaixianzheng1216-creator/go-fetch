@@ -6,8 +6,10 @@ import (
 	"time"
 )
 
+const defaultDatabaseURL = "postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable"
+
 type Config struct {
-	DatabaseURL               string        `env:"DATABASE_URL,notEmpty" envDefault:"postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable"`
+	DatabaseURL               string        `env:"DATABASE_URL"`
 	ListenAddr                string        `env:"LISTEN_ADDR,notEmpty" envDefault:":8080"`
 	AdminUsername             string        `env:"ADMIN_USERNAME,notEmpty" envDefault:"admin"`
 	AdminPassword             string        `env:"ADMIN_PASSWORD,required,notEmpty"`
@@ -24,6 +26,8 @@ type Config struct {
 
 // Validate checks derived config constraints and normalizes slice fields.
 func (config *Config) Validate() error {
+	config.DatabaseURL = databaseURLOrDefault(config.DatabaseURL)
+
 	if config.HTTPReadTimeout <= 0 {
 		return fmt.Errorf("HTTP_READ_TIMEOUT must be positive")
 	}
@@ -61,4 +65,12 @@ func cleanStringSlice(values []string) []string {
 	}
 
 	return result
+}
+
+func databaseURLOrDefault(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return defaultDatabaseURL
+	}
+	return value
 }

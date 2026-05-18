@@ -102,19 +102,19 @@ type websiteMetricsOutput struct {
 func (apiServer server) registerStatsRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
 	huma.Register(
 		humaAPI,
-		securedOperation(http.MethodGet, "/api/websites/{websiteID}/stats", "websiteStats", "获取站点统计", "Analytics", authMiddleware),
+		securedOperation(http.MethodGet, "/api/websites/{websiteID}/stats", "websiteStats", "Get website stats", "Analytics", authMiddleware),
 		apiServer.getWebsiteStats,
 	)
 
 	huma.Register(
 		humaAPI,
-		securedOperation(http.MethodGet, "/api/websites/{websiteID}/pageviews", "websitePageviews", "获取页面浏览趋势", "Analytics", authMiddleware),
+		securedOperation(http.MethodGet, "/api/websites/{websiteID}/pageviews", "websitePageviews", "Get website pageviews", "Analytics", authMiddleware),
 		apiServer.getWebsitePageviews,
 	)
 
 	huma.Register(
 		humaAPI,
-		securedOperation(http.MethodGet, "/api/websites/{websiteID}/metrics", "websiteMetrics", "获取站点指标", "Analytics", authMiddleware),
+		securedOperation(http.MethodGet, "/api/websites/{websiteID}/metrics", "websiteMetrics", "Get website metrics", "Analytics", authMiddleware),
 		apiServer.getWebsiteMetrics,
 	)
 }
@@ -149,18 +149,13 @@ func (apiServer server) getWebsitePageviews(ctx context.Context, input *websiteP
 }
 
 func (apiServer server) getWebsiteMetrics(ctx context.Context, input *websiteMetricsInput) (*websiteMetricsOutput, error) {
-	metricType, isSupportedMetricType := domain.ParseMetricType(string(input.Type))
-	if !isSupportedMetricType {
-		return nil, huma.Error400BadRequest(domain.ErrUnsupportedMetricType.Error())
-	}
-
 	metrics, err := apiServer.stats.Metrics(ctx, service.MetricsQuery{
 		StatsQuery: service.StatsQuery{
 			UserID:    currentUser(ctx).ID,
 			WebsiteID: input.WebsiteID,
 			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
 		},
-		Type:  metricType,
+		Type:  domain.MetricType(input.Type),
 		Limit: int(input.Limit),
 	})
 	if err != nil {

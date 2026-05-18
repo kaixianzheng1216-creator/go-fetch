@@ -20,12 +20,12 @@ func toUser(id uuid.UUID, username, passwordHash string, createdAt time.Time, up
 	}
 }
 
-func toWebsite(id uuid.UUID, name, domainName string, createdAt time.Time) domain.Website {
+func toWebsite(id uuid.UUID, name, siteDomain string, createdAt time.Time) domain.Website {
 	return domain.Website{
-		ID:         id,
-		Name:       name,
-		DomainName: domainName,
-		CreatedAt:  createdAt,
+		ID:        id,
+		Name:      name,
+		Domain:    siteDomain,
+		CreatedAt: createdAt,
 	}
 }
 

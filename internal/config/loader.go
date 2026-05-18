@@ -21,12 +21,12 @@ func Load() (Config, error) {
 
 func LoadDatabaseURL() (string, error) {
 	var config struct {
-		DatabaseURL string `env:"DATABASE_URL,notEmpty" envDefault:"postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable"`
+		DatabaseURL string `env:"DATABASE_URL"`
 	}
 
 	if err := env.Parse(&config); err != nil {
 		return "", fmt.Errorf("parse database config: %w", err)
 	}
 
-	return config.DatabaseURL, nil
+	return databaseURLOrDefault(config.DatabaseURL), nil
 }

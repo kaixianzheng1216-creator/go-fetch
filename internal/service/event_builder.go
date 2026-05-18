@@ -29,13 +29,15 @@ const (
 	maxDeviceLength     = 20
 	maxScreenLength     = 11
 	maxLanguageLength   = 35
+	maxCountryLength    = 2
+	maxRegionLength     = 20
+	maxCityLength       = 50
 	maxDistinctIDLength = 50
 
 	laptopMaxScreenWidth = 1280
 )
 
-func buildEventRecord(clientInfo ClientInfo, payload domain.CollectPayload, website domain.Website, now time.Time) domain.EventRecord {
-	client := newEventClient(clientInfo, payload.Screen)
+func buildEventRecord(client eventClient, payload domain.CollectPayload, website domain.Website, now time.Time) domain.EventRecord {
 	eventURLs := newEventURLs(payload, website)
 	urlFields := newEventURLFields(eventURLs)
 	utmFields := newUTMFields(eventURLs.page.Query())
@@ -60,10 +62,13 @@ func buildEventRecord(clientInfo ClientInfo, payload domain.CollectPayload, webs
 		UTMContent:     utmFields.content,
 		UTMTerm:        utmFields.term,
 		Browser:        textutil.TruncateRunes(client.browser, maxBrowserLength),
-		OS:             textutil.TruncateRunes(client.operatingSystem, maxOSLength),
+		OS:             textutil.TruncateRunes(client.os, maxOSLength),
 		Device:         textutil.TruncateRunes(client.device, maxDeviceLength),
 		Screen:         textutil.TruncateRunes(payload.Screen, maxScreenLength),
 		Language:       textutil.TruncateRunes(payload.Language, maxLanguageLength),
+		Country:        textutil.TruncateRunes(client.country, maxCountryLength),
+		Region:         textutil.TruncateRunes(client.region, maxRegionLength),
+		City:           textutil.TruncateRunes(client.city, maxCityLength),
 		DistinctID:     identity.distinctID,
 		CreatedAt:      now,
 		Data:           payload.Data,
@@ -78,52 +83,74 @@ func eventTypeFor(eventName string) domain.EventType {
 }
 
 type eventClient struct {
-	ip              string
-	userAgent       string
-	browser         string
-	operatingSystem string
-	device          string
+	ip        string
+	userAgent string
+	browser   string
+	os        string
+	device    string
+	bot       bool
+	country   string
+	region    string
+	city      string
 }
 
 func newEventClient(clientInfo ClientInfo, screen string) eventClient {
-	browser, operatingSystem, device := parseUserAgent(clientInfo.UserAgent, screen)
+	agent := useragent.Parse(clientInfo.UserAgent)
 	return eventClient{
-		ip:              clientInfo.IP,
-		userAgent:       clientInfo.UserAgent,
-		browser:         browser,
-		operatingSystem: operatingSystem,
-		device:          device,
+		ip:        clientInfo.IP,
+		userAgent: clientInfo.UserAgent,
+		browser:   browserName(agent),
+		os:        operatingSystemName(agent),
+		device:    deviceType(agent, screen),
+		bot:       agent.Bot,
+		country:   clientInfo.Country,
+		region:    clientInfo.Region,
+		city:      clientInfo.City,
 	}
 }
 
-func parseUserAgent(userAgentValue, screen string) (browser, osName, device string) {
-	agent := useragent.Parse(userAgentValue)
-
-	browser = agent.Name
+func browserName(agent useragent.UserAgent) string {
+	browser := agent.Name
 	if browser == "" || agent.IsUnknown() {
-		browser = "Unknown"
+		return "Unknown"
 	}
+	return browser
+}
 
-	osName = agent.OS
-	if osName == "" {
-		osName = "Unknown"
+func operatingSystemName(agent useragent.UserAgent) string {
+	if agent.OS == "" {
+		return "Unknown"
 	}
+	return agent.OS
+}
 
+func deviceType(agent useragent.UserAgent, screen string) string {
 	switch {
 	case agent.Mobile:
-		device = "mobile"
+		return "mobile"
 	case agent.Tablet:
-		device = "tablet"
-	default:
-		device = "desktop"
-		if width, _, hasHeight := strings.Cut(screen, "x"); hasHeight {
-			if screenWidth, err := strconv.Atoi(width); err == nil && screenWidth <= laptopMaxScreenWidth {
-				device = "laptop"
-			}
-		}
+		return "tablet"
 	}
 
-	return browser, osName, device
+	if width, ok := screenWidth(screen); ok && width <= laptopMaxScreenWidth {
+		return "laptop"
+	}
+
+	return "desktop"
+}
+
+func screenWidth(screen string) (int, bool) {
+	width, _, hasHeight := strings.Cut(screen, "x")
+	if !hasHeight {
+		return 0, false
+	}
+
+	value, err := strconv.Atoi(width)
+	if err != nil {
+		return 0, false
+	}
+
+	return value, true
 }
 
 type eventURLs struct {
@@ -174,16 +201,16 @@ func parsePageURL(rawURL, fallbackHost string) *url.URL {
 }
 
 func websiteFallbackHost(website domain.Website) string {
-	domainName := strings.TrimSpace(website.DomainName)
-	if domainName == "" {
+	siteDomain := strings.TrimSpace(website.Domain)
+	if siteDomain == "" {
 		return website.ID.String()
 	}
 
-	if !strings.Contains(domainName, "://") && !strings.HasPrefix(domainName, "//") {
-		domainName = "//" + domainName
+	if !strings.Contains(siteDomain, "://") && !strings.HasPrefix(siteDomain, "//") {
+		siteDomain = "//" + siteDomain
 	}
 
-	if parsedURL, err := url.Parse(domainName); err == nil && parsedURL.Host != "" {
+	if parsedURL, err := url.Parse(siteDomain); err == nil && parsedURL.Host != "" {
 		return parsedURL.Host
 	}
 

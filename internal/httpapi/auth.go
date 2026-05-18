@@ -45,19 +45,19 @@ type userOutput struct {
 func (apiServer server) registerAuthRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
 	huma.Register(
 		humaAPI,
-		publicOperation(http.MethodPost, "/api/login", "login", "登录", "Auth"),
+		publicOperation(http.MethodPost, "/api/login", "login", "Log in", "Auth"),
 		apiServer.login,
 	)
 
 	huma.Register(
 		humaAPI,
-		publicOperation(http.MethodPost, "/api/logout", "logout", "退出登录", "Auth"),
+		publicOperation(http.MethodPost, "/api/logout", "logout", "Log out", "Auth"),
 		apiServer.logout,
 	)
 
 	huma.Register(
 		humaAPI,
-		securedOperation(http.MethodGet, "/api/me", "getCurrentUser", "获取当前用户", "Auth", authMiddleware),
+		securedOperation(http.MethodGet, "/api/me", "getCurrentUser", "Get current user", "Auth", authMiddleware),
 		apiServer.getCurrentUser,
 	)
 }

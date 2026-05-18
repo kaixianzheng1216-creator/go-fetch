@@ -1,7 +1,7 @@
 {
   "components": {
     "schemas": {
-      "CollectPayloadRequest": {
+      "CollectEventPayloadRequest": {
         "additionalProperties": false,
         "properties": {
           "data": {
@@ -42,11 +42,11 @@
         ],
         "type": "object"
       },
-      "CollectRequest": {
+      "CollectEventRequest": {
         "additionalProperties": false,
         "properties": {
           "payload": {
-            "$ref": "#/components/schemas/CollectPayloadRequest"
+            "$ref": "#/components/schemas/CollectEventPayloadRequest"
           },
           "type": {
             "enum": [
@@ -358,7 +358,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CollectRequest"
+                "$ref": "#/components/schemas/CollectEventRequest"
               }
             }
           },
@@ -386,7 +386,7 @@
             "description": "Error"
           }
         },
-        "summary": "采集事件",
+        "summary": "Collect event",
         "tags": [
           "Collection"
         ]
@@ -427,7 +427,7 @@
             "description": "Error"
           }
         },
-        "summary": "登录",
+        "summary": "Log in",
         "tags": [
           "Auth"
         ]
@@ -458,7 +458,7 @@
             "description": "Error"
           }
         },
-        "summary": "退出登录",
+        "summary": "Log out",
         "tags": [
           "Auth"
         ]
@@ -494,7 +494,7 @@
             "sessionCookie": []
           }
         ],
-        "summary": "获取当前用户",
+        "summary": "Get current user",
         "tags": [
           "Auth"
         ]
@@ -536,7 +536,7 @@
             "sessionCookie": []
           }
         ],
-        "summary": "列出站点",
+        "summary": "List websites",
         "tags": [
           "Websites"
         ]
@@ -580,7 +580,7 @@
             "sessionCookie": []
           }
         ],
-        "summary": "创建站点",
+        "summary": "Create website",
         "tags": [
           "Websites"
         ]
@@ -627,7 +627,7 @@
             "sessionCookie": []
           }
         ],
-        "summary": "删除站点",
+        "summary": "Delete website",
         "tags": [
           "Websites"
         ]
@@ -672,7 +672,7 @@
             "sessionCookie": []
           }
         ],
-        "summary": "获取站点",
+        "summary": "Get website",
         "tags": [
           "Websites"
         ]
@@ -727,7 +727,7 @@
             "sessionCookie": []
           }
         ],
-        "summary": "更新站点",
+        "summary": "Update website",
         "tags": [
           "Websites"
         ]
@@ -827,7 +827,7 @@
             "sessionCookie": []
           }
         ],
-        "summary": "获取站点指标",
+        "summary": "Get website metrics",
         "tags": [
           "Analytics"
         ]
@@ -912,7 +912,7 @@
             "sessionCookie": []
           }
         ],
-        "summary": "获取页面浏览趋势",
+        "summary": "Get website pageviews",
         "tags": [
           "Analytics"
         ]
@@ -977,7 +977,7 @@
             "sessionCookie": []
           }
         ],
-        "summary": "获取站点统计",
+        "summary": "Get website stats",
         "tags": [
           "Analytics"
         ]
