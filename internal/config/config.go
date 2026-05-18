@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/caarlos0/env/v11"
 )
 
 const defaultDatabaseURL = "postgres://go_fetch:go_fetch@localhost:5432/go_fetch?sslmode=disable"
@@ -22,6 +24,31 @@ type Config struct {
 	SessionCookieSecure       bool          `env:"SESSION_COOKIE_SECURE" envDefault:"true"`
 	TrustProxyHeaders         bool          `env:"TRUST_PROXY_HEADERS" envDefault:"false"`
 	CollectCORSAllowedOrigins []string      `env:"COLLECT_CORS_ALLOWED_ORIGINS,notEmpty" envDefault:"*" envSeparator:","`
+}
+
+func Load() (Config, error) {
+	config, err := env.ParseAs[Config]()
+	if err != nil {
+		return Config{}, fmt.Errorf("parse config: %w", err)
+	}
+
+	if err := config.Validate(); err != nil {
+		return Config{}, err
+	}
+
+	return config, nil
+}
+
+func LoadDatabaseURL() (string, error) {
+	var config struct {
+		DatabaseURL string `env:"DATABASE_URL"`
+	}
+
+	if err := env.Parse(&config); err != nil {
+		return "", fmt.Errorf("parse database config: %w", err)
+	}
+
+	return databaseURLOrDefault(config.DatabaseURL), nil
 }
 
 func (config *Config) Validate() error {
@@ -71,8 +98,10 @@ func cleanStringSlice(values []string) []string {
 
 func databaseURLOrDefault(value string) string {
 	value = strings.TrimSpace(value)
+
 	if value == "" {
 		return defaultDatabaseURL
 	}
+
 	return value
 }
