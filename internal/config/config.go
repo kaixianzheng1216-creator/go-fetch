@@ -10,8 +10,10 @@ type Config struct {
 	HTTPReadTimeout           time.Duration `env:"HTTP_READ_TIMEOUT" envDefault:"5s"`
 	HTTPWriteTimeout          time.Duration `env:"HTTP_WRITE_TIMEOUT" envDefault:"10s"`
 	HTTPIdleTimeout           time.Duration `env:"HTTP_IDLE_TIMEOUT" envDefault:"120s"`
+	HTTPRequestTimeout        time.Duration `env:"HTTP_REQUEST_TIMEOUT" envDefault:"60s"`
 	HTTPShutdownTimeout       time.Duration `env:"HTTP_SHUTDOWN_TIMEOUT" envDefault:"10s"`
 	SessionLifetime           time.Duration `env:"SESSION_LIFETIME" envDefault:"24h"`
 	SessionCookieSecure       bool          `env:"SESSION_COOKIE_SECURE" envDefault:"true"`
+	TrustProxyHeaders         bool          `env:"TRUST_PROXY_HEADERS" envDefault:"false"`
 	CollectCORSAllowedOrigins []string      `env:"COLLECT_CORS_ALLOWED_ORIGINS" envDefault:"*" envSeparator:","`
 }

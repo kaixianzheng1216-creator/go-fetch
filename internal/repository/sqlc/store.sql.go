@@ -569,10 +569,11 @@ func (q *Queries) SessionMetrics(ctx context.Context, arg SessionMetricsParams) 
 	return items, nil
 }
 
-const updateWebsite = `-- name: UpdateWebsite :execrows
+const updateWebsite = `-- name: UpdateWebsite :one
 update websites
 set name = $1, domain = nullif($2::text, ''), updated_at = now()
 where id = $3::uuid and user_id = $4::uuid and deleted_at is null
+returning id, name, coalesce(domain, '')::text as domain, created_at
 `
 
 type UpdateWebsiteParams struct {
@@ -582,17 +583,28 @@ type UpdateWebsiteParams struct {
 	UserID uuid.UUID `json:"user_id"`
 }
 
-func (q *Queries) UpdateWebsite(ctx context.Context, arg UpdateWebsiteParams) (int64, error) {
-	result, err := q.db.Exec(ctx, updateWebsite,
+type UpdateWebsiteRow struct {
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (q *Queries) UpdateWebsite(ctx context.Context, arg UpdateWebsiteParams) (UpdateWebsiteRow, error) {
+	row := q.db.QueryRow(ctx, updateWebsite,
 		arg.Name,
 		arg.Domain,
 		arg.ID,
 		arg.UserID,
 	)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
+	var i UpdateWebsiteRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Domain,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const websiteStats = `-- name: WebsiteStats :one

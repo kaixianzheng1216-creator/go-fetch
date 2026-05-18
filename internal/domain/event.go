@@ -32,14 +32,14 @@ type WebsiteStats struct {
 	AvgVisitSeconds int64
 }
 
-type PageviewPoint struct {
+type PageviewBucket struct {
 	Time     time.Time
 	Label    string
 	Views    int64
 	Visitors int64
 }
 
-type MetricRow struct {
+type Metric struct {
 	Name     string
 	Views    int64
 	Visitors int64
@@ -57,7 +57,7 @@ type CollectPayload struct {
 	Data       map[string]any
 }
 
-type EventInput struct {
+type EventRecord struct {
 	WebsiteID      uuid.UUID
 	SessionID      uuid.UUID
 	VisitID        uuid.UUID

@@ -35,6 +35,9 @@ func Load() (Config, error) {
 	if config.HTTPIdleTimeout <= 0 {
 		return Config{}, fmt.Errorf("HTTP_IDLE_TIMEOUT must be positive")
 	}
+	if config.HTTPRequestTimeout <= 0 {
+		return Config{}, fmt.Errorf("HTTP_REQUEST_TIMEOUT must be positive")
+	}
 	if config.HTTPShutdownTimeout <= 0 {
 		return Config{}, fmt.Errorf("HTTP_SHUTDOWN_TIMEOUT must be positive")
 	}

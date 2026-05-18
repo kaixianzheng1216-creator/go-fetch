@@ -24,6 +24,8 @@ import (
 
 type Config struct {
 	CollectCORSAllowedOrigins []string
+	RequestTimeout            time.Duration
+	TrustProxyHeaders         bool
 }
 
 type sessionStore interface {
@@ -54,6 +56,7 @@ type server struct {
 }
 
 func New(dataStore DataStore, sessions *scs.SessionManager, config Config) http.Handler {
+	config = config.withDefaults()
 	apiServer := server{
 		store:    dataStore,
 		sessions: sessions,
@@ -61,15 +64,17 @@ func New(dataStore DataStore, sessions *scs.SessionManager, config Config) http.
 		collect:  service.NewCollector(dataStore),
 		websites: service.NewWebsites(dataStore),
 		stats:    service.NewStats(dataStore),
-		config:   config.withDefaults(),
+		config:   config,
 	}
 
 	chiRouter := chi.NewRouter()
-	chiRouter.Use(chimiddleware.RealIP)
+	if config.TrustProxyHeaders {
+		chiRouter.Use(chimiddleware.RealIP)
+	}
 	chiRouter.Use(chimiddleware.RequestID)
 	chiRouter.Use(chimiddleware.Recoverer)
 	chiRouter.Use(chimiddleware.Logger)
-	chiRouter.Use(chimiddleware.Timeout(60 * time.Second))
+	chiRouter.Use(chimiddleware.Timeout(config.RequestTimeout))
 	chiRouter.Use(apiServer.collectCORSMiddleware)
 	if sessions != nil {
 		chiRouter.Use(sessions.LoadAndSave)
@@ -86,6 +91,9 @@ func New(dataStore DataStore, sessions *scs.SessionManager, config Config) http.
 func (config Config) withDefaults() Config {
 	if len(config.CollectCORSAllowedOrigins) == 0 {
 		config.CollectCORSAllowedOrigins = []string{"*"}
+	}
+	if config.RequestTimeout <= 0 {
+		config.RequestTimeout = 60 * time.Second
 	}
 	return config
 }
@@ -178,6 +186,23 @@ func humaConfig() huma.Config {
 		},
 	}
 	return config
+}
+
+func publicOperation(method, path, operationID, summary, tag string) huma.Operation {
+	return huma.Operation{
+		Method:      method,
+		Path:        path,
+		OperationID: operationID,
+		Summary:     summary,
+		Tags:        []string{tag},
+	}
+}
+
+func securedOperation(method, path, operationID, summary, tag string, authMiddleware huma.Middlewares) huma.Operation {
+	operation := publicOperation(method, path, operationID, summary, tag)
+	operation.Security = []map[string][]string{{"sessionCookie": {}}}
+	operation.Middlewares = authMiddleware
+	return operation
 }
 
 func enumValues(values []string) []any {

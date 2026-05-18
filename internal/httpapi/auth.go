@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -11,7 +10,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
@@ -47,39 +45,19 @@ type userOutput struct {
 func (apiServer server) registerAuthRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
 	huma.Register(
 		humaAPI,
-		huma.Operation{
-			Method:      http.MethodPost,
-			Path:        "/api/login",
-			OperationID: "login",
-			Summary:     "登录",
-			Tags:        []string{"Auth"},
-		},
+		publicOperation(http.MethodPost, "/api/login", "login", "登录", "Auth"),
 		apiServer.login,
 	)
 
 	huma.Register(
 		humaAPI,
-		huma.Operation{
-			Method:      http.MethodPost,
-			Path:        "/api/logout",
-			OperationID: "logout",
-			Summary:     "退出登录",
-			Tags:        []string{"Auth"},
-		},
+		publicOperation(http.MethodPost, "/api/logout", "logout", "退出登录", "Auth"),
 		apiServer.logout,
 	)
 
 	huma.Register(
 		humaAPI,
-		huma.Operation{
-			Method:      http.MethodGet,
-			Path:        "/api/me",
-			OperationID: "getCurrentUser",
-			Summary:     "获取当前用户",
-			Tags:        []string{"Auth"},
-			Security:    []map[string][]string{{"sessionCookie": {}}},
-			Middlewares: authMiddleware,
-		},
+		securedOperation(http.MethodGet, "/api/me", "getCurrentUser", "获取当前用户", "Auth", authMiddleware),
 		apiServer.getCurrentUser,
 	)
 }
@@ -87,10 +65,7 @@ func (apiServer server) registerAuthRoutes(humaAPI huma.API, authMiddleware huma
 func (apiServer server) login(ctx context.Context, input *loginInput) (*loginOutput, error) {
 	user, err := apiServer.auth.Login(ctx, input.Body.Username, input.Body.Password)
 	if err != nil {
-		if errors.Is(err, service.ErrInvalidCredentials) {
-			return nil, huma.Error401Unauthorized("用户名或密码错误")
-		}
-		return nil, huma.Error500InternalServerError("加载用户失败")
+		return nil, loginError(err)
 	}
 
 	if err := apiServer.startUserSession(ctx, user.ID); err != nil {

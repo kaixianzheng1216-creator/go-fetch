@@ -48,10 +48,11 @@ select id, name, coalesce(domain, '')::text as domain, created_at
 from websites
 where id = sqlc.arg(id)::uuid and deleted_at is null;
 
--- name: UpdateWebsite :execrows
+-- name: UpdateWebsite :one
 update websites
 set name = sqlc.arg(name), domain = nullif(sqlc.arg(domain)::text, ''), updated_at = now()
-where id = sqlc.arg(id)::uuid and user_id = sqlc.arg(user_id)::uuid and deleted_at is null;
+where id = sqlc.arg(id)::uuid and user_id = sqlc.arg(user_id)::uuid and deleted_at is null
+returning id, name, coalesce(domain, '')::text as domain, created_at;
 
 -- name: DeleteWebsite :execrows
 update websites

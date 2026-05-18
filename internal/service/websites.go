@@ -17,14 +17,14 @@ type WebsiteRepository interface {
 	ListWebsites(ctx context.Context, userID uuid.UUID) ([]domain.Website, error)
 	CreateWebsite(ctx context.Context, userID uuid.UUID, name, domainName string) (domain.Website, error)
 	GetWebsite(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error)
-	UpdateWebsite(ctx context.Context, userID, websiteID uuid.UUID, name, domainName string) error
+	UpdateWebsite(ctx context.Context, userID, websiteID uuid.UUID, name, domainName string) (domain.Website, error)
 	DeleteWebsite(ctx context.Context, userID, websiteID uuid.UUID) error
 }
 
-// WebsiteInput contains editable website fields.
-type WebsiteInput struct {
-	Name   string
-	Domain string
+// WebsiteParams contains editable website fields.
+type WebsiteParams struct {
+	Name       string
+	DomainName string
 }
 
 type Websites struct {
@@ -39,36 +39,33 @@ func (service Websites) List(ctx context.Context, userID uuid.UUID) ([]domain.We
 	return service.repository.ListWebsites(ctx, userID)
 }
 
-func (service Websites) Create(ctx context.Context, userID uuid.UUID, input WebsiteInput) (domain.Website, error) {
-	input = normalizeWebsiteInput(input)
-	if input.Name == "" {
+func (service Websites) Create(ctx context.Context, userID uuid.UUID, params WebsiteParams) (domain.Website, error) {
+	params = normalizeWebsiteParams(params)
+	if params.Name == "" {
 		return domain.Website{}, ErrInvalidWebsiteName
 	}
-	return service.repository.CreateWebsite(ctx, userID, input.Name, input.Domain)
+	return service.repository.CreateWebsite(ctx, userID, params.Name, params.DomainName)
 }
 
 func (service Websites) Get(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error) {
 	return service.repository.GetWebsite(ctx, userID, websiteID)
 }
 
-func (service Websites) Update(ctx context.Context, userID, websiteID uuid.UUID, input WebsiteInput) (domain.Website, error) {
-	input = normalizeWebsiteInput(input)
-	if input.Name == "" {
+func (service Websites) Update(ctx context.Context, userID, websiteID uuid.UUID, params WebsiteParams) (domain.Website, error) {
+	params = normalizeWebsiteParams(params)
+	if params.Name == "" {
 		return domain.Website{}, ErrInvalidWebsiteName
 	}
 
-	if err := service.repository.UpdateWebsite(ctx, userID, websiteID, input.Name, input.Domain); err != nil {
-		return domain.Website{}, err
-	}
-	return service.repository.GetWebsite(ctx, userID, websiteID)
+	return service.repository.UpdateWebsite(ctx, userID, websiteID, params.Name, params.DomainName)
 }
 
 func (service Websites) Delete(ctx context.Context, userID, websiteID uuid.UUID) error {
 	return service.repository.DeleteWebsite(ctx, userID, websiteID)
 }
 
-func normalizeWebsiteInput(input WebsiteInput) WebsiteInput {
-	input.Name = strings.TrimSpace(input.Name)
-	input.Domain = strings.TrimSpace(input.Domain)
-	return input
+func normalizeWebsiteParams(params WebsiteParams) WebsiteParams {
+	params.Name = strings.TrimSpace(params.Name)
+	params.DomainName = strings.TrimSpace(params.DomainName)
+	return params
 }

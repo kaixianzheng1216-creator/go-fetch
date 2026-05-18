@@ -16,8 +16,8 @@ var ErrInvalidDateRange = errors.New("startAt must be before or equal to endAt")
 type AnalyticsRepository interface {
 	GetWebsite(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error)
 	WebsiteStats(ctx context.Context, websiteID uuid.UUID, start, end time.Time) (domain.WebsiteStats, error)
-	WebsitePageviews(ctx context.Context, websiteID uuid.UUID, start, end time.Time, unit domain.DateUnit) ([]domain.PageviewPoint, error)
-	WebsiteMetrics(ctx context.Context, websiteID uuid.UUID, start, end time.Time, metric domain.MetricType, limit int) ([]domain.MetricRow, error)
+	WebsitePageviews(ctx context.Context, websiteID uuid.UUID, start, end time.Time, unit domain.DateUnit) ([]domain.PageviewBucket, error)
+	WebsiteMetrics(ctx context.Context, websiteID uuid.UUID, start, end time.Time, metric domain.MetricType, limit int) ([]domain.Metric, error)
 }
 
 // DateRange optionally constrains analytics queries by time.
@@ -26,22 +26,22 @@ type DateRange struct {
 	EndAt   *time.Time
 }
 
-// StatsQuery scopes a website analytics request to a user-owned website.
-type StatsQuery struct {
+// StatsParams scopes a website analytics request to a user-owned website.
+type StatsParams struct {
 	UserID    uuid.UUID
 	WebsiteID uuid.UUID
 	Range     DateRange
 }
 
-// PageviewsQuery requests pageview buckets for a website.
-type PageviewsQuery struct {
-	StatsQuery
+// PageviewsParams requests pageview buckets for a website.
+type PageviewsParams struct {
+	StatsParams
 	Unit domain.DateUnit
 }
 
-// MetricsQuery requests top metric rows for a website.
-type MetricsQuery struct {
-	StatsQuery
+// MetricsParams requests top metrics for a website.
+type MetricsParams struct {
+	StatsParams
 	Type  domain.MetricType
 	Limit int
 }
@@ -72,47 +72,47 @@ func NewStats(repository AnalyticsRepository) Stats {
 	return Stats{repository: repository, clock: systemClock}
 }
 
-func (service Stats) Summary(ctx context.Context, query StatsQuery) (domain.WebsiteStats, error) {
-	start, end, err := statsDateRange(service.now(), query.Range)
+func (service Stats) Summary(ctx context.Context, params StatsParams) (domain.WebsiteStats, error) {
+	start, end, err := statsDateRange(service.now(), params.Range)
 	if err != nil {
 		return domain.WebsiteStats{}, err
 	}
 
-	if err := service.requireWebsiteAccess(ctx, query.UserID, query.WebsiteID); err != nil {
+	if err := service.requireWebsiteAccess(ctx, params.UserID, params.WebsiteID); err != nil {
 		return domain.WebsiteStats{}, err
 	}
 
-	return service.repository.WebsiteStats(ctx, query.WebsiteID, start, end)
+	return service.repository.WebsiteStats(ctx, params.WebsiteID, start, end)
 }
 
-func (service Stats) Pageviews(ctx context.Context, query PageviewsQuery) ([]domain.PageviewPoint, error) {
-	start, end, err := statsDateRange(service.now(), query.Range)
+func (service Stats) Pageviews(ctx context.Context, params PageviewsParams) ([]domain.PageviewBucket, error) {
+	start, end, err := statsDateRange(service.now(), params.Range)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := service.requireWebsiteAccess(ctx, query.UserID, query.WebsiteID); err != nil {
+	if err := service.requireWebsiteAccess(ctx, params.UserID, params.WebsiteID); err != nil {
 		return nil, err
 	}
 
-	return service.repository.WebsitePageviews(ctx, query.WebsiteID, start, end, domain.ParseDateUnit(string(query.Unit)))
+	return service.repository.WebsitePageviews(ctx, params.WebsiteID, start, end, domain.ParseDateUnit(string(params.Unit)))
 }
 
-func (service Stats) Metrics(ctx context.Context, query MetricsQuery) ([]domain.MetricRow, error) {
-	start, end, err := statsDateRange(service.now(), query.Range)
+func (service Stats) Metrics(ctx context.Context, params MetricsParams) ([]domain.Metric, error) {
+	start, end, err := statsDateRange(service.now(), params.Range)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := service.requireWebsiteAccess(ctx, query.UserID, query.WebsiteID); err != nil {
+	if err := service.requireWebsiteAccess(ctx, params.UserID, params.WebsiteID); err != nil {
 		return nil, err
 	}
 
-	if _, isSupportedMetricType := domain.ParseMetricType(string(query.Type)); !isSupportedMetricType {
+	if _, isSupportedMetricType := domain.ParseMetricType(string(params.Type)); !isSupportedMetricType {
 		return nil, domain.ErrUnsupportedMetricType
 	}
 
-	return service.repository.WebsiteMetrics(ctx, query.WebsiteID, start, end, query.Type, domain.NormalizeMetricLimit(query.Limit))
+	return service.repository.WebsiteMetrics(ctx, params.WebsiteID, start, end, params.Type, domain.NormalizeMetricLimit(params.Limit))
 }
 
 func (service Stats) requireWebsiteAccess(ctx context.Context, userID, websiteID uuid.UUID) error {

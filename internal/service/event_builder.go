@@ -1,8 +1,6 @@
 package service
 
 import (
-	"net"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -36,38 +34,37 @@ const (
 	laptopMaxScreenWidth = 1280
 )
 
-func buildEventInput(request *http.Request, payload domain.CollectPayload, website domain.Website, now time.Time) domain.EventInput {
-	client := newEventClient(request, payload.Screen)
+func buildEventRecord(clientInfo ClientInfo, payload domain.CollectPayload, website domain.Website, now time.Time) domain.EventRecord {
+	client := newEventClient(clientInfo, payload.Screen)
 	eventURLs := newEventURLs(payload, website)
-	distinctID := textutil.TruncateRunes(payload.DistinctID, maxDistinctIDLength)
-	sessionID := sessionIDFor(payload.WebsiteID, distinctID, client.ip, client.userAgent, now)
-	visitID := visitIDFor(sessionID, now)
-	pageQuery := eventURLs.page.Query()
+	urlFields := newEventURLFields(eventURLs)
+	utmFields := newUTMFields(eventURLs.page.Query())
+	identity := newEventIdentity(payload.WebsiteID, payload.DistinctID, client, now)
 
-	return domain.EventInput{
+	return domain.EventRecord{
 		WebsiteID:      payload.WebsiteID,
-		SessionID:      sessionID,
-		VisitID:        visitID,
+		SessionID:      identity.sessionID,
+		VisitID:        identity.visitID,
 		EventType:      eventTypeFor(payload.Name),
 		EventName:      textutil.TruncateRunes(payload.Name, maxEventNameLength),
-		URLPath:        textutil.TruncateRunes(pathWithHash(eventURLs.page), maxURLPartLength),
-		URLQuery:       textutil.TruncateRunes(eventURLs.page.RawQuery, maxURLPartLength),
-		ReferrerPath:   textutil.TruncateRunes(eventURLs.referrer.Path, maxURLPartLength),
-		ReferrerQuery:  textutil.TruncateRunes(eventURLs.referrer.RawQuery, maxURLPartLength),
-		ReferrerDomain: textutil.TruncateRunes(trimWWW(eventURLs.referrer.Hostname()), maxURLPartLength),
+		URLPath:        urlFields.path,
+		URLQuery:       urlFields.query,
+		ReferrerPath:   urlFields.referrerPath,
+		ReferrerQuery:  urlFields.referrerQuery,
+		ReferrerDomain: urlFields.referrerDomain,
 		PageTitle:      textutil.TruncateRunes(payload.Title, maxPageTitleLength),
-		Hostname:       textutil.TruncateRunes(eventURLs.page.Hostname(), maxHostnameLength),
-		UTMSource:      textutil.TruncateRunes(pageQuery.Get("utm_source"), maxUTMValueLength),
-		UTMMedium:      textutil.TruncateRunes(pageQuery.Get("utm_medium"), maxUTMValueLength),
-		UTMCampaign:    textutil.TruncateRunes(pageQuery.Get("utm_campaign"), maxUTMValueLength),
-		UTMContent:     textutil.TruncateRunes(pageQuery.Get("utm_content"), maxUTMValueLength),
-		UTMTerm:        textutil.TruncateRunes(pageQuery.Get("utm_term"), maxUTMValueLength),
+		Hostname:       urlFields.hostname,
+		UTMSource:      utmFields.source,
+		UTMMedium:      utmFields.medium,
+		UTMCampaign:    utmFields.campaign,
+		UTMContent:     utmFields.content,
+		UTMTerm:        utmFields.term,
 		Browser:        textutil.TruncateRunes(client.browser, maxBrowserLength),
 		OS:             textutil.TruncateRunes(client.operatingSystem, maxOSLength),
 		Device:         textutil.TruncateRunes(client.device, maxDeviceLength),
 		Screen:         textutil.TruncateRunes(payload.Screen, maxScreenLength),
 		Language:       textutil.TruncateRunes(payload.Language, maxLanguageLength),
-		DistinctID:     distinctID,
+		DistinctID:     identity.distinctID,
 		CreatedAt:      now,
 		Data:           payload.Data,
 	}
@@ -81,12 +78,11 @@ type eventClient struct {
 	device          string
 }
 
-func newEventClient(request *http.Request, screen string) eventClient {
-	userAgentValue := request.UserAgent()
-	browser, operatingSystem, device := parseUserAgent(userAgentValue, screen)
+func newEventClient(clientInfo ClientInfo, screen string) eventClient {
+	browser, operatingSystem, device := parseUserAgent(clientInfo.UserAgent, screen)
 	return eventClient{
-		ip:              clientIP(request),
-		userAgent:       userAgentValue,
+		ip:              clientInfo.IP,
+		userAgent:       clientInfo.UserAgent,
 		browser:         browser,
 		operatingSystem: operatingSystem,
 		device:          device,
@@ -103,6 +99,60 @@ func newEventURLs(payload domain.CollectPayload, website domain.Website) eventUR
 	return eventURLs{
 		page:     pageURL,
 		referrer: parseReferrerURL(payload.Referrer, pageURL),
+	}
+}
+
+type eventURLFields struct {
+	path           string
+	query          string
+	referrerPath   string
+	referrerQuery  string
+	referrerDomain string
+	hostname       string
+}
+
+func newEventURLFields(eventURLs eventURLs) eventURLFields {
+	return eventURLFields{
+		path:           textutil.TruncateRunes(pathWithHash(eventURLs.page), maxURLPartLength),
+		query:          textutil.TruncateRunes(eventURLs.page.RawQuery, maxURLPartLength),
+		referrerPath:   textutil.TruncateRunes(eventURLs.referrer.Path, maxURLPartLength),
+		referrerQuery:  textutil.TruncateRunes(eventURLs.referrer.RawQuery, maxURLPartLength),
+		referrerDomain: textutil.TruncateRunes(trimWWW(eventURLs.referrer.Hostname()), maxURLPartLength),
+		hostname:       textutil.TruncateRunes(eventURLs.page.Hostname(), maxHostnameLength),
+	}
+}
+
+type utmFields struct {
+	source   string
+	medium   string
+	campaign string
+	content  string
+	term     string
+}
+
+func newUTMFields(values url.Values) utmFields {
+	return utmFields{
+		source:   textutil.TruncateRunes(values.Get("utm_source"), maxUTMValueLength),
+		medium:   textutil.TruncateRunes(values.Get("utm_medium"), maxUTMValueLength),
+		campaign: textutil.TruncateRunes(values.Get("utm_campaign"), maxUTMValueLength),
+		content:  textutil.TruncateRunes(values.Get("utm_content"), maxUTMValueLength),
+		term:     textutil.TruncateRunes(values.Get("utm_term"), maxUTMValueLength),
+	}
+}
+
+type eventIdentity struct {
+	distinctID string
+	sessionID  uuid.UUID
+	visitID    uuid.UUID
+}
+
+func newEventIdentity(websiteID uuid.UUID, distinctID string, client eventClient, now time.Time) eventIdentity {
+	distinctID = textutil.TruncateRunes(distinctID, maxDistinctIDLength)
+	sessionID := sessionIDFor(websiteID, distinctID, client.ip, client.userAgent, now)
+	return eventIdentity{
+		distinctID: distinctID,
+		sessionID:  sessionID,
+		visitID:    visitIDFor(sessionID, now),
 	}
 }
 
@@ -178,7 +228,7 @@ func parsePageURL(rawURL, fallbackHost string) *url.URL {
 }
 
 func websiteFallbackHost(website domain.Website) string {
-	domainName := strings.TrimSpace(website.Domain)
+	domainName := strings.TrimSpace(website.DomainName)
 	if domainName == "" {
 		return website.ID.String()
 	}
@@ -219,15 +269,6 @@ func pathWithHash(pageURL *url.URL) string {
 	}
 
 	return path
-}
-
-func clientIP(request *http.Request) string {
-	host, _, err := net.SplitHostPort(request.RemoteAddr)
-	if err == nil {
-		return host
-	}
-
-	return request.RemoteAddr
 }
 
 func trimWWW(host string) string {

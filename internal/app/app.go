@@ -41,6 +41,8 @@ func Run(ctx context.Context, appConfig config.Config) error {
 		Addr: appConfig.ListenAddr,
 		Handler: httpapi.New(dataStore, sessionManager, httpapi.Config{
 			CollectCORSAllowedOrigins: appConfig.CollectCORSAllowedOrigins,
+			RequestTimeout:            appConfig.HTTPRequestTimeout,
+			TrustProxyHeaders:         appConfig.TrustProxyHeaders,
 		}),
 		ReadTimeout:  appConfig.HTTPReadTimeout,
 		WriteTimeout: appConfig.HTTPWriteTimeout,

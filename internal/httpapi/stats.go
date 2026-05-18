@@ -6,26 +6,27 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/google/uuid"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 )
 
 type statsInput struct {
-	WebsiteID string `path:"websiteID" format:"uuid"`
-	StartAt   int64  `query:"startAt"`
-	EndAt     int64  `query:"endAt"`
+	WebsiteID uuid.UUID `path:"websiteID" format:"uuid"`
+	StartAt   int64     `query:"startAt"`
+	EndAt     int64     `query:"endAt"`
 }
 
 type pageviewsInput struct {
-	WebsiteID string        `path:"websiteID" format:"uuid"`
+	WebsiteID uuid.UUID     `path:"websiteID" format:"uuid"`
 	StartAt   int64         `query:"startAt"`
 	EndAt     int64         `query:"endAt"`
 	Unit      DateUnitParam `query:"unit"`
 }
 
 type metricsInput struct {
-	WebsiteID string          `path:"websiteID" format:"uuid"`
+	WebsiteID uuid.UUID       `path:"websiteID" format:"uuid"`
 	StartAt   int64           `query:"startAt"`
 	EndAt     int64           `query:"endAt"`
 	Type      MetricTypeParam `query:"type" required:"true"`
@@ -73,14 +74,14 @@ type WebsiteStatsResponse struct {
 	AvgVisitSeconds int64 `json:"avgVisitSeconds"`
 }
 
-type PageviewPointResponse struct {
+type PageviewResponse struct {
 	Time     time.Time `json:"time"`
 	Label    string    `json:"label"`
 	Views    int64     `json:"views"`
 	Visitors int64     `json:"visitors"`
 }
 
-type MetricRowResponse struct {
+type MetricResponse struct {
 	Name     string `json:"name"`
 	Views    int64  `json:"views"`
 	Visitors int64  `json:"visitors"`
@@ -91,66 +92,37 @@ type statsOutput struct {
 }
 
 type pageviewsOutput struct {
-	Body []PageviewPointResponse
+	Body []PageviewResponse
 }
 
 type metricsOutput struct {
-	Body []MetricRowResponse
+	Body []MetricResponse
 }
 
 func (apiServer server) registerStatsRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
 	huma.Register(
 		humaAPI,
-		huma.Operation{
-			Method:      http.MethodGet,
-			Path:        "/api/websites/{websiteID}/stats",
-			OperationID: "websiteStats",
-			Summary:     "获取站点统计",
-			Tags:        []string{"Analytics"},
-			Security:    []map[string][]string{{"sessionCookie": {}}},
-			Middlewares: authMiddleware,
-		},
+		securedOperation(http.MethodGet, "/api/websites/{websiteID}/stats", "websiteStats", "获取站点统计", "Analytics", authMiddleware),
 		apiServer.getWebsiteStats,
 	)
 
 	huma.Register(
 		humaAPI,
-		huma.Operation{
-			Method:      http.MethodGet,
-			Path:        "/api/websites/{websiteID}/pageviews",
-			OperationID: "websitePageviews",
-			Summary:     "获取页面浏览趋势",
-			Tags:        []string{"Analytics"},
-			Security:    []map[string][]string{{"sessionCookie": {}}},
-			Middlewares: authMiddleware,
-		},
+		securedOperation(http.MethodGet, "/api/websites/{websiteID}/pageviews", "websitePageviews", "获取页面浏览趋势", "Analytics", authMiddleware),
 		apiServer.getWebsitePageviews,
 	)
 
 	huma.Register(
 		humaAPI,
-		huma.Operation{
-			Method:      http.MethodGet,
-			Path:        "/api/websites/{websiteID}/metrics",
-			OperationID: "websiteMetrics",
-			Summary:     "获取站点指标",
-			Tags:        []string{"Analytics"},
-			Security:    []map[string][]string{{"sessionCookie": {}}},
-			Middlewares: authMiddleware,
-		},
+		securedOperation(http.MethodGet, "/api/websites/{websiteID}/metrics", "websiteMetrics", "获取站点指标", "Analytics", authMiddleware),
 		apiServer.getWebsiteMetrics,
 	)
 }
 
 func (apiServer server) getWebsiteStats(ctx context.Context, input *statsInput) (*statsOutput, error) {
-	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
-	if err != nil {
-		return nil, err
-	}
-
-	stats, err := apiServer.stats.Summary(ctx, service.StatsQuery{
+	stats, err := apiServer.stats.Summary(ctx, service.StatsParams{
 		UserID:    currentUser(ctx).ID,
-		WebsiteID: websiteID,
+		WebsiteID: input.WebsiteID,
 		Range:     dateRangeFromInput(input.StartAt, input.EndAt),
 	})
 	if err != nil {
@@ -161,15 +133,10 @@ func (apiServer server) getWebsiteStats(ctx context.Context, input *statsInput) 
 }
 
 func (apiServer server) getWebsitePageviews(ctx context.Context, input *pageviewsInput) (*pageviewsOutput, error) {
-	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
-	if err != nil {
-		return nil, err
-	}
-
-	points, err := apiServer.stats.Pageviews(ctx, service.PageviewsQuery{
-		StatsQuery: service.StatsQuery{
+	buckets, err := apiServer.stats.Pageviews(ctx, service.PageviewsParams{
+		StatsParams: service.StatsParams{
 			UserID:    currentUser(ctx).ID,
-			WebsiteID: websiteID,
+			WebsiteID: input.WebsiteID,
 			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
 		},
 		Unit: domain.ParseDateUnit(string(input.Unit)),
@@ -178,24 +145,19 @@ func (apiServer server) getWebsitePageviews(ctx context.Context, input *pageview
 		return nil, statsError(err, "加载页面浏览量失败")
 	}
 
-	return &pageviewsOutput{Body: toPageviewPointResponses(points)}, nil
+	return &pageviewsOutput{Body: toPageviewResponses(buckets)}, nil
 }
 
 func (apiServer server) getWebsiteMetrics(ctx context.Context, input *metricsInput) (*metricsOutput, error) {
-	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
-	if err != nil {
-		return nil, err
-	}
-
 	metricType, isSupportedMetricType := domain.ParseMetricType(string(input.Type))
 	if !isSupportedMetricType {
 		return nil, huma.Error400BadRequest(domain.ErrUnsupportedMetricType.Error())
 	}
 
-	rows, err := apiServer.stats.Metrics(ctx, service.MetricsQuery{
-		StatsQuery: service.StatsQuery{
+	metrics, err := apiServer.stats.Metrics(ctx, service.MetricsParams{
+		StatsParams: service.StatsParams{
 			UserID:    currentUser(ctx).ID,
-			WebsiteID: websiteID,
+			WebsiteID: input.WebsiteID,
 			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
 		},
 		Type:  metricType,
@@ -205,7 +167,7 @@ func (apiServer server) getWebsiteMetrics(ctx context.Context, input *metricsInp
 		return nil, statsError(err, "加载指标数据失败")
 	}
 
-	return &metricsOutput{Body: toMetricRowResponses(rows)}, nil
+	return &metricsOutput{Body: toMetricResponses(metrics)}, nil
 }
 
 func dateRangeFromInput(startAt, endAt int64) service.DateRange {
@@ -234,26 +196,26 @@ func toWebsiteStatsResponse(stats domain.WebsiteStats) WebsiteStatsResponse {
 	}
 }
 
-func toPageviewPointResponses(points []domain.PageviewPoint) []PageviewPointResponse {
-	result := make([]PageviewPointResponse, 0, len(points))
-	for _, point := range points {
-		result = append(result, PageviewPointResponse{
-			Time:     point.Time,
-			Label:    point.Label,
-			Views:    point.Views,
-			Visitors: point.Visitors,
+func toPageviewResponses(buckets []domain.PageviewBucket) []PageviewResponse {
+	result := make([]PageviewResponse, 0, len(buckets))
+	for _, bucket := range buckets {
+		result = append(result, PageviewResponse{
+			Time:     bucket.Time,
+			Label:    bucket.Label,
+			Views:    bucket.Views,
+			Visitors: bucket.Visitors,
 		})
 	}
 	return result
 }
 
-func toMetricRowResponses(rows []domain.MetricRow) []MetricRowResponse {
-	result := make([]MetricRowResponse, 0, len(rows))
-	for _, row := range rows {
-		result = append(result, MetricRowResponse{
-			Name:     row.Name,
-			Views:    row.Views,
-			Visitors: row.Visitors,
+func toMetricResponses(metrics []domain.Metric) []MetricResponse {
+	result := make([]MetricResponse, 0, len(metrics))
+	for _, metric := range metrics {
+		result = append(result, MetricResponse{
+			Name:     metric.Name,
+			Views:    metric.Views,
+			Visitors: metric.Visitors,
 		})
 	}
 	return result

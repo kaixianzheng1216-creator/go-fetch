@@ -163,7 +163,7 @@
         ],
         "type": "object"
       },
-      "MetricRowResponse": {
+      "MetricResponse": {
         "additionalProperties": false,
         "properties": {
           "name": {
@@ -197,7 +197,7 @@
         ],
         "type": "object"
       },
-      "PageviewPointResponse": {
+      "PageviewResponse": {
         "additionalProperties": false,
         "properties": {
           "label": {
@@ -800,7 +800,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/MetricRowResponse"
+                    "$ref": "#/components/schemas/MetricResponse"
                   },
                   "type": [
                     "array",
@@ -885,7 +885,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/PageviewPointResponse"
+                    "$ref": "#/components/schemas/PageviewResponse"
                   },
                   "type": [
                     "array",

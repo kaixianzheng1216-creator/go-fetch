@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
@@ -12,18 +11,24 @@ import (
 
 var (
 	ErrUnsupportedCollectionType = errors.New("unsupported collection type")
-	ErrMissingHTTPRequest        = errors.New("missing http request")
+	ErrMissingClientInfo         = errors.New("missing client info")
 )
 
 // CollectionRepository persists collected analytics events.
 type CollectionRepository interface {
 	GetWebsiteForCollection(ctx context.Context, websiteID uuid.UUID) (domain.Website, error)
-	SaveEvent(ctx context.Context, event domain.EventInput) error
+	SaveEvent(ctx context.Context, event domain.EventRecord) error
 }
 
-// CollectionInput contains the request data needed to collect an event.
-type CollectionInput struct {
-	Request *http.Request
+// ClientInfo contains request-derived client metadata needed to collect events.
+type ClientInfo struct {
+	IP        string
+	UserAgent string
+}
+
+// CollectionParams contains the data needed to collect an event.
+type CollectionParams struct {
+	Client  ClientInfo
 	Type    domain.CollectionType
 	Payload domain.CollectPayload
 }
@@ -37,21 +42,21 @@ func NewCollector(repository CollectionRepository) Collector {
 	return Collector{repository: repository, clock: systemClock}
 }
 
-func (service Collector) Collect(ctx context.Context, input CollectionInput) error {
-	_, isSupportedCollectionType := domain.ParseCollectionType(string(input.Type))
+func (service Collector) Collect(ctx context.Context, params CollectionParams) error {
+	_, isSupportedCollectionType := domain.ParseCollectionType(string(params.Type))
 	if !isSupportedCollectionType {
 		return ErrUnsupportedCollectionType
 	}
 
-	if input.Request == nil {
-		return ErrMissingHTTPRequest
+	if params.Client.IP == "" && params.Client.UserAgent == "" {
+		return ErrMissingClientInfo
 	}
 
-	if isBot(input.Request.UserAgent()) {
+	if isBot(params.Client.UserAgent) {
 		return nil
 	}
 
-	website, err := service.repository.GetWebsiteForCollection(ctx, input.Payload.WebsiteID)
+	website, err := service.repository.GetWebsiteForCollection(ctx, params.Payload.WebsiteID)
 	if err != nil {
 		return err
 	}
@@ -61,7 +66,7 @@ func (service Collector) Collect(ctx context.Context, input CollectionInput) err
 		clock = systemClock
 	}
 
-	return service.repository.SaveEvent(ctx, buildEventInput(input.Request, input.Payload, website, clock()))
+	return service.repository.SaveEvent(ctx, buildEventRecord(params.Client, params.Payload, website, clock()))
 }
 
 func isBot(userAgentValue string) bool {

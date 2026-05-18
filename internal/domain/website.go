@@ -7,8 +7,8 @@ import (
 )
 
 type Website struct {
-	ID        uuid.UUID
-	Name      string
-	Domain    string
-	CreatedAt time.Time
+	ID         uuid.UUID
+	Name       string
+	DomainName string
+	CreatedAt  time.Time
 }

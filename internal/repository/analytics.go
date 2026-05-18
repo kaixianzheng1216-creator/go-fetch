@@ -36,7 +36,7 @@ func (store *Store) WebsiteStats(ctx context.Context, websiteID uuid.UUID, start
 	return stats, nil
 }
 
-func (store *Store) WebsitePageviews(ctx context.Context, websiteID uuid.UUID, start, end time.Time, unit domain.DateUnit) ([]domain.PageviewPoint, error) {
+func (store *Store) WebsitePageviews(ctx context.Context, websiteID uuid.UUID, start, end time.Time, unit domain.DateUnit) ([]domain.PageviewBucket, error) {
 	rows, err := store.queries.Pageviews(ctx, storesqlc.PageviewsParams{
 		Bucket:            domain.DateTruncUnit(unit),
 		WebsiteID:         websiteID,
@@ -48,21 +48,21 @@ func (store *Store) WebsitePageviews(ctx context.Context, websiteID uuid.UUID, s
 		return nil, fmt.Errorf("load pageviews: %w", err)
 	}
 
-	points := make([]domain.PageviewPoint, 0, len(rows))
+	buckets := make([]domain.PageviewBucket, 0, len(rows))
 	for _, row := range rows {
-		point := domain.PageviewPoint{
+		bucket := domain.PageviewBucket{
 			Time:     row.Time,
 			Views:    row.Views,
 			Visitors: row.Visitors,
 		}
-		point.Label = domain.FormatBucket(point.Time, unit)
-		points = append(points, point)
+		bucket.Label = domain.FormatBucket(bucket.Time, unit)
+		buckets = append(buckets, bucket)
 	}
 
-	return points, nil
+	return buckets, nil
 }
 
-func (store *Store) WebsiteMetrics(ctx context.Context, websiteID uuid.UUID, start, end time.Time, metric domain.MetricType, limit int) ([]domain.MetricRow, error) {
+func (store *Store) WebsiteMetrics(ctx context.Context, websiteID uuid.UUID, start, end time.Time, metric domain.MetricType, limit int) ([]domain.Metric, error) {
 	if _, isSupportedMetricType := domain.ParseMetricType(string(metric)); !isSupportedMetricType {
 		return nil, domain.ErrUnsupportedMetricType
 	}
@@ -81,7 +81,7 @@ func (store *Store) WebsiteMetrics(ctx context.Context, websiteID uuid.UUID, sta
 			return nil, fmt.Errorf("load session metrics: %w", err)
 		}
 
-		return toSessionMetricRows(rows), nil
+		return toSessionMetrics(rows), nil
 	}
 
 	rows, err := store.queries.EventMetrics(ctx, storesqlc.EventMetricsParams{
@@ -96,13 +96,13 @@ func (store *Store) WebsiteMetrics(ctx context.Context, websiteID uuid.UUID, sta
 		return nil, fmt.Errorf("load event metrics: %w", err)
 	}
 
-	return toEventMetricRows(rows), nil
+	return toEventMetrics(rows), nil
 }
 
-func toSessionMetricRows(rows []storesqlc.SessionMetricsRow) []domain.MetricRow {
-	metrics := make([]domain.MetricRow, 0, len(rows))
+func toSessionMetrics(rows []storesqlc.SessionMetricsRow) []domain.Metric {
+	metrics := make([]domain.Metric, 0, len(rows))
 	for _, row := range rows {
-		metrics = append(metrics, domain.MetricRow{
+		metrics = append(metrics, domain.Metric{
 			Name:     row.Name,
 			Views:    row.Views,
 			Visitors: row.Visitors,
@@ -111,10 +111,10 @@ func toSessionMetricRows(rows []storesqlc.SessionMetricsRow) []domain.MetricRow 
 	return metrics
 }
 
-func toEventMetricRows(rows []storesqlc.EventMetricsRow) []domain.MetricRow {
-	metrics := make([]domain.MetricRow, 0, len(rows))
+func toEventMetrics(rows []storesqlc.EventMetricsRow) []domain.Metric {
+	metrics := make([]domain.Metric, 0, len(rows))
 	for _, row := range rows {
-		metrics = append(metrics, domain.MetricRow{
+		metrics = append(metrics, domain.Metric{
 			Name:     row.Name,
 			Views:    row.Views,
 			Visitors: row.Visitors,

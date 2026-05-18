@@ -2,7 +2,6 @@ package httpapi
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"time"
 
@@ -14,8 +13,8 @@ import (
 )
 
 type WebsiteRequest struct {
-	Name   string `json:"name" required:"true" minLength:"1" maxLength:"100"`
-	Domain string `json:"domain,omitempty" maxLength:"500"`
+	Name       string `json:"name" required:"true" minLength:"1" maxLength:"100"`
+	DomainName string `json:"domain,omitempty" maxLength:"500"`
 }
 
 type createWebsiteInput struct {
@@ -23,19 +22,19 @@ type createWebsiteInput struct {
 }
 
 type websiteIDInput struct {
-	WebsiteID string `path:"websiteID" format:"uuid"`
+	WebsiteID uuid.UUID `path:"websiteID" format:"uuid"`
 }
 
 type updateWebsiteInput struct {
-	WebsiteID string `path:"websiteID" format:"uuid"`
+	WebsiteID uuid.UUID `path:"websiteID" format:"uuid"`
 	Body      WebsiteRequest
 }
 
 type WebsiteResponse struct {
-	ID        uuid.UUID `json:"id" format:"uuid"`
-	Name      string    `json:"name"`
-	Domain    string    `json:"domain"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID         uuid.UUID `json:"id" format:"uuid"`
+	Name       string    `json:"name"`
+	DomainName string    `json:"domain"`
+	CreatedAt  time.Time `json:"createdAt"`
 }
 
 type websiteListOutput struct {
@@ -49,69 +48,29 @@ type websiteOutput struct {
 func (apiServer server) registerWebsiteRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
 	huma.Register(
 		humaAPI,
-		huma.Operation{
-			Method:      http.MethodGet,
-			Path:        "/api/websites",
-			OperationID: "listWebsites",
-			Summary:     "列出站点",
-			Tags:        []string{"Websites"},
-			Security:    []map[string][]string{{"sessionCookie": {}}},
-			Middlewares: authMiddleware,
-		},
+		securedOperation(http.MethodGet, "/api/websites", "listWebsites", "列出站点", "Websites", authMiddleware),
 		apiServer.listWebsites,
 	)
 
-	createOperation := huma.Operation{
-		Method:      http.MethodPost,
-		Path:        "/api/websites",
-		OperationID: "createWebsite",
-		Summary:     "创建站点",
-		Tags:        []string{"Websites"},
-		Security:    []map[string][]string{{"sessionCookie": {}}},
-		Middlewares: authMiddleware,
-	}
+	createOperation := securedOperation(http.MethodPost, "/api/websites", "createWebsite", "创建站点", "Websites", authMiddleware)
 	createOperation.DefaultStatus = http.StatusCreated
 	huma.Register(humaAPI, createOperation, apiServer.createWebsite)
 
 	huma.Register(
 		humaAPI,
-		huma.Operation{
-			Method:      http.MethodGet,
-			Path:        "/api/websites/{websiteID}",
-			OperationID: "getWebsite",
-			Summary:     "获取站点",
-			Tags:        []string{"Websites"},
-			Security:    []map[string][]string{{"sessionCookie": {}}},
-			Middlewares: authMiddleware,
-		},
+		securedOperation(http.MethodGet, "/api/websites/{websiteID}", "getWebsite", "获取站点", "Websites", authMiddleware),
 		apiServer.getWebsite,
 	)
 
 	huma.Register(
 		humaAPI,
-		huma.Operation{
-			Method:      http.MethodPatch,
-			Path:        "/api/websites/{websiteID}",
-			OperationID: "updateWebsite",
-			Summary:     "更新站点",
-			Tags:        []string{"Websites"},
-			Security:    []map[string][]string{{"sessionCookie": {}}},
-			Middlewares: authMiddleware,
-		},
+		securedOperation(http.MethodPatch, "/api/websites/{websiteID}", "updateWebsite", "更新站点", "Websites", authMiddleware),
 		apiServer.updateWebsite,
 	)
 
 	huma.Register(
 		humaAPI,
-		huma.Operation{
-			Method:      http.MethodDelete,
-			Path:        "/api/websites/{websiteID}",
-			OperationID: "deleteWebsite",
-			Summary:     "删除站点",
-			Tags:        []string{"Websites"},
-			Security:    []map[string][]string{{"sessionCookie": {}}},
-			Middlewares: authMiddleware,
-		},
+		securedOperation(http.MethodDelete, "/api/websites/{websiteID}", "deleteWebsite", "删除站点", "Websites", authMiddleware),
 		apiServer.deleteWebsite,
 	)
 }
@@ -126,27 +85,19 @@ func (apiServer server) listWebsites(ctx context.Context, _ *emptyInput) (*websi
 }
 
 func (apiServer server) createWebsite(ctx context.Context, input *createWebsiteInput) (*websiteOutput, error) {
-	website, err := apiServer.websites.Create(ctx, currentUser(ctx).ID, service.WebsiteInput{
-		Name:   input.Body.Name,
-		Domain: input.Body.Domain,
+	website, err := apiServer.websites.Create(ctx, currentUser(ctx).ID, service.WebsiteParams{
+		Name:       input.Body.Name,
+		DomainName: input.Body.DomainName,
 	})
 	if err != nil {
-		if errors.Is(err, service.ErrInvalidWebsiteName) {
-			return nil, huma.Error400BadRequest("站点名称不能为空")
-		}
-		return nil, huma.Error500InternalServerError("创建站点失败")
+		return nil, websiteMutationError(err, "创建站点失败")
 	}
 
 	return &websiteOutput{Body: toWebsiteResponse(website)}, nil
 }
 
 func (apiServer server) getWebsite(ctx context.Context, input *websiteIDInput) (*websiteOutput, error) {
-	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
-	if err != nil {
-		return nil, err
-	}
-
-	website, err := apiServer.websites.Get(ctx, currentUser(ctx).ID, websiteID)
+	website, err := apiServer.websites.Get(ctx, currentUser(ctx).ID, input.WebsiteID)
 	if err != nil {
 		return nil, websiteLookupError(err)
 	}
@@ -155,32 +106,19 @@ func (apiServer server) getWebsite(ctx context.Context, input *websiteIDInput) (
 }
 
 func (apiServer server) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*websiteOutput, error) {
-	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
-	if err != nil {
-		return nil, err
-	}
-
-	website, err := apiServer.websites.Update(ctx, currentUser(ctx).ID, websiteID, service.WebsiteInput{
-		Name:   input.Body.Name,
-		Domain: input.Body.Domain,
+	website, err := apiServer.websites.Update(ctx, currentUser(ctx).ID, input.WebsiteID, service.WebsiteParams{
+		Name:       input.Body.Name,
+		DomainName: input.Body.DomainName,
 	})
 	if err != nil {
-		if errors.Is(err, service.ErrInvalidWebsiteName) {
-			return nil, huma.Error400BadRequest("站点名称不能为空")
-		}
-		return nil, websiteLookupError(err)
+		return nil, websiteMutationError(err, "更新站点失败")
 	}
 
 	return &websiteOutput{Body: toWebsiteResponse(website)}, nil
 }
 
 func (apiServer server) deleteWebsite(ctx context.Context, input *websiteIDInput) (*okOutput, error) {
-	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
-	if err != nil {
-		return nil, err
-	}
-
-	if err := apiServer.websites.Delete(ctx, currentUser(ctx).ID, websiteID); err != nil {
+	if err := apiServer.websites.Delete(ctx, currentUser(ctx).ID, input.WebsiteID); err != nil {
 		return nil, websiteLookupError(err)
 	}
 
@@ -189,10 +127,10 @@ func (apiServer server) deleteWebsite(ctx context.Context, input *websiteIDInput
 
 func toWebsiteResponse(website domain.Website) WebsiteResponse {
 	return WebsiteResponse{
-		ID:        website.ID,
-		Name:      website.Name,
-		Domain:    website.Domain,
-		CreatedAt: website.CreatedAt,
+		ID:         website.ID,
+		Name:       website.Name,
+		DomainName: website.DomainName,
+		CreatedAt:  website.CreatedAt,
 	}
 }
 

@@ -22,10 +22,10 @@ func toUser(id uuid.UUID, username, passwordHash string, createdAt time.Time, up
 
 func toWebsite(id uuid.UUID, name, domainName string, createdAt time.Time) domain.Website {
 	return domain.Website{
-		ID:        id,
-		Name:      name,
-		Domain:    domainName,
-		CreatedAt: createdAt,
+		ID:         id,
+		Name:       name,
+		DomainName: domainName,
+		CreatedAt:  createdAt,
 	}
 }
 

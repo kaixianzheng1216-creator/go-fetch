@@ -2,10 +2,11 @@ package httpapi
 
 import (
 	"context"
-	"errors"
+	"net"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/google/uuid"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
@@ -32,7 +33,7 @@ func (CollectionTypeParam) Schema(huma.Registry) *huma.Schema {
 }
 
 type CollectPayloadRequest struct {
-	WebsiteID  string         `json:"website" required:"true" format:"uuid"`
+	WebsiteID  uuid.UUID      `json:"website" required:"true" format:"uuid"`
 	URL        string         `json:"url" required:"true" minLength:"1"`
 	Referrer   string         `json:"referrer,omitempty"`
 	Title      string         `json:"title,omitempty"`
@@ -44,57 +45,27 @@ type CollectPayloadRequest struct {
 }
 
 func (apiServer server) registerCollectRoutes(humaAPI huma.API) {
-	operation := huma.Operation{
-		Method:      http.MethodPost,
-		Path:        "/api/collect",
-		OperationID: "collect",
-		Summary:     "采集事件",
-		Tags:        []string{"Collection"},
-	}
+	operation := publicOperation(http.MethodPost, "/api/collect", "collect", "采集事件", "Collection")
 	operation.MaxBodyBytes = maxCollectBodyBytes
 	huma.Register(humaAPI, operation, apiServer.collectEvent)
 }
 
 func (apiServer server) collectEvent(ctx context.Context, input *collectInput) (*okOutput, error) {
-	collectionType, isSupportedCollectionType := domain.ParseCollectionType(string(input.Body.Type))
-	if !isSupportedCollectionType {
-		return nil, huma.Error400BadRequest("不支持的采集类型")
-	}
-
-	payload, err := toDomainCollectPayload(input.Body.Payload)
-	if err != nil {
-		return nil, err
-	}
-
-	err = apiServer.collect.Collect(ctx, service.CollectionInput{
-		Request: requestFromContext(ctx),
-		Type:    collectionType,
-		Payload: payload,
+	err := apiServer.collect.Collect(ctx, service.CollectionParams{
+		Client:  clientInfoFromRequest(requestFromContext(ctx)),
+		Type:    domain.CollectionType(input.Body.Type),
+		Payload: toDomainCollectPayload(input.Body.Payload),
 	})
 	if err != nil {
-		switch {
-		case errors.Is(err, service.ErrUnsupportedCollectionType):
-			return nil, huma.Error400BadRequest("不支持的采集类型")
-		case errors.Is(err, service.ErrMissingHTTPRequest):
-			return nil, huma.Error500InternalServerError("读取请求失败")
-		case isNotFound(err):
-			return nil, huma.Error400BadRequest("站点不存在")
-		default:
-			return nil, huma.Error500InternalServerError("保存事件失败")
-		}
+		return nil, collectionError(err)
 	}
 
 	return toOKOutput(), nil
 }
 
-func toDomainCollectPayload(payload CollectPayloadRequest) (domain.CollectPayload, error) {
-	websiteID, err := parseUUID(payload.WebsiteID, "payload.website")
-	if err != nil {
-		return domain.CollectPayload{}, err
-	}
-
+func toDomainCollectPayload(payload CollectPayloadRequest) domain.CollectPayload {
 	return domain.CollectPayload{
-		WebsiteID:  websiteID,
+		WebsiteID:  payload.WebsiteID,
 		URL:        payload.URL,
 		Referrer:   payload.Referrer,
 		Title:      payload.Title,
@@ -103,5 +74,23 @@ func toDomainCollectPayload(payload CollectPayloadRequest) (domain.CollectPayloa
 		DistinctID: payload.DistinctID,
 		Name:       payload.Name,
 		Data:       payload.Data,
-	}, nil
+	}
+}
+
+func clientInfoFromRequest(request *http.Request) service.ClientInfo {
+	if request == nil {
+		return service.ClientInfo{}
+	}
+	return service.ClientInfo{
+		IP:        clientIP(request.RemoteAddr),
+		UserAgent: request.UserAgent(),
+	}
+}
+
+func clientIP(remoteAddr string) string {
+	host, _, err := net.SplitHostPort(remoteAddr)
+	if err == nil {
+		return host
+	}
+	return remoteAddr
 }
