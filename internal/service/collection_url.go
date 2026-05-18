@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/textutil"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/util"
 )
 
 type trackingURLs struct {
@@ -40,12 +40,12 @@ func newTrackingURLs(event domain.TrackedEvent, website domain.Website) tracking
 
 func newTrackingURLFields(trackingURLs trackingURLs) trackingURLFields {
 	return trackingURLFields{
-		path:           textutil.TruncateRunes(pathWithHash(trackingURLs.page), maxURLPartLength),
-		query:          textutil.TruncateRunes(trackingURLs.page.RawQuery, maxURLPartLength),
-		referrerPath:   textutil.TruncateRunes(trackingURLs.referrer.Path, maxURLPartLength),
-		referrerQuery:  textutil.TruncateRunes(trackingURLs.referrer.RawQuery, maxURLPartLength),
-		referrerDomain: textutil.TruncateRunes(trimWWW(trackingURLs.referrer.Hostname()), maxURLPartLength),
-		hostname:       textutil.TruncateRunes(trackingURLs.page.Hostname(), maxHostnameLength),
+		path:           util.TruncateRunes(pathWithHash(trackingURLs.page), maxURLPartLength),
+		query:          util.TruncateRunes(trackingURLs.page.RawQuery, maxURLPartLength),
+		referrerPath:   util.TruncateRunes(trackingURLs.referrer.Path, maxURLPartLength),
+		referrerQuery:  util.TruncateRunes(trackingURLs.referrer.RawQuery, maxURLPartLength),
+		referrerDomain: util.TruncateRunes(trimWWW(trackingURLs.referrer.Hostname()), maxURLPartLength),
+		hostname:       util.TruncateRunes(trackingURLs.page.Hostname(), maxHostnameLength),
 	}
 }
 
@@ -113,10 +113,10 @@ func trimWWW(host string) string {
 
 func newUTMFields(values url.Values) utmFields {
 	return utmFields{
-		source:   textutil.TruncateRunes(values.Get("utm_source"), maxUTMValueLength),
-		medium:   textutil.TruncateRunes(values.Get("utm_medium"), maxUTMValueLength),
-		campaign: textutil.TruncateRunes(values.Get("utm_campaign"), maxUTMValueLength),
-		content:  textutil.TruncateRunes(values.Get("utm_content"), maxUTMValueLength),
-		term:     textutil.TruncateRunes(values.Get("utm_term"), maxUTMValueLength),
+		source:   util.TruncateRunes(values.Get("utm_source"), maxUTMValueLength),
+		medium:   util.TruncateRunes(values.Get("utm_medium"), maxUTMValueLength),
+		campaign: util.TruncateRunes(values.Get("utm_campaign"), maxUTMValueLength),
+		content:  util.TruncateRunes(values.Get("utm_content"), maxUTMValueLength),
+		term:     util.TruncateRunes(values.Get("utm_term"), maxUTMValueLength),
 	}
 }

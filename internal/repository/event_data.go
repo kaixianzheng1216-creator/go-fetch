@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/textutil"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/util"
 )
 
 const (
@@ -87,7 +87,7 @@ func newEventDataRow(key string, value any) (eventDataRow, bool) {
 func eventDataTextRow(key, value string, dataType eventDataType) eventDataRow {
 	return eventDataRow{
 		Key:         key,
-		StringValue: textutil.TruncateRunes(value, maxEventDataValueLength),
+		StringValue: util.TruncateRunes(value, maxEventDataValueLength),
 		DataType:    dataType,
 	}
 }
@@ -187,7 +187,7 @@ func joinEventDataKey(prefix, key string) string {
 }
 
 func eventDataKey(key string) string {
-	return textutil.TruncateRunes(key, maxEventDataKeyLength)
+	return util.TruncateRunes(key, maxEventDataKeyLength)
 }
 
 func eventDataKeys(data map[string]any) []string {

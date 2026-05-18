@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/textutil"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/util"
 )
 
 const (
@@ -117,27 +117,27 @@ func buildEventRecord(client trackingClient, event domain.TrackedEvent, website 
 		SessionID:      identity.sessionID,
 		VisitID:        identity.visitID,
 		EventType:      event.Type.EventType(),
-		EventName:      textutil.TruncateRunes(event.Name, maxEventNameLength),
+		EventName:      util.TruncateRunes(event.Name, maxEventNameLength),
 		URLPath:        urlFields.path,
 		URLQuery:       urlFields.query,
 		ReferrerPath:   urlFields.referrerPath,
 		ReferrerQuery:  urlFields.referrerQuery,
 		ReferrerDomain: urlFields.referrerDomain,
-		PageTitle:      textutil.TruncateRunes(event.Title, maxPageTitleLength),
+		PageTitle:      util.TruncateRunes(event.Title, maxPageTitleLength),
 		Hostname:       urlFields.hostname,
 		UTMSource:      utmFields.source,
 		UTMMedium:      utmFields.medium,
 		UTMCampaign:    utmFields.campaign,
 		UTMContent:     utmFields.content,
 		UTMTerm:        utmFields.term,
-		Browser:        textutil.TruncateRunes(client.browser, maxBrowserLength),
-		OS:             textutil.TruncateRunes(client.os, maxOSLength),
-		Device:         textutil.TruncateRunes(client.device, maxDeviceLength),
-		Screen:         textutil.TruncateRunes(event.Screen, maxScreenLength),
-		Language:       textutil.TruncateRunes(event.Language, maxLanguageLength),
-		Country:        textutil.TruncateRunes(client.country, maxCountryLength),
-		Region:         textutil.TruncateRunes(client.region, maxRegionLength),
-		City:           textutil.TruncateRunes(client.city, maxCityLength),
+		Browser:        util.TruncateRunes(client.browser, maxBrowserLength),
+		OS:             util.TruncateRunes(client.os, maxOSLength),
+		Device:         util.TruncateRunes(client.device, maxDeviceLength),
+		Screen:         util.TruncateRunes(event.Screen, maxScreenLength),
+		Language:       util.TruncateRunes(event.Language, maxLanguageLength),
+		Country:        util.TruncateRunes(client.country, maxCountryLength),
+		Region:         util.TruncateRunes(client.region, maxRegionLength),
+		City:           util.TruncateRunes(client.city, maxCityLength),
 		DistinctID:     identity.distinctID,
 		CreatedAt:      now,
 		Data:           event.Data,

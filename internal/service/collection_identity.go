@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/textutil"
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/util"
 )
 
 type trackingIdentity struct {
@@ -16,7 +16,7 @@ type trackingIdentity struct {
 }
 
 func newTrackingIdentity(websiteID uuid.UUID, distinctID string, client trackingClient, now time.Time) trackingIdentity {
-	distinctID = textutil.TruncateRunes(distinctID, maxDistinctIDLength)
+	distinctID = util.TruncateRunes(distinctID, maxDistinctIDLength)
 	sessionID := sessionIDFor(websiteID, distinctID, client.ip, client.userAgent, now)
 	return trackingIdentity{
 		distinctID: distinctID,

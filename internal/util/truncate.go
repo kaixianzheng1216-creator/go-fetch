@@ -1,4 +1,4 @@
-package textutil
+package util
 
 func TruncateRunes(value string, limit int) string {
 	if limit <= 0 {
