@@ -1,3 +1,4 @@
+// Package main generates the OpenAPI document.
 package main
 
 import (

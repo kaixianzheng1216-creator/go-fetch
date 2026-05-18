@@ -1,14 +1,14 @@
+// Package textutil provides small text helpers.
 package textutil
 
-// TruncateRunes returns value truncated to at most max Unicode code points.
-func TruncateRunes(value string, max int) string {
-	if max <= 0 {
+func TruncateRunes(value string, limit int) string {
+	if limit <= 0 {
 		return ""
 	}
 
 	count := 0
 	for index := range value {
-		if count == max {
+		if count == limit {
 			return value[:index]
 		}
 

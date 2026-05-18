@@ -1,7 +1,7 @@
 {
   "components": {
     "schemas": {
-      "CollectEventPayloadRequest": {
+      "CollectEventRequest": {
         "additionalProperties": false,
         "properties": {
           "data": {
@@ -27,37 +27,26 @@
           "title": {
             "type": "string"
           },
+          "type": {
+            "enum": [
+              "pageview",
+              "event"
+            ],
+            "type": "string"
+          },
           "url": {
             "minLength": 1,
             "type": "string"
           },
-          "website": {
+          "websiteId": {
             "format": "uuid",
             "type": "string"
           }
         },
         "required": [
-          "website",
+          "type",
+          "websiteId",
           "url"
-        ],
-        "type": "object"
-      },
-      "CollectEventRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "payload": {
-            "$ref": "#/components/schemas/CollectEventPayloadRequest"
-          },
-          "type": {
-            "default": "event",
-            "enum": [
-              "event"
-            ],
-            "type": "string"
-          }
-        },
-        "required": [
-          "payload"
         ],
         "type": "object"
       },

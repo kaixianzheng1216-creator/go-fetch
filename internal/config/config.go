@@ -1,3 +1,4 @@
+// Package config loads runtime configuration from environment variables.
 package config
 
 import (
@@ -24,9 +25,8 @@ type Config struct {
 	CollectCORSAllowedOrigins []string      `env:"COLLECT_CORS_ALLOWED_ORIGINS,notEmpty" envDefault:"*" envSeparator:","`
 }
 
-// Validate checks derived config constraints and normalizes slice fields.
 func (config *Config) Validate() error {
-	config.DatabaseURL = databaseURLOrDefault(config.DatabaseURL)
+	config.normalize()
 
 	if config.HTTPReadTimeout <= 0 {
 		return fmt.Errorf("HTTP_READ_TIMEOUT must be positive")
@@ -46,13 +46,16 @@ func (config *Config) Validate() error {
 	if config.SessionLifetime <= 0 {
 		return fmt.Errorf("SESSION_LIFETIME must be positive")
 	}
-
-	config.CollectCORSAllowedOrigins = cleanStringSlice(config.CollectCORSAllowedOrigins)
 	if len(config.CollectCORSAllowedOrigins) == 0 {
 		return fmt.Errorf("COLLECT_CORS_ALLOWED_ORIGINS cannot be empty")
 	}
 
 	return nil
+}
+
+func (config *Config) normalize() {
+	config.DatabaseURL = databaseURLOrDefault(config.DatabaseURL)
+	config.CollectCORSAllowedOrigins = cleanStringSlice(config.CollectCORSAllowedOrigins)
 }
 
 func cleanStringSlice(values []string) []string {

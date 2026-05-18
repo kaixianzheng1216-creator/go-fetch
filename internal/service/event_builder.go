@@ -32,24 +32,24 @@ const (
 	laptopMaxScreenWidth = 1280
 )
 
-func buildEventRecord(client eventClient, payload domain.CollectPayload, website domain.Website, now time.Time) domain.EventRecord {
-	eventURLs := newEventURLs(payload, website)
+func buildEventRecord(client eventClient, event domain.TrackedEvent, website domain.Website, now time.Time) domain.EventRecord {
+	eventURLs := newEventURLs(event, website)
 	urlFields := newEventURLFields(eventURLs)
 	utmFields := newUTMFields(eventURLs.page.Query())
-	identity := newEventIdentity(payload.WebsiteID, payload.DistinctID, client, now)
+	identity := newEventIdentity(event.WebsiteID, event.DistinctID, client, now)
 
 	return domain.EventRecord{
-		WebsiteID:      payload.WebsiteID,
+		WebsiteID:      event.WebsiteID,
 		SessionID:      identity.sessionID,
 		VisitID:        identity.visitID,
-		EventType:      eventTypeFor(payload.Name),
-		EventName:      textutil.TruncateRunes(payload.Name, maxEventNameLength),
+		EventType:      event.Type.EventType(),
+		EventName:      textutil.TruncateRunes(event.Name, maxEventNameLength),
 		URLPath:        urlFields.path,
 		URLQuery:       urlFields.query,
 		ReferrerPath:   urlFields.referrerPath,
 		ReferrerQuery:  urlFields.referrerQuery,
 		ReferrerDomain: urlFields.referrerDomain,
-		PageTitle:      textutil.TruncateRunes(payload.Title, maxPageTitleLength),
+		PageTitle:      textutil.TruncateRunes(event.Title, maxPageTitleLength),
 		Hostname:       urlFields.hostname,
 		UTMSource:      utmFields.source,
 		UTMMedium:      utmFields.medium,
@@ -59,20 +59,13 @@ func buildEventRecord(client eventClient, payload domain.CollectPayload, website
 		Browser:        textutil.TruncateRunes(client.browser, maxBrowserLength),
 		OS:             textutil.TruncateRunes(client.os, maxOSLength),
 		Device:         textutil.TruncateRunes(client.device, maxDeviceLength),
-		Screen:         textutil.TruncateRunes(payload.Screen, maxScreenLength),
-		Language:       textutil.TruncateRunes(payload.Language, maxLanguageLength),
+		Screen:         textutil.TruncateRunes(event.Screen, maxScreenLength),
+		Language:       textutil.TruncateRunes(event.Language, maxLanguageLength),
 		Country:        textutil.TruncateRunes(client.country, maxCountryLength),
 		Region:         textutil.TruncateRunes(client.region, maxRegionLength),
 		City:           textutil.TruncateRunes(client.city, maxCityLength),
 		DistinctID:     identity.distinctID,
 		CreatedAt:      now,
-		Data:           payload.Data,
+		Data:           event.Data,
 	}
-}
-
-func eventTypeFor(eventName string) domain.EventType {
-	if eventName != "" {
-		return domain.EventTypeCustom
-	}
-	return domain.EventTypePageView
 }

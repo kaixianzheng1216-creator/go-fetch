@@ -1,3 +1,4 @@
+// Package service contains application business operations.
 package service
 
 import (
@@ -10,6 +11,7 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 )
 
+// ErrInvalidCredentials indicates an invalid login attempt.
 var ErrInvalidCredentials = errors.New("invalid username or password")
 
 // AuthUserRepository provides user lookups for authentication.
@@ -17,17 +19,14 @@ type AuthUserRepository interface {
 	GetUserByUsername(ctx context.Context, username string) (domain.User, error)
 }
 
-// AuthService authenticates users.
 type AuthService struct {
 	users AuthUserRepository
 }
 
-// NewAuthService returns an authentication service.
 func NewAuthService(users AuthUserRepository) AuthService {
 	return AuthService{users: users}
 }
 
-// Login authenticates a user by username and password.
 func (svc AuthService) Login(ctx context.Context, username, password string) (domain.User, error) {
 	username = strings.TrimSpace(username)
 	if username == "" || password == "" {

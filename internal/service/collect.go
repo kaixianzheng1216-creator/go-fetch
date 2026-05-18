@@ -10,8 +10,10 @@ import (
 )
 
 var (
-	ErrUnsupportedCollectionType = errors.New("unsupported collection type")
-	ErrMissingClientInfo         = errors.New("missing client info")
+	// ErrMissingClientInfo indicates a collection request was not bound to an HTTP request.
+	ErrMissingClientInfo = errors.New("missing client info")
+	// ErrUnsupportedEventType indicates an unknown tracking event type.
+	ErrUnsupportedEventType = errors.New("unsupported event type")
 )
 
 // CollectionRepository persists collected analytics events.
@@ -20,7 +22,6 @@ type CollectionRepository interface {
 	SaveEvent(ctx context.Context, event domain.EventRecord) error
 }
 
-// ClientInfo contains request-derived client metadata needed to collect events.
 type ClientInfo struct {
 	IP        string
 	UserAgent string
@@ -29,46 +30,42 @@ type ClientInfo struct {
 	City      string
 }
 
-// CollectEventParams contains the data needed to collect an event.
-type CollectEventParams struct {
-	Client  ClientInfo
-	Type    domain.CollectionType
-	Payload domain.CollectPayload
+type CollectEventInput struct {
+	Client ClientInfo
+	Event  domain.TrackedEvent
 }
 
-// CollectionService collects analytics events.
 type CollectionService struct {
 	repository CollectionRepository
-	clock      Clock
+	clock      clock
 }
 
-// NewCollectionService returns an event collection service.
 func NewCollectionService(repository CollectionRepository) CollectionService {
 	return CollectionService{repository: repository, clock: systemClock}
 }
 
-// CollectEvent validates and persists an analytics event.
-func (svc CollectionService) CollectEvent(ctx context.Context, params CollectEventParams) error {
-	_, isSupportedCollectionType := domain.ParseCollectionType(string(params.Type))
-	if !isSupportedCollectionType {
-		return ErrUnsupportedCollectionType
-	}
-
-	if params.Client.IP == "" && params.Client.UserAgent == "" {
+func (svc CollectionService) CollectEvent(ctx context.Context, input CollectEventInput) error {
+	if input.Client.IP == "" && input.Client.UserAgent == "" {
 		return ErrMissingClientInfo
 	}
 
-	client := newEventClient(params.Client, params.Payload.Screen)
+	eventType, isSupportedEventType := domain.NormalizeTrackedEventType(input.Event.Type, input.Event.Name)
+	if !isSupportedEventType {
+		return ErrUnsupportedEventType
+	}
+	input.Event.Type = eventType
+
+	client := newEventClient(input.Client, input.Event.Screen)
 	if client.bot {
 		return nil
 	}
 
-	website, err := svc.repository.GetWebsiteForCollection(ctx, params.Payload.WebsiteID)
+	website, err := svc.repository.GetWebsiteForCollection(ctx, input.Event.WebsiteID)
 	if err != nil {
 		return err
 	}
 
-	return svc.repository.SaveEvent(ctx, buildEventRecord(client, params.Payload, website, svc.now()))
+	return svc.repository.SaveEvent(ctx, buildEventRecord(client, input.Event, website, svc.now()))
 }
 
 func (svc CollectionService) now() time.Time {

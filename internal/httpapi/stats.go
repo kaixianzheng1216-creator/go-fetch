@@ -22,20 +22,20 @@ type websitePageviewsInput struct {
 	WebsiteID uuid.UUID     `path:"websiteID" format:"uuid"`
 	StartAt   int64         `query:"startAt"`
 	EndAt     int64         `query:"endAt"`
-	Unit      DateUnitParam `query:"unit"`
+	Unit      dateUnitParam `query:"unit"`
 }
 
 type websiteMetricsInput struct {
 	WebsiteID uuid.UUID        `path:"websiteID" format:"uuid"`
 	StartAt   int64            `query:"startAt"`
 	EndAt     int64            `query:"endAt"`
-	Type      MetricTypeParam  `query:"type" required:"true"`
-	Limit     MetricLimitParam `query:"limit"`
+	Type      metricTypeParam  `query:"type" required:"true"`
+	Limit     metricLimitParam `query:"limit"`
 }
 
-type DateUnitParam string
+type dateUnitParam string
 
-func (DateUnitParam) Schema(huma.Registry) *huma.Schema {
+func (dateUnitParam) Schema(huma.Registry) *huma.Schema {
 	return &huma.Schema{
 		Type:    huma.TypeString,
 		Enum:    enumValues(domain.DateUnitValues()),
@@ -43,18 +43,18 @@ func (DateUnitParam) Schema(huma.Registry) *huma.Schema {
 	}
 }
 
-type MetricTypeParam string
+type metricTypeParam string
 
-func (MetricTypeParam) Schema(huma.Registry) *huma.Schema {
+func (metricTypeParam) Schema(huma.Registry) *huma.Schema {
 	return &huma.Schema{
 		Type: huma.TypeString,
 		Enum: enumValues(domain.MetricTypeValues()),
 	}
 }
 
-type MetricLimitParam int
+type metricLimitParam int
 
-func (MetricLimitParam) Schema(huma.Registry) *huma.Schema {
+func (metricLimitParam) Schema(huma.Registry) *huma.Schema {
 	minValue := 1.0
 	maxValue := float64(domain.MaxMetricLimit)
 	return &huma.Schema{
@@ -120,8 +120,13 @@ func (srv server) registerStatsRoutes(humaAPI huma.API, authMiddleware huma.Midd
 }
 
 func (srv server) getWebsiteStats(ctx context.Context, input *websiteStatsInput) (*websiteStatsOutput, error) {
+	userID, err := currentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	stats, err := srv.stats.Summary(ctx, service.StatsQuery{
-		UserID:    currentUser(ctx).ID,
+		UserID:    userID,
 		WebsiteID: input.WebsiteID,
 		Range:     dateRangeFromInput(input.StartAt, input.EndAt),
 	})
@@ -133,9 +138,14 @@ func (srv server) getWebsiteStats(ctx context.Context, input *websiteStatsInput)
 }
 
 func (srv server) getWebsitePageviews(ctx context.Context, input *websitePageviewsInput) (*websitePageviewsOutput, error) {
+	userID, err := currentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	buckets, err := srv.stats.Pageviews(ctx, service.PageviewsQuery{
 		StatsQuery: service.StatsQuery{
-			UserID:    currentUser(ctx).ID,
+			UserID:    userID,
 			WebsiteID: input.WebsiteID,
 			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
 		},
@@ -149,9 +159,14 @@ func (srv server) getWebsitePageviews(ctx context.Context, input *websitePagevie
 }
 
 func (srv server) getWebsiteMetrics(ctx context.Context, input *websiteMetricsInput) (*websiteMetricsOutput, error) {
+	userID, err := currentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	metrics, err := srv.stats.Metrics(ctx, service.MetricsQuery{
 		StatsQuery: service.StatsQuery{
-			UserID:    currentUser(ctx).ID,
+			UserID:    userID,
 			WebsiteID: input.WebsiteID,
 			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
 		},

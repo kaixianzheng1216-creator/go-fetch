@@ -10,6 +10,7 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 )
 
+// ErrInvalidDateRange indicates a stats query has startAt after endAt.
 var ErrInvalidDateRange = errors.New("startAt must be before or equal to endAt")
 
 // StatsRepository reads analytics data for the stats service.
@@ -20,26 +21,22 @@ type StatsRepository interface {
 	WebsiteMetrics(ctx context.Context, websiteID uuid.UUID, start, end time.Time, metric domain.MetricType, limit int) ([]domain.Metric, error)
 }
 
-// DateRange optionally constrains analytics queries by time.
 type DateRange struct {
 	StartAt *time.Time
 	EndAt   *time.Time
 }
 
-// StatsQuery scopes a website analytics request to a user-owned website.
 type StatsQuery struct {
 	UserID    uuid.UUID
 	WebsiteID uuid.UUID
 	Range     DateRange
 }
 
-// PageviewsQuery requests pageview buckets for a website.
 type PageviewsQuery struct {
 	StatsQuery
 	Unit domain.DateUnit
 }
 
-// MetricsQuery requests top metrics for a website.
 type MetricsQuery struct {
 	StatsQuery
 	Type  domain.MetricType
@@ -63,18 +60,15 @@ func IsWebsiteAccessError(err error) bool {
 	return errors.As(err, &accessError)
 }
 
-// StatsService reads analytics reports.
 type StatsService struct {
 	repository StatsRepository
-	clock      Clock
+	clock      clock
 }
 
-// NewStatsService returns a stats service.
 func NewStatsService(repository StatsRepository) StatsService {
 	return StatsService{repository: repository, clock: systemClock}
 }
 
-// Summary returns aggregate website stats.
 func (svc StatsService) Summary(ctx context.Context, query StatsQuery) (domain.WebsiteStats, error) {
 	start, end, err := svc.resolveStatsQuery(ctx, query)
 	if err != nil {
@@ -84,7 +78,6 @@ func (svc StatsService) Summary(ctx context.Context, query StatsQuery) (domain.W
 	return svc.repository.WebsiteStats(ctx, query.WebsiteID, start, end)
 }
 
-// Pageviews returns pageview buckets for a website.
 func (svc StatsService) Pageviews(ctx context.Context, query PageviewsQuery) ([]domain.PageviewBucket, error) {
 	start, end, err := svc.resolveStatsQuery(ctx, query.StatsQuery)
 	if err != nil {
@@ -99,7 +92,6 @@ func (svc StatsService) Pageviews(ctx context.Context, query PageviewsQuery) ([]
 	return svc.repository.WebsitePageviews(ctx, query.WebsiteID, start, end, unit)
 }
 
-// Metrics returns top metrics for a website.
 func (svc StatsService) Metrics(ctx context.Context, query MetricsQuery) ([]domain.Metric, error) {
 	start, end, err := svc.resolveStatsQuery(ctx, query.StatsQuery)
 	if err != nil {

@@ -1,3 +1,4 @@
+// Package httpapi exposes the HTTP API and embedded web assets.
 package httpapi
 
 import (
@@ -14,9 +15,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/google/uuid"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 	webassets "github.com/kaixianzheng1216-creator/go-fetch/web"
@@ -28,6 +27,14 @@ type Config struct {
 	TrustProxyHeaders         bool
 }
 
+type Services struct {
+	Auth       service.AuthService
+	Collection service.CollectionService
+	Stats      service.StatsService
+	Users      service.UserService
+	Websites   service.WebsiteService
+}
+
 type sessionStore interface {
 	RenewToken(ctx context.Context) error
 	Put(ctx context.Context, key string, val any)
@@ -35,35 +42,25 @@ type sessionStore interface {
 	GetString(ctx context.Context, key string) string
 }
 
-// DataStore is the persistence contract required by the HTTP API.
-type DataStore interface {
-	service.AuthUserRepository
-	service.CollectionRepository
-	service.WebsiteRepository
-	service.StatsRepository
-
-	GetUserByID(ctx context.Context, userID uuid.UUID) (domain.User, error)
-}
-
 type server struct {
-	store    DataStore
 	sessions sessionStore
 	auth     service.AuthService
 	collect  service.CollectionService
+	users    service.UserService
 	websites service.WebsiteService
 	stats    service.StatsService
 	config   Config
 }
 
-func New(dataStore DataStore, sessions *scs.SessionManager, config Config) http.Handler {
+func New(services Services, sessions *scs.SessionManager, config Config) http.Handler {
 	config = config.withDefaults()
 	srv := server{
-		store:    dataStore,
 		sessions: sessions,
-		auth:     service.NewAuthService(dataStore),
-		collect:  service.NewCollectionService(dataStore),
-		websites: service.NewWebsiteService(dataStore),
-		stats:    service.NewStatsService(dataStore),
+		auth:     services.Auth,
+		collect:  services.Collection,
+		users:    services.Users,
+		websites: services.Websites,
+		stats:    services.Stats,
 		config:   config,
 	}
 

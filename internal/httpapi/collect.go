@@ -21,30 +21,25 @@ type collectInput struct {
 }
 
 type CollectEventRequest struct {
-	Type    CollectionTypeParam        `json:"type,omitempty"`
-	Payload CollectEventPayloadRequest `json:"payload" required:"true"`
+	Type       collectEventTypeParam `json:"type" required:"true"`
+	WebsiteID  uuid.UUID             `json:"websiteId" required:"true" format:"uuid"`
+	URL        string                `json:"url" required:"true" minLength:"1"`
+	Referrer   string                `json:"referrer,omitempty"`
+	Title      string                `json:"title,omitempty"`
+	Screen     string                `json:"screen,omitempty"`
+	Language   string                `json:"language,omitempty"`
+	DistinctID string                `json:"distinctId,omitempty" maxLength:"50"`
+	Name       string                `json:"name,omitempty"`
+	Data       map[string]any        `json:"data,omitempty"`
 }
 
-type CollectionTypeParam string
+type collectEventTypeParam string
 
-func (CollectionTypeParam) Schema(huma.Registry) *huma.Schema {
+func (collectEventTypeParam) Schema(huma.Registry) *huma.Schema {
 	return &huma.Schema{
-		Type:    huma.TypeString,
-		Enum:    enumValues(domain.CollectionTypeValues()),
-		Default: string(domain.CollectionTypeEvent),
+		Type: huma.TypeString,
+		Enum: enumValues(domain.TrackedEventTypeValues()),
 	}
-}
-
-type CollectEventPayloadRequest struct {
-	WebsiteID  uuid.UUID      `json:"website" required:"true" format:"uuid"`
-	URL        string         `json:"url" required:"true" minLength:"1"`
-	Referrer   string         `json:"referrer,omitempty"`
-	Title      string         `json:"title,omitempty"`
-	Screen     string         `json:"screen,omitempty"`
-	Language   string         `json:"language,omitempty"`
-	DistinctID string         `json:"distinctId,omitempty" maxLength:"50"`
-	Name       string         `json:"name,omitempty"`
-	Data       map[string]any `json:"data,omitempty"`
 }
 
 func (srv server) registerCollectRoutes(humaAPI huma.API) {
@@ -54,10 +49,9 @@ func (srv server) registerCollectRoutes(humaAPI huma.API) {
 }
 
 func (srv server) collectEvent(ctx context.Context, input *collectInput) (*okOutput, error) {
-	err := srv.collect.CollectEvent(ctx, service.CollectEventParams{
-		Client:  srv.clientInfoFromRequest(requestFromContext(ctx)),
-		Type:    domain.CollectionType(input.Body.Type),
-		Payload: newCollectPayload(input.Body.Payload),
+	err := srv.collect.CollectEvent(ctx, service.CollectEventInput{
+		Client: srv.clientInfoFromRequest(requestFromContext(ctx)),
+		Event:  newTrackedEvent(input.Body),
 	})
 	if err != nil {
 		return nil, collectionError(err)
@@ -66,17 +60,18 @@ func (srv server) collectEvent(ctx context.Context, input *collectInput) (*okOut
 	return newOKOutput(), nil
 }
 
-func newCollectPayload(payload CollectEventPayloadRequest) domain.CollectPayload {
-	return domain.CollectPayload{
-		WebsiteID:  payload.WebsiteID,
-		URL:        payload.URL,
-		Referrer:   payload.Referrer,
-		Title:      payload.Title,
-		Screen:     payload.Screen,
-		Language:   payload.Language,
-		DistinctID: payload.DistinctID,
-		Name:       payload.Name,
-		Data:       payload.Data,
+func newTrackedEvent(request CollectEventRequest) domain.TrackedEvent {
+	return domain.TrackedEvent{
+		Type:       domain.TrackedEventType(request.Type),
+		WebsiteID:  request.WebsiteID,
+		URL:        request.URL,
+		Referrer:   request.Referrer,
+		Title:      request.Title,
+		Screen:     request.Screen,
+		Language:   request.Language,
+		DistinctID: request.DistinctID,
+		Name:       request.Name,
+		Data:       request.Data,
 	}
 }
 

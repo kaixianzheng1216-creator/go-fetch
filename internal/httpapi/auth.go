@@ -87,7 +87,12 @@ func (srv server) logout(ctx context.Context, _ *emptyInput) (*okOutput, error) 
 }
 
 func (srv server) getCurrentUser(ctx context.Context, _ *emptyInput) (*userOutput, error) {
-	return &userOutput{Body: newUserResponse(currentUser(ctx))}, nil
+	user, err := requireCurrentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userOutput{Body: newUserResponse(user)}, nil
 }
 
 func (srv server) startUserSession(ctx context.Context, userID uuid.UUID) error {

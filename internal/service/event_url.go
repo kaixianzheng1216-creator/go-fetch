@@ -13,11 +13,11 @@ type eventURLs struct {
 	referrer *url.URL
 }
 
-func newEventURLs(payload domain.CollectPayload, website domain.Website) eventURLs {
-	pageURL := parsePageURL(payload.URL, websiteFallbackHost(website))
+func newEventURLs(event domain.TrackedEvent, website domain.Website) eventURLs {
+	pageURL := parsePageURL(event.URL, websiteFallbackHost(website))
 	return eventURLs{
 		page:     pageURL,
-		referrer: parseReferrerURL(payload.Referrer, pageURL),
+		referrer: parseReferrerURL(event.Referrer, pageURL),
 	}
 }
 

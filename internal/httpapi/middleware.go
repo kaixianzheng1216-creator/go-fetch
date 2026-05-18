@@ -58,7 +58,7 @@ func (srv server) currentSessionUser(ctx context.Context) (domain.User, bool, er
 		return domain.User{}, false, nil
 	}
 
-	user, err := srv.store.GetUserByID(ctx, userID)
+	user, err := srv.users.GetByID(ctx, userID)
 	if err != nil {
 		if isNotFound(err) {
 			return domain.User{}, false, nil

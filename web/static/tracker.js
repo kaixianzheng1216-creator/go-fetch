@@ -20,7 +20,8 @@
 
   function payload(name, data) {
     return {
-      website: website,
+      type: name ? "event" : "pageview",
+      websiteId: website,
       url: currentUrl,
       referrer: currentRef,
       title: document.title,
@@ -34,7 +35,7 @@
 
   function send(name, data) {
     if (!website) return;
-    var body = JSON.stringify({ type: "event", payload: payload(name, data) });
+    var body = JSON.stringify(payload(name, data));
 
     try {
       if (navigator.sendBeacon && !data) {

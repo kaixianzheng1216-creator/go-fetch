@@ -1,3 +1,4 @@
+// Package app wires dependencies and runs the HTTP server.
 package app
 
 import (
@@ -16,7 +17,6 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
-// Run initializes dependencies and serves HTTP until ctx is cancelled.
 func Run(ctx context.Context, appConfig config.Config) error {
 	if err := database.Migrate(ctx, appConfig.DatabaseURL); err != nil {
 		return fmt.Errorf("run database migrations: %w", err)
@@ -29,7 +29,8 @@ func Run(ctx context.Context, appConfig config.Config) error {
 	defer dbPool.Close()
 
 	dataStore := repository.New(dbPool)
-	if err := service.NewUserService(dataStore).EnsureAdminUser(ctx, appConfig.AdminUsername, appConfig.AdminPassword); err != nil {
+	users := service.NewUserService(dataStore)
+	if err := users.EnsureAdminUser(ctx, appConfig.AdminUsername, appConfig.AdminPassword); err != nil {
 		return fmt.Errorf("initialize admin user: %w", err)
 	}
 
@@ -40,7 +41,13 @@ func Run(ctx context.Context, appConfig config.Config) error {
 
 	httpServer := &http.Server{
 		Addr: appConfig.ListenAddr,
-		Handler: httpapi.New(dataStore, sessionManager, httpapi.Config{
+		Handler: httpapi.New(httpapi.Services{
+			Auth:       service.NewAuthService(dataStore),
+			Collection: service.NewCollectionService(dataStore),
+			Stats:      service.NewStatsService(dataStore),
+			Users:      users,
+			Websites:   service.NewWebsiteService(dataStore),
+		}, sessionManager, httpapi.Config{
 			CollectCORSAllowedOrigins: appConfig.CollectCORSAllowedOrigins,
 			RequestTimeout:            appConfig.HTTPRequestTimeout,
 			TrustProxyHeaders:         appConfig.TrustProxyHeaders,

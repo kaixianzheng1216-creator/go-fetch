@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/httpapi"
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/repository"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 )
 
@@ -26,7 +25,7 @@ func TestCollectPreflightUsesCORS(t *testing.T) {
 	request.Header.Set("Access-Control-Request-Method", http.MethodPost)
 	response := httptest.NewRecorder()
 
-	httpapi.New(&repository.Store{}, nil, httpapi.Config{}).ServeHTTP(response, request)
+	httpapi.New(httpapi.Services{}, nil, httpapi.Config{}).ServeHTTP(response, request)
 
 	if response.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
@@ -39,21 +38,14 @@ func TestCollectPreflightUsesCORS(t *testing.T) {
 func TestCollectErrors(t *testing.T) {
 	tests := []struct {
 		name             string
-		collectionType   string
 		request          *http.Request
 		expectedError    error
 		expectedLookup   int
 		expectedSaveCall int
 	}{
 		{
-			name:           "unsupported collection type",
-			collectionType: "pageview",
-			expectedError:  service.ErrUnsupportedCollectionType,
-		},
-		{
-			name:           "missing client info",
-			collectionType: "event",
-			expectedError:  service.ErrMissingClientInfo,
+			name:          "missing client info",
+			expectedError: service.ErrMissingClientInfo,
 		},
 	}
 
@@ -62,15 +54,14 @@ func TestCollectErrors(t *testing.T) {
 			store := &fakeTrackingStore{}
 			collect := service.NewCollectionService(store)
 
-			params := service.CollectEventParams{
+			input := service.CollectEventInput{
 				Client: testClientInfo(testCase.request),
-				Type:   domain.CollectionType(testCase.collectionType),
-				Payload: domain.CollectPayload{
+				Event: domain.TrackedEvent{
 					WebsiteID: testWebsiteID,
 					URL:       "https://example.com/",
 				},
 			}
-			err := collect.CollectEvent(context.Background(), params)
+			err := collect.CollectEvent(context.Background(), input)
 
 			if !errors.Is(err, testCase.expectedError) {
 				t.Fatalf("error = %v, want %v", err, testCase.expectedError)

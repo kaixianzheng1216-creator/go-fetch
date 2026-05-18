@@ -15,19 +15,17 @@ import (
 type UserStore interface {
 	CountUsers(ctx context.Context) (int64, error)
 	CreateUser(ctx context.Context, user domain.User) error
+	GetUserByID(ctx context.Context, userID uuid.UUID) (domain.User, error)
 }
 
-// UserService manages user records.
 type UserService struct {
 	users UserStore
 }
 
-// NewUserService returns a user service.
 func NewUserService(users UserStore) UserService {
 	return UserService{users: users}
 }
 
-// EnsureAdminUser creates the initial admin account when no users exist.
 func (svc UserService) EnsureAdminUser(ctx context.Context, username, password string) error {
 	count, err := svc.users.CountUsers(ctx)
 	if err != nil {
@@ -60,4 +58,8 @@ func (svc UserService) EnsureAdminUser(ctx context.Context, username, password s
 	}
 
 	return nil
+}
+
+func (svc UserService) GetByID(ctx context.Context, userID uuid.UUID) (domain.User, error) {
+	return svc.users.GetUserByID(ctx, userID)
 }

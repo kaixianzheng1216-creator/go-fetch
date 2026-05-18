@@ -23,7 +23,7 @@ const (
 	errorMessageStatsLoadFailed        = "failed to load stats"
 	errorMessageTrackerScriptMissing   = "tracking script is missing"
 	errorMessageUnauthenticated        = "authentication required"
-	errorMessageUnsupportedCollectType = "unsupported collection type"
+	errorMessageUnsupportedEventType   = "unsupported event type"
 	errorMessageUserLoadFailed         = "failed to load user"
 	errorMessageWebsiteListLoadFailed  = "failed to load websites"
 	errorMessageWebsiteLoadFailed      = "failed to load website"
@@ -66,8 +66,8 @@ func websiteLookupErrorWithFallback(err error, fallbackMessage string) error {
 
 func collectionError(err error) error {
 	switch {
-	case errors.Is(err, service.ErrUnsupportedCollectionType):
-		return huma.Error400BadRequest(errorMessageUnsupportedCollectType)
+	case errors.Is(err, service.ErrUnsupportedEventType):
+		return huma.Error400BadRequest(errorMessageUnsupportedEventType)
 	case errors.Is(err, service.ErrMissingClientInfo):
 		return huma.Error500InternalServerError(errorMessageRequestReadFailed)
 	case isNotFound(err):

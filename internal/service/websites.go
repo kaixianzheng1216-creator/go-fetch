@@ -10,6 +10,7 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 )
 
+// ErrInvalidWebsiteName indicates an empty website name.
 var ErrInvalidWebsiteName = errors.New("website name cannot be empty")
 
 // WebsiteRepository persists user-owned websites.
@@ -21,28 +22,23 @@ type WebsiteRepository interface {
 	DeleteWebsite(ctx context.Context, userID, websiteID uuid.UUID) error
 }
 
-// WebsiteInput contains user-editable website fields.
 type WebsiteInput struct {
 	Name   string
 	Domain string
 }
 
-// WebsiteService manages user-owned websites.
 type WebsiteService struct {
 	repository WebsiteRepository
 }
 
-// NewWebsiteService returns a website service.
 func NewWebsiteService(repository WebsiteRepository) WebsiteService {
 	return WebsiteService{repository: repository}
 }
 
-// List returns websites owned by a user.
 func (svc WebsiteService) List(ctx context.Context, userID uuid.UUID) ([]domain.Website, error) {
 	return svc.repository.ListWebsites(ctx, userID)
 }
 
-// Create creates a user-owned website.
 func (svc WebsiteService) Create(ctx context.Context, userID uuid.UUID, input WebsiteInput) (domain.Website, error) {
 	input, err := normalizeWebsiteInput(input)
 	if err != nil {
@@ -52,12 +48,10 @@ func (svc WebsiteService) Create(ctx context.Context, userID uuid.UUID, input We
 	return svc.repository.CreateWebsite(ctx, userID, input.Name, input.Domain)
 }
 
-// Get returns a user-owned website.
 func (svc WebsiteService) Get(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error) {
 	return svc.repository.GetWebsite(ctx, userID, websiteID)
 }
 
-// Update updates a user-owned website.
 func (svc WebsiteService) Update(ctx context.Context, userID, websiteID uuid.UUID, input WebsiteInput) (domain.Website, error) {
 	input, err := normalizeWebsiteInput(input)
 	if err != nil {
@@ -67,7 +61,6 @@ func (svc WebsiteService) Update(ctx context.Context, userID, websiteID uuid.UUI
 	return svc.repository.UpdateWebsite(ctx, userID, websiteID, input.Name, input.Domain)
 }
 
-// Delete deletes a user-owned website.
 func (svc WebsiteService) Delete(ctx context.Context, userID, websiteID uuid.UUID) error {
 	return svc.repository.DeleteWebsite(ctx, userID, websiteID)
 }

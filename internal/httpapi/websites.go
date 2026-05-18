@@ -76,7 +76,12 @@ func (srv server) registerWebsiteRoutes(humaAPI huma.API, authMiddleware huma.Mi
 }
 
 func (srv server) listWebsites(ctx context.Context, _ *emptyInput) (*websiteListOutput, error) {
-	websites, err := srv.websites.List(ctx, currentUser(ctx).ID)
+	userID, err := currentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	websites, err := srv.websites.List(ctx, userID)
 	if err != nil {
 		return nil, huma.Error500InternalServerError(errorMessageWebsiteListLoadFailed)
 	}
@@ -85,7 +90,12 @@ func (srv server) listWebsites(ctx context.Context, _ *emptyInput) (*websiteList
 }
 
 func (srv server) createWebsite(ctx context.Context, input *createWebsiteInput) (*websiteOutput, error) {
-	website, err := srv.websites.Create(ctx, currentUser(ctx).ID, service.WebsiteInput{
+	userID, err := currentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	website, err := srv.websites.Create(ctx, userID, service.WebsiteInput{
 		Name:   input.Body.Name,
 		Domain: input.Body.Domain,
 	})
@@ -97,7 +107,12 @@ func (srv server) createWebsite(ctx context.Context, input *createWebsiteInput) 
 }
 
 func (srv server) getWebsite(ctx context.Context, input *websiteIDInput) (*websiteOutput, error) {
-	website, err := srv.websites.Get(ctx, currentUser(ctx).ID, input.WebsiteID)
+	userID, err := currentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	website, err := srv.websites.Get(ctx, userID, input.WebsiteID)
 	if err != nil {
 		return nil, websiteLookupError(err)
 	}
@@ -106,7 +121,12 @@ func (srv server) getWebsite(ctx context.Context, input *websiteIDInput) (*websi
 }
 
 func (srv server) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*websiteOutput, error) {
-	website, err := srv.websites.Update(ctx, currentUser(ctx).ID, input.WebsiteID, service.WebsiteInput{
+	userID, err := currentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	website, err := srv.websites.Update(ctx, userID, input.WebsiteID, service.WebsiteInput{
 		Name:   input.Body.Name,
 		Domain: input.Body.Domain,
 	})
@@ -118,7 +138,12 @@ func (srv server) updateWebsite(ctx context.Context, input *updateWebsiteInput) 
 }
 
 func (srv server) deleteWebsite(ctx context.Context, input *websiteIDInput) (*okOutput, error) {
-	if err := srv.websites.Delete(ctx, currentUser(ctx).ID, input.WebsiteID); err != nil {
+	userID, err := currentUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := srv.websites.Delete(ctx, userID, input.WebsiteID); err != nil {
 		return nil, websiteLookupError(err)
 	}
 

@@ -1,3 +1,4 @@
+// Package main runs database migrations.
 package main
 
 import (

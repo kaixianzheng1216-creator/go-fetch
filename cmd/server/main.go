@@ -1,3 +1,4 @@
+// Package main starts the go-fetch HTTP server.
 package main
 
 import (
