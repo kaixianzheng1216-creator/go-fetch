@@ -45,31 +45,26 @@ type sessionStore interface {
 }
 
 type server struct {
-	sessions sessionStore
-	auth     service.AuthService
-	collect  service.CollectionService
-	users    service.UserService
-	websites service.WebsiteService
-	stats    service.StatsService
-	config   Config
+	sessions   sessionStore
+	auth       service.AuthService
+	collection service.CollectionService
+	users      service.UserService
+	websites   service.WebsiteService
+	stats      service.StatsService
+	config     Config
 }
 
 type emptyInput struct{}
 
-type OKResponse struct {
-	OK bool `json:"ok"`
-}
-
 type okOutput struct {
-	Body OKResponse
+	Body struct {
+		OK bool `json:"ok"`
+	}
 }
 
-type contextKey string
+type requestContextKey struct{}
 
-const (
-	userContextKey    contextKey = "user"
-	requestContextKey contextKey = "request"
-)
+type userContextKey struct{}
 
 const (
 	errorMessageAPIEndpointNotFound    = "API endpoint not found"
@@ -98,13 +93,13 @@ const (
 func New(services Services, sessions *scs.SessionManager, config Config) http.Handler {
 	config = config.withDefaults()
 	srv := server{
-		sessions: sessions,
-		auth:     services.Auth,
-		collect:  services.Collection,
-		users:    services.Users,
-		websites: services.Websites,
-		stats:    services.Stats,
-		config:   config,
+		sessions:   sessions,
+		auth:       services.Auth,
+		collection: services.Collection,
+		users:      services.Users,
+		websites:   services.Websites,
+		stats:      services.Stats,
+		config:     config,
 	}
 
 	chiRouter := chi.NewRouter()
@@ -310,11 +305,13 @@ func enumValues(values []string) []any {
 }
 
 func newOKOutput() *okOutput {
-	return &okOutput{Body: OKResponse{OK: true}}
+	output := &okOutput{}
+	output.Body.OK = true
+	return output
 }
 
 func currentUser(ctx context.Context) (domain.User, bool) {
-	user, _ := ctx.Value(userContextKey).(domain.User)
+	user, _ := ctx.Value(userContextKey{}).(domain.User)
 	return user, user.ID != uuid.Nil
 }
 
@@ -337,16 +334,16 @@ func currentUserID(ctx context.Context) (uuid.UUID, error) {
 }
 
 func requestFromContext(ctx context.Context) *http.Request {
-	request, _ := ctx.Value(requestContextKey).(*http.Request)
+	request, _ := ctx.Value(requestContextKey{}).(*http.Request)
 	return request
 }
 
 func withRequest(ctx context.Context, request *http.Request) context.Context {
-	return context.WithValue(ctx, requestContextKey, request)
+	return context.WithValue(ctx, requestContextKey{}, request)
 }
 
 func withUser(ctx context.Context, user domain.User) context.Context {
-	return context.WithValue(ctx, userContextKey, user)
+	return context.WithValue(ctx, userContextKey{}, user)
 }
 
 func OpenAPIJSON() ([]byte, error) {

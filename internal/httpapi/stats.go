@@ -65,38 +65,36 @@ func (metricLimitParam) Schema(huma.Registry) *huma.Schema {
 	}
 }
 
-type WebsiteStatsResponse struct {
-	Pageviews       int64 `json:"pageviews"`
-	Visitors        int64 `json:"visitors"`
-	Visits          int64 `json:"visits"`
-	Bounces         int64 `json:"bounces"`
-	TotalTime       int64 `json:"totalTime"`
-	AvgVisitSeconds int64 `json:"avgVisitSeconds"`
+type getWebsiteStatsOutput struct {
+	Body struct {
+		Pageviews       int64 `json:"pageviews"`
+		Visitors        int64 `json:"visitors"`
+		Visits          int64 `json:"visits"`
+		Bounces         int64 `json:"bounces"`
+		TotalTime       int64 `json:"totalTime"`
+		AvgVisitSeconds int64 `json:"avgVisitSeconds"`
+	}
 }
 
-type PageviewResponse struct {
+type getWebsitePageviewsOutput struct {
+	Body pageviewListBody
+}
+
+type getWebsiteMetricsOutput struct {
+	Body metricListBody
+}
+
+type pageviewListBody []struct {
 	Time     time.Time `json:"time"`
 	Label    string    `json:"label"`
 	Views    int64     `json:"views"`
 	Visitors int64     `json:"visitors"`
 }
 
-type MetricResponse struct {
+type metricListBody []struct {
 	Name     string `json:"name"`
 	Views    int64  `json:"views"`
 	Visitors int64  `json:"visitors"`
-}
-
-type getWebsiteStatsOutput struct {
-	Body WebsiteStatsResponse
-}
-
-type getWebsitePageviewsOutput struct {
-	Body []PageviewResponse
-}
-
-type getWebsiteMetricsOutput struct {
-	Body []MetricResponse
 }
 
 func (srv server) registerStatsRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
@@ -120,64 +118,65 @@ func (srv server) registerStatsRoutes(humaAPI huma.API, authMiddleware huma.Midd
 }
 
 func (srv server) getWebsiteStats(ctx context.Context, input *getWebsiteStatsInput) (*getWebsiteStatsOutput, error) {
-	userID, err := currentUserID(ctx)
+	query, err := newStatsQuery(ctx, input.WebsiteID, input.StartAt, input.EndAt)
 	if err != nil {
 		return nil, err
 	}
 
-	stats, err := srv.stats.Summary(ctx, service.StatsQuery{
-		UserID:    userID,
-		WebsiteID: input.WebsiteID,
-		Range:     dateRangeFromInput(input.StartAt, input.EndAt),
-	})
+	stats, err := srv.stats.Summary(ctx, query)
 	if err != nil {
 		return nil, statsError(err, errorMessageStatsLoadFailed)
 	}
 
-	return &getWebsiteStatsOutput{Body: newWebsiteStatsResponse(stats)}, nil
+	return newWebsiteStatsOutput(stats), nil
 }
 
 func (srv server) getWebsitePageviews(ctx context.Context, input *getWebsitePageviewsInput) (*getWebsitePageviewsOutput, error) {
-	userID, err := currentUserID(ctx)
+	query, err := newStatsQuery(ctx, input.WebsiteID, input.StartAt, input.EndAt)
 	if err != nil {
 		return nil, err
 	}
 
 	buckets, err := srv.stats.Pageviews(ctx, service.PageviewsQuery{
-		StatsQuery: service.StatsQuery{
-			UserID:    userID,
-			WebsiteID: input.WebsiteID,
-			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
-		},
-		Unit: domain.DateUnit(input.Unit),
+		StatsQuery: query,
+		Unit:       domain.DateUnit(input.Unit),
 	})
 	if err != nil {
 		return nil, statsError(err, errorMessagePageviewsLoadFailed)
 	}
 
-	return &getWebsitePageviewsOutput{Body: newPageviewResponses(buckets)}, nil
+	return newWebsitePageviewsOutput(buckets), nil
 }
 
 func (srv server) getWebsiteMetrics(ctx context.Context, input *getWebsiteMetricsInput) (*getWebsiteMetricsOutput, error) {
-	userID, err := currentUserID(ctx)
+	query, err := newStatsQuery(ctx, input.WebsiteID, input.StartAt, input.EndAt)
 	if err != nil {
 		return nil, err
 	}
 
 	metrics, err := srv.stats.Metrics(ctx, service.MetricsQuery{
-		StatsQuery: service.StatsQuery{
-			UserID:    userID,
-			WebsiteID: input.WebsiteID,
-			Range:     dateRangeFromInput(input.StartAt, input.EndAt),
-		},
-		Type:  domain.MetricType(input.Type),
-		Limit: int(input.Limit),
+		StatsQuery: query,
+		Type:       domain.MetricType(input.Type),
+		Limit:      int(input.Limit),
 	})
 	if err != nil {
 		return nil, statsError(err, errorMessageMetricsLoadFailed)
 	}
 
-	return &getWebsiteMetricsOutput{Body: newMetricResponses(metrics)}, nil
+	return newWebsiteMetricsOutput(metrics), nil
+}
+
+func newStatsQuery(ctx context.Context, websiteID uuid.UUID, startAt, endAt int64) (service.StatsQuery, error) {
+	userID, err := currentUserID(ctx)
+	if err != nil {
+		return service.StatsQuery{}, err
+	}
+
+	return service.StatsQuery{
+		UserID:    userID,
+		WebsiteID: websiteID,
+		Range:     dateRangeFromInput(startAt, endAt),
+	}, nil
 }
 
 func dateRangeFromInput(startAt, endAt int64) service.DateRange {
@@ -195,38 +194,34 @@ func optionalTimeParam(value int64) *time.Time {
 	return &timestamp
 }
 
-func newWebsiteStatsResponse(stats domain.WebsiteStats) WebsiteStatsResponse {
-	return WebsiteStatsResponse{
-		Pageviews:       stats.Pageviews,
-		Visitors:        stats.Visitors,
-		Visits:          stats.Visits,
-		Bounces:         stats.Bounces,
-		TotalTime:       stats.TotalTime,
-		AvgVisitSeconds: stats.AvgVisitSeconds,
-	}
+func newWebsiteStatsOutput(stats domain.WebsiteStats) *getWebsiteStatsOutput {
+	output := &getWebsiteStatsOutput{}
+	output.Body.Pageviews = stats.Pageviews
+	output.Body.Visitors = stats.Visitors
+	output.Body.Visits = stats.Visits
+	output.Body.Bounces = stats.Bounces
+	output.Body.TotalTime = stats.TotalTime
+	output.Body.AvgVisitSeconds = stats.AvgVisitSeconds
+	return output
 }
 
-func newPageviewResponses(buckets []domain.PageviewBucket) []PageviewResponse {
-	result := make([]PageviewResponse, len(buckets))
+func newWebsitePageviewsOutput(buckets []domain.PageviewBucket) *getWebsitePageviewsOutput {
+	output := &getWebsitePageviewsOutput{Body: make(pageviewListBody, len(buckets))}
 	for i, bucket := range buckets {
-		result[i] = PageviewResponse{
-			Time:     bucket.Time,
-			Label:    bucket.Label,
-			Views:    bucket.Views,
-			Visitors: bucket.Visitors,
-		}
+		output.Body[i].Time = bucket.Time
+		output.Body[i].Label = bucket.Label
+		output.Body[i].Views = bucket.Views
+		output.Body[i].Visitors = bucket.Visitors
 	}
-	return result
+	return output
 }
 
-func newMetricResponses(metrics []domain.Metric) []MetricResponse {
-	result := make([]MetricResponse, len(metrics))
+func newWebsiteMetricsOutput(metrics []domain.Metric) *getWebsiteMetricsOutput {
+	output := &getWebsiteMetricsOutput{Body: make(metricListBody, len(metrics))}
 	for i, metric := range metrics {
-		result[i] = MetricResponse{
-			Name:     metric.Name,
-			Views:    metric.Views,
-			Visitors: metric.Visitors,
-		}
+		output.Body[i].Name = metric.Name
+		output.Body[i].Views = metric.Views
+		output.Body[i].Visitors = metric.Visitors
 	}
-	return result
+	return output
 }

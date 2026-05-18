@@ -48,26 +48,20 @@ func (store *Store) WebsitePageviews(ctx context.Context, websiteID uuid.UUID, s
 		return nil, fmt.Errorf("load pageviews: %w", err)
 	}
 
-	buckets := make([]domain.PageviewBucket, 0, len(rows))
-	for _, row := range rows {
-		bucket := domain.PageviewBucket{
+	buckets := make([]domain.PageviewBucket, len(rows))
+	for i, row := range rows {
+		buckets[i] = domain.PageviewBucket{
 			Time:     row.Time,
 			Views:    row.Views,
 			Visitors: row.Visitors,
 		}
-		bucket.Label = domain.FormatBucket(bucket.Time, unit)
-		buckets = append(buckets, bucket)
+		buckets[i].Label = domain.FormatBucket(buckets[i].Time, unit)
 	}
 
 	return buckets, nil
 }
 
 func (store *Store) WebsiteMetrics(ctx context.Context, websiteID uuid.UUID, start, end time.Time, metric domain.MetricType, limit int) ([]domain.Metric, error) {
-	if _, isSupportedMetricType := domain.ParseMetricType(string(metric)); !isSupportedMetricType {
-		return nil, domain.ErrUnsupportedMetricType
-	}
-
-	limit = domain.NormalizeMetricLimit(limit)
 	if metric.IsSessionDimension() {
 		rows, err := store.queries.SessionMetrics(ctx, storesqlc.SessionMetricsParams{
 			Metric:     string(metric),

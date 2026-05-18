@@ -119,23 +119,24 @@ func (svc CollectionService) CollectEvent(ctx context.Context, input CollectEven
 		return ErrMissingClientInfo
 	}
 
-	eventType, isSupportedEventType := domain.NormalizeTrackedEventType(input.Event.Type, input.Event.Name)
+	event := input.Event
+	eventType, isSupportedEventType := domain.NormalizeTrackedEventType(event.Type, event.Name)
 	if !isSupportedEventType {
 		return ErrUnsupportedEventType
 	}
-	input.Event.Type = eventType
+	event.Type = eventType
 
-	client := newTrackingClient(input.Client, input.Event.Screen)
+	client := newTrackingClient(input.Client, event.Screen)
 	if client.bot {
 		return nil
 	}
 
-	website, err := svc.repository.GetWebsiteForCollection(ctx, input.Event.WebsiteID)
+	website, err := svc.repository.GetWebsiteForCollection(ctx, event.WebsiteID)
 	if err != nil {
 		return err
 	}
 
-	return svc.repository.SaveEvent(ctx, buildEventRecord(client, input.Event, website, svc.now()))
+	return svc.repository.SaveEvent(ctx, buildEventRecord(client, event, website, svc.now()))
 }
 
 func (svc CollectionService) now() time.Time {

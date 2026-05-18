@@ -16,21 +16,19 @@ import (
 
 const maxCollectBodyBytes = 256 * 1024
 
-type CollectEventRequest struct {
-	Type       collectEventTypeParam `json:"type" required:"true"`
-	WebsiteID  uuid.UUID             `json:"websiteId" required:"true" format:"uuid"`
-	URL        string                `json:"url" required:"true" minLength:"1"`
-	Referrer   string                `json:"referrer,omitempty"`
-	Title      string                `json:"title,omitempty"`
-	Screen     string                `json:"screen,omitempty"`
-	Language   string                `json:"language,omitempty"`
-	DistinctID string                `json:"distinctId,omitempty" maxLength:"50"`
-	Name       string                `json:"name,omitempty"`
-	Data       map[string]any        `json:"data,omitempty"`
-}
-
 type collectInput struct {
-	Body CollectEventRequest
+	Body struct {
+		Type       collectEventTypeParam `json:"type" required:"true"`
+		WebsiteID  uuid.UUID             `json:"websiteId" required:"true" format:"uuid"`
+		URL        string                `json:"url" required:"true" minLength:"1"`
+		Referrer   string                `json:"referrer,omitempty"`
+		Title      string                `json:"title,omitempty"`
+		Screen     string                `json:"screen,omitempty"`
+		Language   string                `json:"language,omitempty"`
+		DistinctID string                `json:"distinctId,omitempty" maxLength:"50"`
+		Name       string                `json:"name,omitempty"`
+		Data       map[string]any        `json:"data,omitempty"`
+	}
 }
 
 type collectEventTypeParam string
@@ -49,30 +47,26 @@ func (srv server) registerCollectRoutes(humaAPI huma.API) {
 }
 
 func (srv server) collectEvent(ctx context.Context, input *collectInput) (*okOutput, error) {
-	err := srv.collect.CollectEvent(ctx, service.CollectEventInput{
+	err := srv.collection.CollectEvent(ctx, service.CollectEventInput{
 		Client: srv.clientInfoFromRequest(requestFromContext(ctx)),
-		Event:  newTrackedEvent(input.Body),
+		Event: domain.TrackedEvent{
+			Type:       domain.TrackedEventType(input.Body.Type),
+			WebsiteID:  input.Body.WebsiteID,
+			URL:        input.Body.URL,
+			Referrer:   input.Body.Referrer,
+			Title:      input.Body.Title,
+			Screen:     input.Body.Screen,
+			Language:   input.Body.Language,
+			DistinctID: input.Body.DistinctID,
+			Name:       input.Body.Name,
+			Data:       input.Body.Data,
+		},
 	})
 	if err != nil {
 		return nil, collectionError(err)
 	}
 
 	return newOKOutput(), nil
-}
-
-func newTrackedEvent(request CollectEventRequest) domain.TrackedEvent {
-	return domain.TrackedEvent{
-		Type:       domain.TrackedEventType(request.Type),
-		WebsiteID:  request.WebsiteID,
-		URL:        request.URL,
-		Referrer:   request.Referrer,
-		Title:      request.Title,
-		Screen:     request.Screen,
-		Language:   request.Language,
-		DistinctID: request.DistinctID,
-		Name:       request.Name,
-		Data:       request.Data,
-	}
 }
 
 func (srv server) clientInfoFromRequest(request *http.Request) service.ClientInfo {

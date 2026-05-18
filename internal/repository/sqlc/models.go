@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type AppSession struct {
@@ -18,69 +17,69 @@ type AppSession struct {
 }
 
 type Event struct {
-	ID             uuid.UUID   `json:"id"`
-	WebsiteID      uuid.UUID   `json:"website_id"`
-	SessionID      uuid.UUID   `json:"session_id"`
-	VisitID        uuid.UUID   `json:"visit_id"`
-	EventType      int32       `json:"event_type"`
-	EventName      pgtype.Text `json:"event_name"`
-	URLPath        string      `json:"url_path"`
-	URLQuery       pgtype.Text `json:"url_query"`
-	ReferrerPath   pgtype.Text `json:"referrer_path"`
-	ReferrerQuery  pgtype.Text `json:"referrer_query"`
-	ReferrerDomain pgtype.Text `json:"referrer_domain"`
-	PageTitle      pgtype.Text `json:"page_title"`
-	Hostname       pgtype.Text `json:"hostname"`
-	UTMSource      pgtype.Text `json:"utm_source"`
-	UTMMedium      pgtype.Text `json:"utm_medium"`
-	UTMCampaign    pgtype.Text `json:"utm_campaign"`
-	UTMContent     pgtype.Text `json:"utm_content"`
-	UTMTerm        pgtype.Text `json:"utm_term"`
-	CreatedAt      time.Time   `json:"created_at"`
+	ID             uuid.UUID `json:"id"`
+	WebsiteID      uuid.UUID `json:"website_id"`
+	SessionID      uuid.UUID `json:"session_id"`
+	VisitID        uuid.UUID `json:"visit_id"`
+	EventType      int32     `json:"event_type"`
+	EventName      *string   `json:"event_name"`
+	URLPath        string    `json:"url_path"`
+	URLQuery       *string   `json:"url_query"`
+	ReferrerPath   *string   `json:"referrer_path"`
+	ReferrerQuery  *string   `json:"referrer_query"`
+	ReferrerDomain *string   `json:"referrer_domain"`
+	PageTitle      *string   `json:"page_title"`
+	Hostname       *string   `json:"hostname"`
+	UTMSource      *string   `json:"utm_source"`
+	UTMMedium      *string   `json:"utm_medium"`
+	UTMCampaign    *string   `json:"utm_campaign"`
+	UTMContent     *string   `json:"utm_content"`
+	UTMTerm        *string   `json:"utm_term"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 type EventDatum struct {
-	ID          uuid.UUID          `json:"id"`
-	WebsiteID   uuid.UUID          `json:"website_id"`
-	EventID     uuid.UUID          `json:"event_id"`
-	DataKey     string             `json:"data_key"`
-	StringValue pgtype.Text        `json:"string_value"`
-	NumberValue pgtype.Float8      `json:"number_value"`
-	DateValue   pgtype.Timestamptz `json:"date_value"`
-	DataType    int32              `json:"data_type"`
-	CreatedAt   time.Time          `json:"created_at"`
+	ID          uuid.UUID  `json:"id"`
+	WebsiteID   uuid.UUID  `json:"website_id"`
+	EventID     uuid.UUID  `json:"event_id"`
+	DataKey     string     `json:"data_key"`
+	StringValue *string    `json:"string_value"`
+	NumberValue *float64   `json:"number_value"`
+	DateValue   *time.Time `json:"date_value"`
+	DataType    int32      `json:"data_type"`
+	CreatedAt   time.Time  `json:"created_at"`
 }
 
 type Session struct {
-	ID         uuid.UUID   `json:"id"`
-	WebsiteID  uuid.UUID   `json:"website_id"`
-	Browser    pgtype.Text `json:"browser"`
-	OS         pgtype.Text `json:"os"`
-	Device     pgtype.Text `json:"device"`
-	Screen     pgtype.Text `json:"screen"`
-	Language   pgtype.Text `json:"language"`
-	Country    pgtype.Text `json:"country"`
-	Region     pgtype.Text `json:"region"`
-	City       pgtype.Text `json:"city"`
-	DistinctID pgtype.Text `json:"distinct_id"`
-	CreatedAt  time.Time   `json:"created_at"`
+	ID         uuid.UUID `json:"id"`
+	WebsiteID  uuid.UUID `json:"website_id"`
+	Browser    *string   `json:"browser"`
+	OS         *string   `json:"os"`
+	Device     *string   `json:"device"`
+	Screen     *string   `json:"screen"`
+	Language   *string   `json:"language"`
+	Country    *string   `json:"country"`
+	Region     *string   `json:"region"`
+	City       *string   `json:"city"`
+	DistinctID *string   `json:"distinct_id"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 type User struct {
-	ID           uuid.UUID          `json:"id"`
-	Username     string             `json:"username"`
-	PasswordHash string             `json:"password_hash"`
-	CreatedAt    time.Time          `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt    pgtype.Timestamptz `json:"deleted_at"`
+	ID           uuid.UUID  `json:"id"`
+	Username     string     `json:"username"`
+	PasswordHash string     `json:"password_hash"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    *time.Time `json:"updated_at"`
+	DeletedAt    *time.Time `json:"deleted_at"`
 }
 
 type Website struct {
-	ID        uuid.UUID          `json:"id"`
-	UserID    uuid.UUID          `json:"user_id"`
-	Name      string             `json:"name"`
-	Domain    pgtype.Text        `json:"domain"`
-	CreatedAt time.Time          `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+	ID        uuid.UUID  `json:"id"`
+	UserID    uuid.UUID  `json:"user_id"`
+	Name      string     `json:"name"`
+	Domain    *string    `json:"domain"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }

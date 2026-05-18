@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const countUsers = `-- name: CountUsers :one
@@ -341,15 +340,15 @@ values (
 `
 
 type InsertEventDataParams struct {
-	ID          uuid.UUID          `json:"id"`
-	WebsiteID   uuid.UUID          `json:"website_id"`
-	EventID     uuid.UUID          `json:"event_id"`
-	DataKey     string             `json:"data_key"`
-	StringValue string             `json:"string_value"`
-	NumberValue pgtype.Float8      `json:"number_value"`
-	DateValue   pgtype.Timestamptz `json:"date_value"`
-	DataType    int32              `json:"data_type"`
-	CreatedAt   time.Time          `json:"created_at"`
+	ID          uuid.UUID  `json:"id"`
+	WebsiteID   uuid.UUID  `json:"website_id"`
+	EventID     uuid.UUID  `json:"event_id"`
+	DataKey     string     `json:"data_key"`
+	StringValue string     `json:"string_value"`
+	NumberValue *float64   `json:"number_value"`
+	DateValue   *time.Time `json:"date_value"`
+	DataType    int32      `json:"data_type"`
+	CreatedAt   time.Time  `json:"created_at"`
 }
 
 func (q *Queries) InsertEventData(ctx context.Context, arg InsertEventDataParams) error {

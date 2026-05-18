@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"slices"
 	"time"
 )
@@ -29,6 +30,11 @@ const (
 
 	DefaultMetricLimit = 10
 	MaxMetricLimit     = 100
+)
+
+var (
+	ErrUnsupportedDateUnit   = errors.New("unsupported date unit")
+	ErrUnsupportedMetricType = errors.New("unsupported metric type")
 )
 
 var (

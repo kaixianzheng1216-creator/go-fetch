@@ -42,10 +42,6 @@ type eventDataRow struct {
 	DataType    eventDataType
 }
 
-type eventDataFlattener struct {
-	items []eventDataRow
-}
-
 func (store *Store) SaveEvent(ctx context.Context, event domain.EventRecord) error {
 	err := pgx.BeginFunc(ctx, store.pool, func(tx pgx.Tx) error {
 		queries := store.queries.WithTx(tx)
@@ -121,86 +117,85 @@ func insertEventDataParams(event domain.EventRecord, eventID uuid.UUID, item eve
 		EventID:     eventID,
 		DataKey:     item.Key,
 		StringValue: item.StringValue,
-		NumberValue: pgFloat8(item.NumberValue),
-		DateValue:   pgOptionalTime(item.DateValue),
+		NumberValue: item.NumberValue,
+		DateValue:   item.DateValue,
 		DataType:    int32(item.DataType),
 		CreatedAt:   event.CreatedAt,
 	}
 }
 
 func flattenEventData(data map[string]any) []eventDataRow {
-	flattener := eventDataFlattener{}
+	rows := make([]eventDataRow, 0, len(data))
 	for _, key := range eventDataKeys(data) {
-		flattener.walk(key, data[key])
+		rows = appendEventDataRows(rows, key, data[key])
 	}
 
-	return flattener.items
+	return rows
 }
 
-func (flattener *eventDataFlattener) walk(prefix string, value any) {
+func appendEventDataRows(rows []eventDataRow, prefix string, value any) []eventDataRow {
 	switch typedValue := value.(type) {
 	case map[string]any:
 		for _, key := range eventDataKeys(typedValue) {
-			flattener.walk(joinEventDataKey(prefix, key), typedValue[key])
+			rows = appendEventDataRows(rows, joinEventDataKey(prefix, key), typedValue[key])
 		}
+		return rows
 	case []any:
-		flattener.appendArray(prefix, typedValue)
+		return appendEventDataArray(rows, prefix, typedValue)
 	case bool:
-		flattener.appendBool(prefix, typedValue)
+		return appendEventDataBool(rows, prefix, typedValue)
 	case string:
-		flattener.appendString(prefix, typedValue)
+		return appendEventDataString(rows, prefix, typedValue)
 	case nil:
-		flattener.appendNull(prefix)
+		return appendEventDataNull(rows, prefix)
 	default:
 		if numberValue, ok := eventDataNumber(typedValue); ok {
-			flattener.appendNumber(prefix, numberValue)
-			return
+			return appendEventDataNumber(rows, prefix, numberValue)
 		}
-		flattener.appendText(prefix, fmt.Sprint(typedValue))
+		return appendEventDataText(rows, prefix, fmt.Sprint(typedValue))
 	}
 }
 
-func (flattener *eventDataFlattener) appendArray(key string, value []any) {
+func appendEventDataArray(rows []eventDataRow, key string, value []any) []eventDataRow {
 	bytes, err := json.Marshal(value)
 	if err != nil {
 		bytes = []byte(fmt.Sprint(value))
 	}
 
-	flattener.items = append(flattener.items, eventDataRow{
+	return append(rows, eventDataRow{
 		Key:         eventDataKey(key),
 		StringValue: textutil.TruncateRunes(string(bytes), maxEventDataValueLength),
 		DataType:    eventDataTypeArray,
 	})
 }
 
-func (flattener *eventDataFlattener) appendBool(key string, value bool) {
-	flattener.items = append(flattener.items, eventDataRow{
+func appendEventDataBool(rows []eventDataRow, key string, value bool) []eventDataRow {
+	return append(rows, eventDataRow{
 		Key:         eventDataKey(key),
 		StringValue: strconv.FormatBool(value),
 		DataType:    eventDataTypeBoolean,
 	})
 }
 
-func (flattener *eventDataFlattener) appendString(key, value string) {
+func appendEventDataString(rows []eventDataRow, key, value string) []eventDataRow {
 	if dateValue, ok := parseEventDataTime(value); ok {
-		flattener.appendDate(key, dateValue)
-		return
+		return appendEventDataDate(rows, key, dateValue)
 	}
 
-	flattener.appendText(key, value)
+	return appendEventDataText(rows, key, value)
 }
 
-func (flattener *eventDataFlattener) appendText(key, value string) {
-	flattener.items = append(flattener.items, eventDataRow{
+func appendEventDataText(rows []eventDataRow, key, value string) []eventDataRow {
+	return append(rows, eventDataRow{
 		Key:         eventDataKey(key),
 		StringValue: textutil.TruncateRunes(value, maxEventDataValueLength),
 		DataType:    eventDataTypeString,
 	})
 }
 
-func (flattener *eventDataFlattener) appendDate(key string, value time.Time) {
+func appendEventDataDate(rows []eventDataRow, key string, value time.Time) []eventDataRow {
 	value = value.UTC()
-	flattener.items = append(flattener.items, eventDataRow{
+	return append(rows, eventDataRow{
 		Key:         eventDataKey(key),
 		StringValue: value.Format(time.RFC3339Nano),
 		DateValue:   &value,
@@ -208,13 +203,13 @@ func (flattener *eventDataFlattener) appendDate(key string, value time.Time) {
 	})
 }
 
-func (flattener *eventDataFlattener) appendNumber(key string, value float64) {
+func appendEventDataNumber(rows []eventDataRow, key string, value float64) []eventDataRow {
 	if math.IsNaN(value) || math.IsInf(value, 0) {
-		return
+		return rows
 	}
 
 	numberValue := value
-	flattener.items = append(flattener.items, eventDataRow{
+	return append(rows, eventDataRow{
 		Key:         eventDataKey(key),
 		StringValue: strconv.FormatFloat(value, 'g', -1, 64),
 		NumberValue: &numberValue,
@@ -222,8 +217,8 @@ func (flattener *eventDataFlattener) appendNumber(key string, value float64) {
 	})
 }
 
-func (flattener *eventDataFlattener) appendNull(key string) {
-	flattener.items = append(flattener.items, eventDataRow{
+func appendEventDataNull(rows []eventDataRow, key string) []eventDataRow {
+	return append(rows, eventDataRow{
 		Key:      eventDataKey(key),
 		DataType: eventDataTypeString,
 	})

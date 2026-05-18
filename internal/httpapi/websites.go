@@ -12,20 +12,11 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 )
 
-type WebsiteRequest struct {
-	Name   string `json:"name" required:"true" minLength:"1" maxLength:"100"`
-	Domain string `json:"domain,omitempty" maxLength:"500"`
-}
-
-type WebsiteResponse struct {
-	ID        uuid.UUID `json:"id" format:"uuid"`
-	Name      string    `json:"name"`
-	Domain    string    `json:"domain"`
-	CreatedAt time.Time `json:"createdAt"`
-}
-
 type createWebsiteInput struct {
-	Body WebsiteRequest
+	Body struct {
+		Name   string `json:"name" required:"true" minLength:"1" maxLength:"100"`
+		Domain string `json:"domain,omitempty" maxLength:"500"`
+	}
 }
 
 type websiteIDInput struct {
@@ -34,15 +25,30 @@ type websiteIDInput struct {
 
 type updateWebsiteInput struct {
 	WebsiteID uuid.UUID `path:"websiteID" format:"uuid"`
-	Body      WebsiteRequest
+	Body      struct {
+		Name   string `json:"name" required:"true" minLength:"1" maxLength:"100"`
+		Domain string `json:"domain,omitempty" maxLength:"500"`
+	}
 }
 
 type websiteListOutput struct {
-	Body []WebsiteResponse
+	Body websiteListBody
 }
 
 type websiteOutput struct {
-	Body WebsiteResponse
+	Body struct {
+		ID        uuid.UUID `json:"id" format:"uuid"`
+		Name      string    `json:"name"`
+		Domain    string    `json:"domain"`
+		CreatedAt time.Time `json:"createdAt"`
+	}
+}
+
+type websiteListBody []struct {
+	ID        uuid.UUID `json:"id" format:"uuid"`
+	Name      string    `json:"name"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func (srv server) registerWebsiteRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
@@ -86,7 +92,7 @@ func (srv server) listWebsites(ctx context.Context, _ *emptyInput) (*websiteList
 		return nil, huma.Error500InternalServerError(errorMessageWebsiteListLoadFailed)
 	}
 
-	return &websiteListOutput{Body: newWebsiteResponses(websites)}, nil
+	return newWebsiteListOutput(websites), nil
 }
 
 func (srv server) createWebsite(ctx context.Context, input *createWebsiteInput) (*websiteOutput, error) {
@@ -103,7 +109,7 @@ func (srv server) createWebsite(ctx context.Context, input *createWebsiteInput) 
 		return nil, websiteMutationError(err, errorMessageWebsiteCreateFailed)
 	}
 
-	return &websiteOutput{Body: newWebsiteResponse(website)}, nil
+	return newWebsiteOutput(website), nil
 }
 
 func (srv server) getWebsite(ctx context.Context, input *websiteIDInput) (*websiteOutput, error) {
@@ -117,7 +123,7 @@ func (srv server) getWebsite(ctx context.Context, input *websiteIDInput) (*websi
 		return nil, websiteLookupError(err)
 	}
 
-	return &websiteOutput{Body: newWebsiteResponse(website)}, nil
+	return newWebsiteOutput(website), nil
 }
 
 func (srv server) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*websiteOutput, error) {
@@ -134,7 +140,7 @@ func (srv server) updateWebsite(ctx context.Context, input *updateWebsiteInput) 
 		return nil, websiteMutationError(err, errorMessageWebsiteUpdateFailed)
 	}
 
-	return &websiteOutput{Body: newWebsiteResponse(website)}, nil
+	return newWebsiteOutput(website), nil
 }
 
 func (srv server) deleteWebsite(ctx context.Context, input *websiteIDInput) (*okOutput, error) {
@@ -150,19 +156,22 @@ func (srv server) deleteWebsite(ctx context.Context, input *websiteIDInput) (*ok
 	return newOKOutput(), nil
 }
 
-func newWebsiteResponse(website domain.Website) WebsiteResponse {
-	return WebsiteResponse{
-		ID:        website.ID,
-		Name:      website.Name,
-		Domain:    website.Domain,
-		CreatedAt: website.CreatedAt,
+func newWebsiteListOutput(websites []domain.Website) *websiteListOutput {
+	output := &websiteListOutput{Body: make(websiteListBody, len(websites))}
+	for i, website := range websites {
+		output.Body[i].ID = website.ID
+		output.Body[i].Name = website.Name
+		output.Body[i].Domain = website.Domain
+		output.Body[i].CreatedAt = website.CreatedAt
 	}
+	return output
 }
 
-func newWebsiteResponses(websites []domain.Website) []WebsiteResponse {
-	result := make([]WebsiteResponse, len(websites))
-	for i, website := range websites {
-		result[i] = newWebsiteResponse(website)
-	}
-	return result
+func newWebsiteOutput(website domain.Website) *websiteOutput {
+	output := &websiteOutput{}
+	output.Body.ID = website.ID
+	output.Body.Name = website.Name
+	output.Body.Domain = website.Domain
+	output.Body.CreatedAt = website.CreatedAt
+	return output
 }

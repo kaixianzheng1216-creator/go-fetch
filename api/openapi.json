@@ -1,7 +1,7 @@
 {
   "components": {
     "schemas": {
-      "CollectEventRequest": {
+      "CollectInputBody": {
         "additionalProperties": false,
         "properties": {
           "data": {
@@ -47,6 +47,24 @@
           "type",
           "websiteId",
           "url"
+        ],
+        "type": "object"
+      },
+      "CreateWebsiteInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
         ],
         "type": "object"
       },
@@ -122,173 +140,7 @@
         },
         "type": "object"
       },
-      "LoginRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "password": {
-            "minLength": 1,
-            "type": "string",
-            "writeOnly": true
-          },
-          "username": {
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "required": [
-          "username",
-          "password"
-        ],
-        "type": "object"
-      },
-      "LoginResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "user": {
-            "$ref": "#/components/schemas/UserResponse"
-          }
-        },
-        "required": [
-          "user"
-        ],
-        "type": "object"
-      },
-      "MetricResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "views": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "visitors": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "name",
-          "views",
-          "visitors"
-        ],
-        "type": "object"
-      },
-      "OKResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "ok": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "ok"
-        ],
-        "type": "object"
-      },
-      "PageviewResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "label": {
-            "type": "string"
-          },
-          "time": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "views": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "visitors": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "time",
-          "label",
-          "views",
-          "visitors"
-        ],
-        "type": "object"
-      },
-      "UserResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "deletedAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "updatedAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "username": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "username",
-          "createdAt"
-        ],
-        "type": "object"
-      },
-      "WebsiteRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "domain": {
-            "maxLength": 500,
-            "type": "string"
-          },
-          "name": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "type": "object"
-      },
-      "WebsiteResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "domain": {
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "domain",
-          "createdAt"
-        ],
-        "type": "object"
-      },
-      "WebsiteStatsResponse": {
+      "GetWebsiteStatsOutputBody": {
         "additionalProperties": false,
         "properties": {
           "avgVisitSeconds": {
@@ -325,6 +177,202 @@
           "avgVisitSeconds"
         ],
         "type": "object"
+      },
+      "LoginInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "password": {
+            "minLength": 1,
+            "type": "string",
+            "writeOnly": true
+          },
+          "username": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "type": "object"
+      },
+      "LoginOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserStruct"
+          }
+        },
+        "required": [
+          "user"
+        ],
+        "type": "object"
+      },
+      "MetricListBodyItem": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "views": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "visitors": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "views",
+          "visitors"
+        ],
+        "type": "object"
+      },
+      "OkOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "type": "object"
+      },
+      "PageviewListBodyItem": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "time": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "views": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "visitors": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "time",
+          "label",
+          "views",
+          "visitors"
+        ],
+        "type": "object"
+      },
+      "UpdateWebsiteInputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "UserOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username"
+        ],
+        "type": "object"
+      },
+      "UserStruct": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username"
+        ],
+        "type": "object"
+      },
+      "WebsiteListBodyItem": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "domain",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "WebsiteOutputBody": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "domain",
+          "createdAt"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -348,7 +396,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CollectEventRequest"
+                "$ref": "#/components/schemas/CollectInputBody"
               }
             }
           },
@@ -359,7 +407,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OKResponse"
+                  "$ref": "#/components/schemas/OkOutputBody"
                 }
               }
             },
@@ -389,7 +437,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
+                "$ref": "#/components/schemas/LoginInputBody"
               }
             }
           },
@@ -400,7 +448,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LoginResponse"
+                  "$ref": "#/components/schemas/LoginOutputBody"
                 }
               }
             },
@@ -431,7 +479,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OKResponse"
+                  "$ref": "#/components/schemas/OkOutputBody"
                 }
               }
             },
@@ -462,7 +510,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserResponse"
+                  "$ref": "#/components/schemas/UserOutputBody"
                 }
               }
             },
@@ -499,7 +547,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/WebsiteResponse"
+                    "$ref": "#/components/schemas/WebsiteListBodyItem"
                   },
                   "type": [
                     "array",
@@ -537,7 +585,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/WebsiteRequest"
+                "$ref": "#/components/schemas/CreateWebsiteInputBody"
               }
             }
           },
@@ -548,7 +596,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebsiteResponse"
+                  "$ref": "#/components/schemas/WebsiteOutputBody"
                 }
               }
             },
@@ -595,7 +643,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OKResponse"
+                  "$ref": "#/components/schemas/OkOutputBody"
                 }
               }
             },
@@ -640,7 +688,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebsiteResponse"
+                  "$ref": "#/components/schemas/WebsiteOutputBody"
                 }
               }
             },
@@ -684,7 +732,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/WebsiteRequest"
+                "$ref": "#/components/schemas/UpdateWebsiteInputBody"
               }
             }
           },
@@ -695,7 +743,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebsiteResponse"
+                  "$ref": "#/components/schemas/WebsiteOutputBody"
                 }
               }
             },
@@ -790,7 +838,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/MetricResponse"
+                    "$ref": "#/components/schemas/MetricListBodyItem"
                   },
                   "type": [
                     "array",
@@ -875,7 +923,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/PageviewResponse"
+                    "$ref": "#/components/schemas/PageviewListBodyItem"
                   },
                   "type": [
                     "array",
@@ -945,7 +993,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebsiteStatsResponse"
+                  "$ref": "#/components/schemas/GetWebsiteStatsOutputBody"
                 }
               }
             },

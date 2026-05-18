@@ -4,42 +4,34 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
-	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
-type LoginRequest struct {
-	Username string `json:"username" required:"true" minLength:"1"`
-	Password string `json:"password" required:"true" minLength:"1" writeOnly:"true"`
-}
-
-type UserResponse struct {
-	ID        uuid.UUID  `json:"id" format:"uuid"`
-	Username  string     `json:"username"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-	DeletedAt *time.Time `json:"deletedAt,omitempty"`
-}
-
-type LoginResponse struct {
-	User UserResponse `json:"user"`
-}
-
 type loginInput struct {
-	Body LoginRequest
+	Body struct {
+		Username string `json:"username" required:"true" minLength:"1"`
+		Password string `json:"password" required:"true" minLength:"1" writeOnly:"true"`
+	}
 }
 
 type loginOutput struct {
-	Body LoginResponse
+	Body struct {
+		User struct {
+			ID       uuid.UUID `json:"id" format:"uuid"`
+			Username string    `json:"username"`
+		} `json:"user"`
+	}
 }
 
 type userOutput struct {
-	Body UserResponse
+	Body struct {
+		ID       uuid.UUID `json:"id" format:"uuid"`
+		Username string    `json:"username"`
+	}
 }
 
 func (srv server) registerAuthRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
@@ -64,6 +56,7 @@ func (srv server) registerAuthRoutes(humaAPI huma.API, authMiddleware huma.Middl
 
 func (srv server) login(ctx context.Context, input *loginInput) (*loginOutput, error) {
 	user, err := srv.auth.Login(ctx, input.Body.Username, input.Body.Password)
+
 	if err != nil {
 		return nil, loginError(err)
 	}
@@ -72,7 +65,10 @@ func (srv server) login(ctx context.Context, input *loginInput) (*loginOutput, e
 		return nil, huma.Error500InternalServerError(errorMessageLoginSessionCreate)
 	}
 
-	return &loginOutput{Body: LoginResponse{User: newUserResponse(user)}}, nil
+	output := &loginOutput{}
+	output.Body.User.ID = user.ID
+	output.Body.User.Username = user.Username
+	return output, nil
 }
 
 func (srv server) logout(ctx context.Context, _ *emptyInput) (*okOutput, error) {
@@ -92,7 +88,10 @@ func (srv server) getCurrentUser(ctx context.Context, _ *emptyInput) (*userOutpu
 		return nil, err
 	}
 
-	return &userOutput{Body: newUserResponse(user)}, nil
+	output := &userOutput{}
+	output.Body.ID = user.ID
+	output.Body.Username = user.Username
+	return output, nil
 }
 
 func (srv server) startUserSession(ctx context.Context, userID uuid.UUID) error {
@@ -105,14 +104,4 @@ func (srv server) startUserSession(ctx context.Context, userID uuid.UUID) error 
 
 	srv.sessions.Put(ctx, session.UserIDKey, userID.String())
 	return nil
-}
-
-func newUserResponse(user domain.User) UserResponse {
-	return UserResponse{
-		ID:        user.ID,
-		Username:  user.Username,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		DeletedAt: user.DeletedAt,
-	}
 }

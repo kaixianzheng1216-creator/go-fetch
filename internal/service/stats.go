@@ -65,8 +65,8 @@ func (svc StatsService) Pageviews(ctx context.Context, query PageviewsQuery) ([]
 		return nil, err
 	}
 
-	unit, isSupportedDateUnit := domain.ParseDateUnit(string(query.Unit))
-	if !isSupportedDateUnit {
+	unit, ok := domain.ParseDateUnit(string(query.Unit))
+	if !ok {
 		return nil, domain.ErrUnsupportedDateUnit
 	}
 
@@ -79,11 +79,12 @@ func (svc StatsService) Metrics(ctx context.Context, query MetricsQuery) ([]doma
 		return nil, err
 	}
 
-	if _, isSupportedMetricType := domain.ParseMetricType(string(query.Type)); !isSupportedMetricType {
+	metricType, ok := domain.ParseMetricType(string(query.Type))
+	if !ok {
 		return nil, domain.ErrUnsupportedMetricType
 	}
 
-	return svc.repository.WebsiteMetrics(ctx, query.WebsiteID, start, end, query.Type, domain.NormalizeMetricLimit(query.Limit))
+	return svc.repository.WebsiteMetrics(ctx, query.WebsiteID, start, end, metricType, domain.NormalizeMetricLimit(query.Limit))
 }
 
 func (svc StatsService) resolveStatsQuery(ctx context.Context, query StatsQuery) (time.Time, time.Time, error) {
@@ -131,13 +132,14 @@ func (err websiteAccessError) Unwrap() error {
 }
 
 func statsDateRange(now time.Time, dateRange DateRange) (time.Time, time.Time, error) {
+	now = now.UTC()
 	start := now.Add(-domain.DefaultDateLookback)
 	end := now
 	if dateRange.StartAt != nil {
-		start = *dateRange.StartAt
+		start = dateRange.StartAt.UTC()
 	}
 	if dateRange.EndAt != nil {
-		end = *dateRange.EndAt
+		end = dateRange.EndAt.UTC()
 	}
 
 	if start.After(end) {
