@@ -17,6 +17,13 @@ type WebsiteRequest struct {
 	Domain string `json:"domain,omitempty" maxLength:"500"`
 }
 
+type WebsiteResponse struct {
+	ID        uuid.UUID `json:"id" format:"uuid"`
+	Name      string    `json:"name"`
+	Domain    string    `json:"domain"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type createWebsiteInput struct {
 	Body WebsiteRequest
 }
@@ -28,13 +35,6 @@ type websiteIDInput struct {
 type updateWebsiteInput struct {
 	WebsiteID uuid.UUID `path:"websiteID" format:"uuid"`
 	Body      WebsiteRequest
-}
-
-type WebsiteResponse struct {
-	ID        uuid.UUID `json:"id" format:"uuid"`
-	Name      string    `json:"name"`
-	Domain    string    `json:"domain"`
-	CreatedAt time.Time `json:"createdAt"`
 }
 
 type websiteListOutput struct {

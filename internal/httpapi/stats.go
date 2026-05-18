@@ -12,20 +12,20 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 )
 
-type websiteStatsInput struct {
+type getWebsiteStatsInput struct {
 	WebsiteID uuid.UUID `path:"websiteID" format:"uuid"`
 	StartAt   int64     `query:"startAt"`
 	EndAt     int64     `query:"endAt"`
 }
 
-type websitePageviewsInput struct {
+type getWebsitePageviewsInput struct {
 	WebsiteID uuid.UUID     `path:"websiteID" format:"uuid"`
 	StartAt   int64         `query:"startAt"`
 	EndAt     int64         `query:"endAt"`
 	Unit      dateUnitParam `query:"unit"`
 }
 
-type websiteMetricsInput struct {
+type getWebsiteMetricsInput struct {
 	WebsiteID uuid.UUID        `path:"websiteID" format:"uuid"`
 	StartAt   int64            `query:"startAt"`
 	EndAt     int64            `query:"endAt"`
@@ -87,15 +87,15 @@ type MetricResponse struct {
 	Visitors int64  `json:"visitors"`
 }
 
-type websiteStatsOutput struct {
+type getWebsiteStatsOutput struct {
 	Body WebsiteStatsResponse
 }
 
-type websitePageviewsOutput struct {
+type getWebsitePageviewsOutput struct {
 	Body []PageviewResponse
 }
 
-type websiteMetricsOutput struct {
+type getWebsiteMetricsOutput struct {
 	Body []MetricResponse
 }
 
@@ -119,7 +119,7 @@ func (srv server) registerStatsRoutes(humaAPI huma.API, authMiddleware huma.Midd
 	)
 }
 
-func (srv server) getWebsiteStats(ctx context.Context, input *websiteStatsInput) (*websiteStatsOutput, error) {
+func (srv server) getWebsiteStats(ctx context.Context, input *getWebsiteStatsInput) (*getWebsiteStatsOutput, error) {
 	userID, err := currentUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -134,10 +134,10 @@ func (srv server) getWebsiteStats(ctx context.Context, input *websiteStatsInput)
 		return nil, statsError(err, errorMessageStatsLoadFailed)
 	}
 
-	return &websiteStatsOutput{Body: newWebsiteStatsResponse(stats)}, nil
+	return &getWebsiteStatsOutput{Body: newWebsiteStatsResponse(stats)}, nil
 }
 
-func (srv server) getWebsitePageviews(ctx context.Context, input *websitePageviewsInput) (*websitePageviewsOutput, error) {
+func (srv server) getWebsitePageviews(ctx context.Context, input *getWebsitePageviewsInput) (*getWebsitePageviewsOutput, error) {
 	userID, err := currentUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -155,10 +155,10 @@ func (srv server) getWebsitePageviews(ctx context.Context, input *websitePagevie
 		return nil, statsError(err, errorMessagePageviewsLoadFailed)
 	}
 
-	return &websitePageviewsOutput{Body: newPageviewResponses(buckets)}, nil
+	return &getWebsitePageviewsOutput{Body: newPageviewResponses(buckets)}, nil
 }
 
-func (srv server) getWebsiteMetrics(ctx context.Context, input *websiteMetricsInput) (*websiteMetricsOutput, error) {
+func (srv server) getWebsiteMetrics(ctx context.Context, input *getWebsiteMetricsInput) (*getWebsiteMetricsOutput, error) {
 	userID, err := currentUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -177,7 +177,7 @@ func (srv server) getWebsiteMetrics(ctx context.Context, input *websiteMetricsIn
 		return nil, statsError(err, errorMessageMetricsLoadFailed)
 	}
 
-	return &websiteMetricsOutput{Body: newMetricResponses(metrics)}, nil
+	return &getWebsiteMetricsOutput{Body: newMetricResponses(metrics)}, nil
 }
 
 func dateRangeFromInput(startAt, endAt int64) service.DateRange {

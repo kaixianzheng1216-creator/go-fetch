@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"slices"
+	"time"
+)
 
 type DateUnit string
 
@@ -13,21 +16,27 @@ const (
 	DefaultDateLookback = 24 * time.Hour
 )
 
+var dateUnits = [...]DateUnit{
+	DateUnitHour,
+	DateUnitDay,
+	DateUnitMonth,
+}
+
 func ParseDateUnit(value string) (DateUnit, bool) {
 	if value == "" {
 		return DefaultDateUnit, true
 	}
 
-	switch DateUnit(value) {
-	case DateUnitHour, DateUnitDay, DateUnitMonth:
-		return DateUnit(value), true
-	default:
-		return "", false
+	dateUnit := DateUnit(value)
+	if slices.Contains(dateUnits[:], dateUnit) {
+		return dateUnit, true
 	}
+
+	return "", false
 }
 
 func DateUnitValues() []string {
-	return []string{string(DateUnitHour), string(DateUnitDay), string(DateUnitMonth)}
+	return stringEnumValues(dateUnits[:])
 }
 
 func DateTruncUnit(unit DateUnit) string {

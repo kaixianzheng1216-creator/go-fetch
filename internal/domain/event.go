@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,15 +21,10 @@ const (
 	TrackedEventTypeCustom   TrackedEventType = "event"
 )
 
-type EventDataType int
-
-const (
-	EventDataTypeString  EventDataType = 1
-	EventDataTypeNumber  EventDataType = 2
-	EventDataTypeBoolean EventDataType = 3
-	EventDataTypeDate    EventDataType = 4
-	EventDataTypeArray   EventDataType = 5
-)
+var trackedEventTypes = [...]TrackedEventType{
+	TrackedEventTypePageView,
+	TrackedEventTypeCustom,
+}
 
 type TrackedEvent struct {
 	Type       TrackedEventType
@@ -74,28 +70,6 @@ type EventRecord struct {
 	Data           map[string]any
 }
 
-type WebsiteStats struct {
-	Pageviews       int64
-	Visitors        int64
-	Visits          int64
-	Bounces         int64
-	TotalTime       int64
-	AvgVisitSeconds int64
-}
-
-type PageviewBucket struct {
-	Time     time.Time
-	Label    string
-	Views    int64
-	Visitors int64
-}
-
-type Metric struct {
-	Name     string
-	Views    int64
-	Visitors int64
-}
-
 func NormalizeTrackedEventType(eventType TrackedEventType, eventName string) (TrackedEventType, bool) {
 	if eventType == "" {
 		if eventName != "" {
@@ -104,16 +78,15 @@ func NormalizeTrackedEventType(eventType TrackedEventType, eventName string) (Tr
 		return TrackedEventTypePageView, true
 	}
 
-	switch eventType {
-	case TrackedEventTypePageView, TrackedEventTypeCustom:
+	if slices.Contains(trackedEventTypes[:], eventType) {
 		return eventType, true
-	default:
-		return "", false
 	}
+
+	return "", false
 }
 
 func TrackedEventTypeValues() []string {
-	return []string{string(TrackedEventTypePageView), string(TrackedEventTypeCustom)}
+	return stringEnumValues(trackedEventTypes[:])
 }
 
 func (eventType TrackedEventType) EventType() EventType {

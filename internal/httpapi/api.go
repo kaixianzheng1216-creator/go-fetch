@@ -51,6 +51,16 @@ type server struct {
 	config   Config
 }
 
+type emptyInput struct{}
+
+type OKResponse struct {
+	OK bool `json:"ok"`
+}
+
+type okOutput struct {
+	Body OKResponse
+}
+
 func New(services Services, sessions *scs.SessionManager, config Config) http.Handler {
 	config = config.withDefaults()
 	srv := server{
@@ -211,14 +221,4 @@ func enumValues(values []string) []any {
 
 func newOKOutput() *okOutput {
 	return &okOutput{Body: OKResponse{OK: true}}
-}
-
-type emptyInput struct{}
-
-type OKResponse struct {
-	OK bool `json:"ok"`
-}
-
-type okOutput struct {
-	Body OKResponse
 }

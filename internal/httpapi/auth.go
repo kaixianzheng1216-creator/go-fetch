@@ -13,10 +13,6 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
-type loginInput struct {
-	Body LoginRequest
-}
-
 type LoginRequest struct {
 	Username string `json:"username" required:"true" minLength:"1"`
 	Password string `json:"password" required:"true" minLength:"1" writeOnly:"true"`
@@ -32,6 +28,10 @@ type UserResponse struct {
 
 type LoginResponse struct {
 	User UserResponse `json:"user"`
+}
+
+type loginInput struct {
+	Body LoginRequest
 }
 
 type loginOutput struct {

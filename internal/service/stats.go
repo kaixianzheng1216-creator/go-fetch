@@ -41,23 +41,6 @@ type MetricsQuery struct {
 	Limit int
 }
 
-type websiteAccessError struct {
-	err error
-}
-
-func (err websiteAccessError) Error() string {
-	return "website access: " + err.err.Error()
-}
-
-func (err websiteAccessError) Unwrap() error {
-	return err.err
-}
-
-func IsWebsiteAccessError(err error) bool {
-	var accessError websiteAccessError
-	return errors.As(err, &accessError)
-}
-
 type StatsService struct {
 	repository StatsRepository
 	clock      clock
@@ -128,6 +111,23 @@ func (svc StatsService) now() time.Time {
 		return systemClock()
 	}
 	return svc.clock()
+}
+
+func IsWebsiteAccessError(err error) bool {
+	var accessError websiteAccessError
+	return errors.As(err, &accessError)
+}
+
+type websiteAccessError struct {
+	err error
+}
+
+func (err websiteAccessError) Error() string {
+	return "website access: " + err.err.Error()
+}
+
+func (err websiteAccessError) Unwrap() error {
+	return err.err
 }
 
 func statsDateRange(now time.Time, dateRange DateRange) (time.Time, time.Time, error) {

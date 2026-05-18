@@ -14,9 +14,9 @@ var ErrInvalidWebsiteName = errors.New("website name cannot be empty")
 
 type WebsiteRepository interface {
 	ListWebsites(ctx context.Context, userID uuid.UUID) ([]domain.Website, error)
-	CreateWebsite(ctx context.Context, userID uuid.UUID, name, domain string) (domain.Website, error)
+	CreateWebsite(ctx context.Context, userID uuid.UUID, name, siteDomain string) (domain.Website, error)
 	GetWebsite(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error)
-	UpdateWebsite(ctx context.Context, userID, websiteID uuid.UUID, name, domain string) (domain.Website, error)
+	UpdateWebsite(ctx context.Context, userID, websiteID uuid.UUID, name, siteDomain string) (domain.Website, error)
 	DeleteWebsite(ctx context.Context, userID, websiteID uuid.UUID) error
 }
 

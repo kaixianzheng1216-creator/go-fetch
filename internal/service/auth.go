@@ -12,16 +12,16 @@ import (
 
 var ErrInvalidCredentials = errors.New("invalid username or password")
 
-type AuthUserRepository interface {
+type AuthRepository interface {
 	GetUserByUsername(ctx context.Context, username string) (domain.User, error)
 }
 
 type AuthService struct {
-	users AuthUserRepository
+	repository AuthRepository
 }
 
-func NewAuthService(users AuthUserRepository) AuthService {
-	return AuthService{users: users}
+func NewAuthService(repository AuthRepository) AuthService {
+	return AuthService{repository: repository}
 }
 
 func (svc AuthService) Login(ctx context.Context, username, password string) (domain.User, error) {
@@ -30,7 +30,7 @@ func (svc AuthService) Login(ctx context.Context, username, password string) (do
 		return domain.User{}, ErrInvalidCredentials
 	}
 
-	user, err := svc.users.GetUserByUsername(ctx, username)
+	user, err := svc.repository.GetUserByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return domain.User{}, ErrInvalidCredentials

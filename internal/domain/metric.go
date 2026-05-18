@@ -1,5 +1,7 @@
 package domain
 
+import "slices"
+
 type MetricType string
 
 const (
@@ -15,25 +17,33 @@ const (
 	MaxMetricLimit     = 100
 )
 
+var metricTypes = [...]MetricType{
+	MetricTypePath,
+	MetricTypeReferrer,
+	MetricTypeBrowser,
+	MetricTypeOS,
+	MetricTypeDevice,
+	MetricTypeCountry,
+	MetricTypeEvent,
+}
+
+type Metric struct {
+	Name     string
+	Views    int64
+	Visitors int64
+}
+
 func ParseMetricType(value string) (MetricType, bool) {
-	switch MetricType(value) {
-	case MetricTypePath, MetricTypeReferrer, MetricTypeBrowser, MetricTypeOS, MetricTypeDevice, MetricTypeCountry, MetricTypeEvent:
-		return MetricType(value), true
-	default:
-		return "", false
+	metricType := MetricType(value)
+	if slices.Contains(metricTypes[:], metricType) {
+		return metricType, true
 	}
+
+	return "", false
 }
 
 func MetricTypeValues() []string {
-	return []string{
-		string(MetricTypePath),
-		string(MetricTypeReferrer),
-		string(MetricTypeBrowser),
-		string(MetricTypeOS),
-		string(MetricTypeDevice),
-		string(MetricTypeCountry),
-		string(MetricTypeEvent),
-	}
+	return stringEnumValues(metricTypes[:])
 }
 
 func (metricType MetricType) EventType() EventType {
@@ -48,9 +58,9 @@ func (metricType MetricType) IsSessionDimension() bool {
 	switch metricType {
 	case MetricTypeBrowser, MetricTypeOS, MetricTypeDevice, MetricTypeCountry:
 		return true
-	default:
-		return false
 	}
+
+	return false
 }
 
 func NormalizeMetricLimit(limit int) int {

@@ -2,8 +2,8 @@ package httpapi
 
 import (
 	"context"
-	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"strings"
 
@@ -16,10 +16,6 @@ import (
 
 const maxCollectBodyBytes = 256 * 1024
 
-type collectInput struct {
-	Body CollectEventRequest
-}
-
 type CollectEventRequest struct {
 	Type       collectEventTypeParam `json:"type" required:"true"`
 	WebsiteID  uuid.UUID             `json:"websiteId" required:"true" format:"uuid"`
@@ -31,6 +27,10 @@ type CollectEventRequest struct {
 	DistinctID string                `json:"distinctId,omitempty" maxLength:"50"`
 	Name       string                `json:"name,omitempty"`
 	Data       map[string]any        `json:"data,omitempty"`
+}
+
+type collectInput struct {
+	Body CollectEventRequest
 }
 
 type collectEventTypeParam string
@@ -94,10 +94,16 @@ func (srv server) clientInfoFromRequest(request *http.Request) service.ClientInf
 }
 
 func clientIP(remoteAddr string) string {
-	host, _, err := net.SplitHostPort(remoteAddr)
+	addrPort, err := netip.ParseAddrPort(remoteAddr)
 	if err == nil {
-		return host
+		return addrPort.Addr().String()
 	}
+
+	addr, err := netip.ParseAddr(remoteAddr)
+	if err == nil {
+		return addr.String()
+	}
+
 	return remoteAddr
 }
 

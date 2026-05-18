@@ -18,6 +18,16 @@ const (
 	maxEventDataValueLength = 500
 )
 
+type EventDataType int
+
+const (
+	EventDataTypeString  EventDataType = 1
+	EventDataTypeNumber  EventDataType = 2
+	EventDataTypeBoolean EventDataType = 3
+	EventDataTypeDate    EventDataType = 4
+	EventDataTypeArray   EventDataType = 5
+)
+
 type FlatEventData struct {
 	Key         string
 	StringValue string
