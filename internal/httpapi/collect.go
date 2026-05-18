@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/netip"
 	"net/url"
@@ -139,4 +140,17 @@ func isASCIILetters(value string) bool {
 		}
 	}
 	return true
+}
+
+func collectionError(err error) error {
+	switch {
+	case errors.Is(err, service.ErrUnsupportedEventType):
+		return huma.Error400BadRequest(errorMessageUnsupportedEventType)
+	case errors.Is(err, service.ErrMissingClientInfo):
+		return huma.Error500InternalServerError(errorMessageRequestReadFailed)
+	case isNotFound(err):
+		return huma.Error400BadRequest(errorMessageWebsiteNotFound)
+	default:
+		return huma.Error500InternalServerError(errorMessageEventSaveFailed)
+	}
 }

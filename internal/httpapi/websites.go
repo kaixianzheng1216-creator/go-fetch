@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
@@ -174,4 +175,31 @@ func newWebsiteOutput(website domain.Website) *websiteOutput {
 	output.Body.Domain = website.Domain
 	output.Body.CreatedAt = website.CreatedAt
 	return output
+}
+
+func websiteLookupError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if isNotFound(err) {
+		return huma.Error404NotFound(errorMessageWebsiteNotFound)
+	}
+	return huma.Error500InternalServerError(errorMessageWebsiteLoadFailed)
+}
+
+func websiteMutationError(err error, fallbackMessage string) error {
+	if errors.Is(err, service.ErrInvalidWebsiteName) {
+		return huma.Error400BadRequest(errorMessageWebsiteNameCannotEmpty)
+	}
+	return websiteLookupErrorWithFallback(err, fallbackMessage)
+}
+
+func websiteLookupErrorWithFallback(err error, fallbackMessage string) error {
+	if err == nil {
+		return nil
+	}
+	if isNotFound(err) {
+		return huma.Error404NotFound(errorMessageWebsiteNotFound)
+	}
+	return huma.Error500InternalServerError(fallbackMessage)
 }

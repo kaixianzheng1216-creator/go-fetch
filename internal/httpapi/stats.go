@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
@@ -224,4 +225,16 @@ func newWebsiteMetricsOutput(metrics []domain.Metric) *getWebsiteMetricsOutput {
 		output.Body[i].Visitors = metric.Visitors
 	}
 	return output
+}
+
+func statsError(err error, fallbackMessage string) error {
+	if errors.Is(err, domain.ErrUnsupportedDateUnit) ||
+		errors.Is(err, domain.ErrUnsupportedMetricType) ||
+		errors.Is(err, service.ErrInvalidDateRange) {
+		return huma.Error400BadRequest(err.Error())
+	}
+	if service.IsWebsiteAccessError(err) {
+		return websiteLookupError(err)
+	}
+	return huma.Error500InternalServerError(fallbackMessage)
 }

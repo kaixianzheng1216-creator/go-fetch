@@ -54,23 +54,20 @@ func LoadDatabaseURL() (string, error) {
 func (config *Config) Validate() error {
 	config.normalize()
 
-	if config.HTTPReadTimeout <= 0 {
-		return fmt.Errorf("HTTP_READ_TIMEOUT must be positive")
-	}
-	if config.HTTPWriteTimeout <= 0 {
-		return fmt.Errorf("HTTP_WRITE_TIMEOUT must be positive")
-	}
-	if config.HTTPIdleTimeout <= 0 {
-		return fmt.Errorf("HTTP_IDLE_TIMEOUT must be positive")
-	}
-	if config.HTTPRequestTimeout <= 0 {
-		return fmt.Errorf("HTTP_REQUEST_TIMEOUT must be positive")
-	}
-	if config.HTTPShutdownTimeout <= 0 {
-		return fmt.Errorf("HTTP_SHUTDOWN_TIMEOUT must be positive")
-	}
-	if config.SessionLifetime <= 0 {
-		return fmt.Errorf("SESSION_LIFETIME must be positive")
+	for _, check := range []struct {
+		name  string
+		value time.Duration
+	}{
+		{name: "HTTP_READ_TIMEOUT", value: config.HTTPReadTimeout},
+		{name: "HTTP_WRITE_TIMEOUT", value: config.HTTPWriteTimeout},
+		{name: "HTTP_IDLE_TIMEOUT", value: config.HTTPIdleTimeout},
+		{name: "HTTP_REQUEST_TIMEOUT", value: config.HTTPRequestTimeout},
+		{name: "HTTP_SHUTDOWN_TIMEOUT", value: config.HTTPShutdownTimeout},
+		{name: "SESSION_LIFETIME", value: config.SessionLifetime},
+	} {
+		if check.value <= 0 {
+			return fmt.Errorf("%s must be positive", check.name)
+		}
 	}
 	if len(config.CollectCORSAllowedOrigins) == 0 {
 		return fmt.Errorf("COLLECT_CORS_ALLOWED_ORIGINS cannot be empty")

@@ -2,12 +2,14 @@ package httpapi
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/service"
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
@@ -104,4 +106,11 @@ func (srv server) startUserSession(ctx context.Context, userID uuid.UUID) error 
 
 	srv.sessions.Put(ctx, session.UserIDKey, userID.String())
 	return nil
+}
+
+func loginError(err error) error {
+	if errors.Is(err, service.ErrInvalidCredentials) {
+		return huma.Error401Unauthorized(errorMessageInvalidCredentials)
+	}
+	return huma.Error500InternalServerError(errorMessageUserLoadFailed)
 }

@@ -110,8 +110,8 @@ func FormatBucket(bucketTime time.Time, unit DateUnit) string {
 }
 
 func NormalizeDateUnit(unit DateUnit) DateUnit {
-	parsedUnit, isSupportedDateUnit := ParseDateUnit(string(unit))
-	if !isSupportedDateUnit {
+	parsedUnit, ok := ParseDateUnit(string(unit))
+	if !ok {
 		return DefaultDateUnit
 	}
 
@@ -143,9 +143,9 @@ func (metricType MetricType) IsSessionDimension() bool {
 	switch metricType {
 	case MetricTypeBrowser, MetricTypeOS, MetricTypeDevice, MetricTypeCountry:
 		return true
+	default:
+		return false
 	}
-
-	return false
 }
 
 func NormalizeMetricLimit(limit int) int {
