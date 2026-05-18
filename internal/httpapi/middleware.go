@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -26,11 +27,15 @@ func (apiServer server) requireAuth(humaAPI huma.API) func(huma.Context, func(hu
 	return func(ctx huma.Context, next func(huma.Context)) {
 		user, isAuthenticated, err := apiServer.currentSessionUser(ctx.Context())
 		if err != nil {
-			_ = huma.WriteErr(humaAPI, ctx, http.StatusInternalServerError, "加载当前用户失败")
+			if err := huma.WriteErr(humaAPI, ctx, http.StatusInternalServerError, "加载当前用户失败"); err != nil {
+				slog.Debug("write current user error", "error", err)
+			}
 			return
 		}
 		if !isAuthenticated {
-			_ = huma.WriteErr(humaAPI, ctx, http.StatusUnauthorized, "未登录")
+			if err := huma.WriteErr(humaAPI, ctx, http.StatusUnauthorized, "未登录"); err != nil {
+				slog.Debug("write unauthenticated error", "error", err)
+			}
 			return
 		}
 

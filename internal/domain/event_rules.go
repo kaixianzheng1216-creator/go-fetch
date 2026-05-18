@@ -54,22 +54,6 @@ func DateUnitValues() []string {
 	return []string{string(DateUnitHour), string(DateUnitDay), string(DateUnitMonth)}
 }
 
-func DateRange(startAt, endAt *int64, unit string) (time.Time, time.Time, DateUnit) {
-	now := time.Now()
-	start := now.Add(-DefaultDateLookback)
-	end := now
-
-	if startAt != nil {
-		start = time.UnixMilli(*startAt)
-	}
-
-	if endAt != nil {
-		end = time.UnixMilli(*endAt)
-	}
-
-	return start, end, ParseDateUnit(unit)
-}
-
 func DateTruncUnit(unit DateUnit) string {
 	return string(ParseDateUnit(string(unit)))
 }
@@ -100,7 +84,7 @@ const (
 	MaxMetricLimit     = 100
 )
 
-var ErrUnsupportedMetricType = errors.New("不支持的指标类型")
+var ErrUnsupportedMetricType = errors.New("unsupported metric type")
 
 func ParseMetricType(value string) (MetricType, bool) {
 	switch MetricType(value) {

@@ -15,21 +15,21 @@ var (
 	ErrMissingHTTPRequest        = errors.New("missing http request")
 )
 
-type TrackingStore interface {
+type CollectionStore interface {
 	GetWebsiteForCollection(ctx context.Context, websiteID uuid.UUID) (domain.Website, error)
 	SaveEvent(ctx context.Context, event domain.EventInput) error
 }
 
-type Collect struct {
-	store TrackingStore
-	now   Clock
+type Collector struct {
+	store CollectionStore
+	clock Clock
 }
 
-func NewCollect(store TrackingStore) Collect {
-	return Collect{store: store, now: systemClock}
+func NewCollector(store CollectionStore) Collector {
+	return Collector{store: store, clock: systemClock}
 }
 
-func (service Collect) Collect(ctx context.Context, request *http.Request, collectionType string, payload domain.CollectPayload) error {
+func (service Collector) Collect(ctx context.Context, request *http.Request, collectionType string, payload domain.CollectPayload) error {
 	_, isSupportedCollectionType := domain.ParseCollectionType(collectionType)
 	if !isSupportedCollectionType {
 		return ErrUnsupportedCollectionType
@@ -47,7 +47,12 @@ func (service Collect) Collect(ctx context.Context, request *http.Request, colle
 		return err
 	}
 
-	return service.store.SaveEvent(ctx, buildEventInput(request, payload, service.now()))
+	clock := service.clock
+	if clock == nil {
+		clock = systemClock
+	}
+
+	return service.store.SaveEvent(ctx, buildEventInput(request, payload, clock()))
 }
 
 func isBot(userAgentValue string) bool {

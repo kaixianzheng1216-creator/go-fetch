@@ -20,19 +20,19 @@ type WebsiteStore interface {
 	DeleteWebsite(ctx context.Context, userID, websiteID uuid.UUID) error
 }
 
-type Website struct {
+type Websites struct {
 	store WebsiteStore
 }
 
-func NewWebsite(store WebsiteStore) Website {
-	return Website{store: store}
+func NewWebsites(store WebsiteStore) Websites {
+	return Websites{store: store}
 }
 
-func (service Website) List(ctx context.Context, userID uuid.UUID) ([]domain.Website, error) {
+func (service Websites) List(ctx context.Context, userID uuid.UUID) ([]domain.Website, error) {
 	return service.store.ListWebsites(ctx, userID)
 }
 
-func (service Website) Create(ctx context.Context, userID uuid.UUID, name, domainName string) (domain.Website, error) {
+func (service Websites) Create(ctx context.Context, userID uuid.UUID, name, domainName string) (domain.Website, error) {
 	name, domainName = normalizeWebsiteInput(name, domainName)
 	if name == "" {
 		return domain.Website{}, ErrInvalidWebsiteName
@@ -40,11 +40,11 @@ func (service Website) Create(ctx context.Context, userID uuid.UUID, name, domai
 	return service.store.CreateWebsite(ctx, userID, name, domainName)
 }
 
-func (service Website) Get(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error) {
+func (service Websites) Get(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error) {
 	return service.store.GetWebsite(ctx, userID, websiteID)
 }
 
-func (service Website) Update(ctx context.Context, userID, websiteID uuid.UUID, name, domainName string) (domain.Website, error) {
+func (service Websites) Update(ctx context.Context, userID, websiteID uuid.UUID, name, domainName string) (domain.Website, error) {
 	name, domainName = normalizeWebsiteInput(name, domainName)
 	if name == "" {
 		return domain.Website{}, ErrInvalidWebsiteName
@@ -56,7 +56,7 @@ func (service Website) Update(ctx context.Context, userID, websiteID uuid.UUID, 
 	return service.store.GetWebsite(ctx, userID, websiteID)
 }
 
-func (service Website) Delete(ctx context.Context, userID, websiteID uuid.UUID) error {
+func (service Websites) Delete(ctx context.Context, userID, websiteID uuid.UUID) error {
 	return service.store.DeleteWebsite(ctx, userID, websiteID)
 }
 

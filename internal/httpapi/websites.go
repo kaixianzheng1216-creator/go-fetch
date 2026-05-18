@@ -18,20 +18,20 @@ type WebsiteRequest struct {
 	Domain string `json:"domain,omitempty" maxLength:"500"`
 }
 
-type websiteRequest struct {
+type createWebsiteInput struct {
 	Body WebsiteRequest
 }
 
-type websiteIDRequest struct {
+type websiteIDInput struct {
 	WebsiteID string `path:"websiteID" format:"uuid"`
 }
 
-type updateWebsiteRequest struct {
+type updateWebsiteInput struct {
 	WebsiteID string `path:"websiteID" format:"uuid"`
 	Body      WebsiteRequest
 }
 
-type Website struct {
+type WebsiteResponse struct {
 	ID        uuid.UUID `json:"id" format:"uuid"`
 	Name      string    `json:"name"`
 	Domain    string    `json:"domain"`
@@ -39,11 +39,11 @@ type Website struct {
 }
 
 type websiteListOutput struct {
-	Body []Website
+	Body []WebsiteResponse
 }
 
 type websiteOutput struct {
-	Body Website
+	Body WebsiteResponse
 }
 
 func (apiServer server) registerWebsiteRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
@@ -116,7 +116,7 @@ func (apiServer server) registerWebsiteRoutes(humaAPI huma.API, authMiddleware h
 	)
 }
 
-func (apiServer server) listWebsites(ctx context.Context, _ *emptyRequest) (*websiteListOutput, error) {
+func (apiServer server) listWebsites(ctx context.Context, _ *emptyInput) (*websiteListOutput, error) {
 	websites, err := apiServer.websites.List(ctx, currentUser(ctx).ID)
 	if err != nil {
 		return nil, huma.Error500InternalServerError("加载站点列表失败")
@@ -125,7 +125,7 @@ func (apiServer server) listWebsites(ctx context.Context, _ *emptyRequest) (*web
 	return &websiteListOutput{Body: toWebsiteResponses(websites)}, nil
 }
 
-func (apiServer server) createWebsite(ctx context.Context, input *websiteRequest) (*websiteOutput, error) {
+func (apiServer server) createWebsite(ctx context.Context, input *createWebsiteInput) (*websiteOutput, error) {
 	website, err := apiServer.websites.Create(ctx, currentUser(ctx).ID, input.Body.Name, input.Body.Domain)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidWebsiteName) {
@@ -137,7 +137,7 @@ func (apiServer server) createWebsite(ctx context.Context, input *websiteRequest
 	return &websiteOutput{Body: toWebsiteResponse(website)}, nil
 }
 
-func (apiServer server) getWebsite(ctx context.Context, input *websiteIDRequest) (*websiteOutput, error) {
+func (apiServer server) getWebsite(ctx context.Context, input *websiteIDInput) (*websiteOutput, error) {
 	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
 	if err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (apiServer server) getWebsite(ctx context.Context, input *websiteIDRequest)
 	return &websiteOutput{Body: toWebsiteResponse(website)}, nil
 }
 
-func (apiServer server) updateWebsite(ctx context.Context, input *updateWebsiteRequest) (*websiteOutput, error) {
+func (apiServer server) updateWebsite(ctx context.Context, input *updateWebsiteInput) (*websiteOutput, error) {
 	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
 	if err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func (apiServer server) updateWebsite(ctx context.Context, input *updateWebsiteR
 	return &websiteOutput{Body: toWebsiteResponse(website)}, nil
 }
 
-func (apiServer server) deleteWebsite(ctx context.Context, input *websiteIDRequest) (*okOutput, error) {
+func (apiServer server) deleteWebsite(ctx context.Context, input *websiteIDInput) (*okOutput, error) {
 	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
 	if err != nil {
 		return nil, err
@@ -181,8 +181,8 @@ func (apiServer server) deleteWebsite(ctx context.Context, input *websiteIDReque
 	return toOKOutput(), nil
 }
 
-func toWebsiteResponse(website domain.Website) Website {
-	return Website{
+func toWebsiteResponse(website domain.Website) WebsiteResponse {
+	return WebsiteResponse{
 		ID:        website.ID,
 		Name:      website.Name,
 		Domain:    website.Domain,
@@ -190,8 +190,8 @@ func toWebsiteResponse(website domain.Website) Website {
 	}
 }
 
-func toWebsiteResponses(websites []domain.Website) []Website {
-	result := make([]Website, 0, len(websites))
+func toWebsiteResponses(websites []domain.Website) []WebsiteResponse {
+	result := make([]WebsiteResponse, 0, len(websites))
 	for _, website := range websites {
 		result = append(result, toWebsiteResponse(website))
 	}

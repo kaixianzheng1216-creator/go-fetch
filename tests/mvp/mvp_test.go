@@ -60,7 +60,7 @@ func TestCollectErrors(t *testing.T) {
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 			store := &fakeTrackingStore{}
-			collect := service.NewCollect(store)
+			collect := service.NewCollector(store)
 
 			err := collect.Collect(context.Background(), testCase.request, testCase.collectionType, domain.CollectPayload{
 				WebsiteID: testWebsiteID,

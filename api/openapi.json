@@ -1,7 +1,7 @@
 {
   "components": {
     "schemas": {
-      "CollectPayload": {
+      "CollectPayloadRequest": {
         "additionalProperties": false,
         "properties": {
           "data": {
@@ -46,7 +46,7 @@
         "additionalProperties": false,
         "properties": {
           "payload": {
-            "$ref": "#/components/schemas/CollectPayload"
+            "$ref": "#/components/schemas/CollectPayloadRequest"
           },
           "type": {
             "enum": [
@@ -155,7 +155,7 @@
         "additionalProperties": false,
         "properties": {
           "user": {
-            "$ref": "#/components/schemas/User"
+            "$ref": "#/components/schemas/UserResponse"
           }
         },
         "required": [
@@ -163,7 +163,7 @@
         ],
         "type": "object"
       },
-      "MetricRow": {
+      "MetricRowResponse": {
         "additionalProperties": false,
         "properties": {
           "name": {
@@ -185,7 +185,7 @@
         ],
         "type": "object"
       },
-      "OK": {
+      "OKResponse": {
         "additionalProperties": false,
         "properties": {
           "ok": {
@@ -197,7 +197,7 @@
         ],
         "type": "object"
       },
-      "PageviewPoint": {
+      "PageviewPointResponse": {
         "additionalProperties": false,
         "properties": {
           "label": {
@@ -224,7 +224,7 @@
         ],
         "type": "object"
       },
-      "User": {
+      "UserResponse": {
         "additionalProperties": false,
         "properties": {
           "createdAt": {
@@ -254,7 +254,25 @@
         ],
         "type": "object"
       },
-      "Website": {
+      "WebsiteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "maxLength": 500,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "WebsiteResponse": {
         "additionalProperties": false,
         "properties": {
           "createdAt": {
@@ -280,25 +298,7 @@
         ],
         "type": "object"
       },
-      "WebsiteRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "domain": {
-            "maxLength": 500,
-            "type": "string"
-          },
-          "name": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "type": "object"
-      },
-      "WebsiteStats": {
+      "WebsiteStatsResponse": {
         "additionalProperties": false,
         "properties": {
           "avgVisitSeconds": {
@@ -369,7 +369,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OK"
+                  "$ref": "#/components/schemas/OKResponse"
                 }
               }
             },
@@ -441,7 +441,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OK"
+                  "$ref": "#/components/schemas/OKResponse"
                 }
               }
             },
@@ -472,7 +472,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/UserResponse"
                 }
               }
             },
@@ -509,7 +509,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/Website"
+                    "$ref": "#/components/schemas/WebsiteResponse"
                   },
                   "type": [
                     "array",
@@ -558,7 +558,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Website"
+                  "$ref": "#/components/schemas/WebsiteResponse"
                 }
               }
             },
@@ -605,7 +605,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OK"
+                  "$ref": "#/components/schemas/OKResponse"
                 }
               }
             },
@@ -650,7 +650,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Website"
+                  "$ref": "#/components/schemas/WebsiteResponse"
                 }
               }
             },
@@ -705,7 +705,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Website"
+                  "$ref": "#/components/schemas/WebsiteResponse"
                 }
               }
             },
@@ -800,7 +800,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/MetricRow"
+                    "$ref": "#/components/schemas/MetricRowResponse"
                   },
                   "type": [
                     "array",
@@ -885,7 +885,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/PageviewPoint"
+                    "$ref": "#/components/schemas/PageviewPointResponse"
                   },
                   "type": [
                     "array",
@@ -955,7 +955,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebsiteStats"
+                  "$ref": "#/components/schemas/WebsiteStatsResponse"
                 }
               }
             },

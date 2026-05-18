@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/kaixianzheng1216-creator/go-fetch/internal/textutil"
 )
 
 const maxEventDataValueLength = 500
@@ -26,7 +29,8 @@ func FlattenEventData(data map[string]any) []FlatEventData {
 	walk = func(prefix string, value any) {
 		switch typedValue := value.(type) {
 		case map[string]any:
-			for key, child := range typedValue {
+			for _, key := range eventDataKeys(typedValue) {
+				child := typedValue[key]
 				walk(joinEventDataKey(prefix, key), child)
 			}
 		case []any:
@@ -36,7 +40,7 @@ func FlattenEventData(data map[string]any) []FlatEventData {
 			}
 			result = append(result, FlatEventData{
 				Key:         prefix,
-				StringValue: truncateEventDataValue(string(bytes), maxEventDataValueLength),
+				StringValue: textutil.TruncateRunes(string(bytes), maxEventDataValueLength),
 				DataType:    EventDataTypeArray,
 			})
 		case float64:
@@ -68,7 +72,7 @@ func FlattenEventData(data map[string]any) []FlatEventData {
 
 			result = append(result, FlatEventData{
 				Key:         prefix,
-				StringValue: truncateEventDataValue(typedValue, maxEventDataValueLength),
+				StringValue: textutil.TruncateRunes(typedValue, maxEventDataValueLength),
 				DataType:    EventDataTypeString,
 			})
 		case nil:
@@ -76,13 +80,14 @@ func FlattenEventData(data map[string]any) []FlatEventData {
 		default:
 			result = append(result, FlatEventData{
 				Key:         prefix,
-				StringValue: truncateEventDataValue(fmt.Sprint(typedValue), maxEventDataValueLength),
+				StringValue: textutil.TruncateRunes(fmt.Sprint(typedValue), maxEventDataValueLength),
 				DataType:    EventDataTypeString,
 			})
 		}
 	}
 
-	for key, value := range data {
+	for _, key := range eventDataKeys(data) {
+		value := data[key]
 		walk(key, value)
 	}
 
@@ -112,19 +117,11 @@ func joinEventDataKey(prefix, key string) string {
 	return prefix + "." + key
 }
 
-func truncateEventDataValue(value string, max int) string {
-	if max <= 0 {
-		return ""
+func eventDataKeys(data map[string]any) []string {
+	keys := make([]string, 0, len(data))
+	for key := range data {
+		keys = append(keys, key)
 	}
-
-	count := 0
-	for index := range value {
-		if count == max {
-			return value[:index]
-		}
-
-		count++
-	}
-
-	return value
+	slices.Sort(keys)
+	return keys
 }

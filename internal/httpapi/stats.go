@@ -10,20 +10,20 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/domain"
 )
 
-type statsRequest struct {
+type statsInput struct {
 	WebsiteID string `path:"websiteID" format:"uuid"`
 	StartAt   int64  `query:"startAt"`
 	EndAt     int64  `query:"endAt"`
 }
 
-type pageviewsRequest struct {
+type pageviewsInput struct {
 	WebsiteID string        `path:"websiteID" format:"uuid"`
 	StartAt   int64         `query:"startAt"`
 	EndAt     int64         `query:"endAt"`
 	Unit      DateUnitParam `query:"unit"`
 }
 
-type metricsRequest struct {
+type metricsInput struct {
 	WebsiteID string          `path:"websiteID" format:"uuid"`
 	StartAt   int64           `query:"startAt"`
 	EndAt     int64           `query:"endAt"`
@@ -63,7 +63,7 @@ func (MetricLimit) Schema(huma.Registry) *huma.Schema {
 	}
 }
 
-type WebsiteStats struct {
+type WebsiteStatsResponse struct {
 	Pageviews       int64 `json:"pageviews"`
 	Visitors        int64 `json:"visitors"`
 	Visits          int64 `json:"visits"`
@@ -72,29 +72,29 @@ type WebsiteStats struct {
 	AvgVisitSeconds int64 `json:"avgVisitSeconds"`
 }
 
-type PageviewPoint struct {
+type PageviewPointResponse struct {
 	Time     time.Time `json:"time"`
 	Label    string    `json:"label"`
 	Views    int64     `json:"views"`
 	Visitors int64     `json:"visitors"`
 }
 
-type MetricRow struct {
+type MetricRowResponse struct {
 	Name     string `json:"name"`
 	Views    int64  `json:"views"`
 	Visitors int64  `json:"visitors"`
 }
 
 type statsOutput struct {
-	Body WebsiteStats
+	Body WebsiteStatsResponse
 }
 
 type pageviewsOutput struct {
-	Body []PageviewPoint
+	Body []PageviewPointResponse
 }
 
 type metricsOutput struct {
-	Body []MetricRow
+	Body []MetricRowResponse
 }
 
 func (apiServer server) registerStatsRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
@@ -141,7 +141,7 @@ func (apiServer server) registerStatsRoutes(humaAPI huma.API, authMiddleware hum
 	)
 }
 
-func (apiServer server) getWebsiteStats(ctx context.Context, input *statsRequest) (*statsOutput, error) {
+func (apiServer server) getWebsiteStats(ctx context.Context, input *statsInput) (*statsOutput, error) {
 	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
 	if err != nil {
 		return nil, err
@@ -155,7 +155,7 @@ func (apiServer server) getWebsiteStats(ctx context.Context, input *statsRequest
 	return &statsOutput{Body: toWebsiteStatsResponse(stats)}, nil
 }
 
-func (apiServer server) getWebsitePageviews(ctx context.Context, input *pageviewsRequest) (*pageviewsOutput, error) {
+func (apiServer server) getWebsitePageviews(ctx context.Context, input *pageviewsInput) (*pageviewsOutput, error) {
 	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
 	if err != nil {
 		return nil, err
@@ -169,7 +169,7 @@ func (apiServer server) getWebsitePageviews(ctx context.Context, input *pageview
 	return &pageviewsOutput{Body: toPageviewPointResponses(points)}, nil
 }
 
-func (apiServer server) getWebsiteMetrics(ctx context.Context, input *metricsRequest) (*metricsOutput, error) {
+func (apiServer server) getWebsiteMetrics(ctx context.Context, input *metricsInput) (*metricsOutput, error) {
 	websiteID, err := parseUUID(input.WebsiteID, "websiteID")
 	if err != nil {
 		return nil, err
@@ -190,8 +190,8 @@ func optionalTimeParam(value int64) *int64 {
 	return &value
 }
 
-func toWebsiteStatsResponse(stats domain.WebsiteStats) WebsiteStats {
-	return WebsiteStats{
+func toWebsiteStatsResponse(stats domain.WebsiteStats) WebsiteStatsResponse {
+	return WebsiteStatsResponse{
 		Pageviews:       stats.Pageviews,
 		Visitors:        stats.Visitors,
 		Visits:          stats.Visits,
@@ -201,10 +201,10 @@ func toWebsiteStatsResponse(stats domain.WebsiteStats) WebsiteStats {
 	}
 }
 
-func toPageviewPointResponses(points []domain.PageviewPoint) []PageviewPoint {
-	result := make([]PageviewPoint, 0, len(points))
+func toPageviewPointResponses(points []domain.PageviewPoint) []PageviewPointResponse {
+	result := make([]PageviewPointResponse, 0, len(points))
 	for _, point := range points {
-		result = append(result, PageviewPoint{
+		result = append(result, PageviewPointResponse{
 			Time:     point.Time,
 			Label:    point.Label,
 			Views:    point.Views,
@@ -214,10 +214,10 @@ func toPageviewPointResponses(points []domain.PageviewPoint) []PageviewPoint {
 	return result
 }
 
-func toMetricRowResponses(rows []domain.MetricRow) []MetricRow {
-	result := make([]MetricRow, 0, len(rows))
+func toMetricRowResponses(rows []domain.MetricRow) []MetricRowResponse {
+	result := make([]MetricRowResponse, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, MetricRow{
+		result = append(result, MetricRowResponse{
 			Name:     row.Name,
 			Views:    row.Views,
 			Visitors: row.Visitors,

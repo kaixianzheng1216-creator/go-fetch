@@ -12,10 +12,6 @@ import (
 
 var ErrInvalidDateRange = errors.New("startAt must be before or equal to endAt")
 
-type Stats struct {
-	store StatsStore
-}
-
 type StatsStore interface {
 	GetWebsite(ctx context.Context, userID, websiteID uuid.UUID) (domain.Website, error)
 	WebsiteStats(ctx context.Context, websiteID uuid.UUID, start, end time.Time) (domain.WebsiteStats, error)
@@ -23,29 +19,34 @@ type StatsStore interface {
 	WebsiteMetrics(ctx context.Context, websiteID uuid.UUID, start, end time.Time, metric domain.MetricType, limit int) ([]domain.MetricRow, error)
 }
 
-type WebsiteAccessError struct {
-	Err error
+type websiteAccessError struct {
+	err error
 }
 
-func (err WebsiteAccessError) Error() string {
-	return err.Err.Error()
+func (err websiteAccessError) Error() string {
+	return err.err.Error()
 }
 
-func (err WebsiteAccessError) Unwrap() error {
-	return err.Err
+func (err websiteAccessError) Unwrap() error {
+	return err.err
 }
 
 func IsWebsiteAccessError(err error) bool {
-	var accessError WebsiteAccessError
+	var accessError websiteAccessError
 	return errors.As(err, &accessError)
 }
 
+type Stats struct {
+	store StatsStore
+	clock Clock
+}
+
 func NewStats(store StatsStore) Stats {
-	return Stats{store: store}
+	return Stats{store: store, clock: systemClock}
 }
 
 func (service Stats) WebsiteStats(ctx context.Context, userID, websiteID uuid.UUID, startAt, endAt *int64) (domain.WebsiteStats, error) {
-	start, end, _, err := statsDateRange(startAt, endAt, "")
+	start, end, _, err := statsDateRange(service.now(), startAt, endAt, "")
 	if err != nil {
 		return domain.WebsiteStats{}, err
 	}
@@ -58,7 +59,7 @@ func (service Stats) WebsiteStats(ctx context.Context, userID, websiteID uuid.UU
 }
 
 func (service Stats) WebsitePageviews(ctx context.Context, userID, websiteID uuid.UUID, startAt, endAt *int64, unit string) ([]domain.PageviewPoint, error) {
-	start, end, parsedUnit, err := statsDateRange(startAt, endAt, unit)
+	start, end, parsedUnit, err := statsDateRange(service.now(), startAt, endAt, unit)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func (service Stats) WebsitePageviews(ctx context.Context, userID, websiteID uui
 }
 
 func (service Stats) WebsiteMetrics(ctx context.Context, userID, websiteID uuid.UUID, startAt, endAt *int64, metricType string, limit int) ([]domain.MetricRow, error) {
-	start, end, _, err := statsDateRange(startAt, endAt, "")
+	start, end, _, err := statsDateRange(service.now(), startAt, endAt, "")
 	if err != nil {
 		return nil, err
 	}
@@ -90,13 +91,29 @@ func (service Stats) WebsiteMetrics(ctx context.Context, userID, websiteID uuid.
 
 func (service Stats) requireWebsiteAccess(ctx context.Context, userID, websiteID uuid.UUID) error {
 	if _, err := service.store.GetWebsite(ctx, userID, websiteID); err != nil {
-		return WebsiteAccessError{Err: err}
+		return websiteAccessError{err: err}
 	}
 	return nil
 }
 
-func statsDateRange(startAt, endAt *int64, unit string) (time.Time, time.Time, domain.DateUnit, error) {
-	start, end, parsedUnit := domain.DateRange(startAt, endAt, unit)
+func (service Stats) now() time.Time {
+	if service.clock == nil {
+		return systemClock()
+	}
+	return service.clock()
+}
+
+func statsDateRange(now time.Time, startAt, endAt *int64, unit string) (time.Time, time.Time, domain.DateUnit, error) {
+	start := now.Add(-domain.DefaultDateLookback)
+	end := now
+	if startAt != nil {
+		start = time.UnixMilli(*startAt)
+	}
+	if endAt != nil {
+		end = time.UnixMilli(*endAt)
+	}
+
+	parsedUnit := domain.ParseDateUnit(unit)
 	if start.After(end) {
 		return time.Time{}, time.Time{}, "", ErrInvalidDateRange
 	}

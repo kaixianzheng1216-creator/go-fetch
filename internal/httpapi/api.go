@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -35,8 +36,8 @@ type server struct {
 	store    *repository.Store
 	sessions sessionStore
 	auth     service.Auth
-	collect  service.Collect
-	websites service.Website
+	collect  service.Collector
+	websites service.Websites
 	stats    service.Stats
 	config   Config
 }
@@ -46,8 +47,8 @@ func New(store *repository.Store, sessions *scs.SessionManager, config Config) h
 		store:    store,
 		sessions: sessions,
 		auth:     service.NewAuth(store, isNotFound),
-		collect:  service.NewCollect(store),
-		websites: service.NewWebsite(store),
+		collect:  service.NewCollector(store),
+		websites: service.NewWebsites(store),
 		stats:    service.NewStats(store),
 		config:   config.withDefaults(),
 	}
@@ -97,7 +98,9 @@ func (apiServer server) registerAssets(chiRouter chi.Router) {
 		}
 
 		responseWriter.Header().Set("Content-Type", "application/javascript; charset=utf-8")
-		_, _ = responseWriter.Write(script)
+		if _, err := responseWriter.Write(script); err != nil {
+			slog.Debug("write tracker script", "error", err)
+		}
 	})
 	chiRouter.Get("/*", spaHandler)
 }
@@ -128,11 +131,13 @@ func spaHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	case strings.HasPrefix(request.URL.Path, "/api/"):
 		responseWriter.Header().Set("Content-Type", "application/problem+json")
 		responseWriter.WriteHeader(http.StatusNotFound)
-		_ = json.NewEncoder(responseWriter).Encode(huma.ErrorModel{
+		if err := json.NewEncoder(responseWriter).Encode(huma.ErrorModel{
 			Title:  "接口不存在",
 			Status: http.StatusNotFound,
 			Detail: "接口不存在",
-		})
+		}); err != nil {
+			slog.Debug("write API not found response", "error", err)
+		}
 		return
 	}
 
@@ -143,7 +148,9 @@ func spaHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	}
 
 	responseWriter.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = responseWriter.Write(indexHTML)
+	if _, err := responseWriter.Write(indexHTML); err != nil {
+		slog.Debug("write dashboard index", "error", err)
+	}
 }
 
 func humaConfig() huma.Config {
@@ -171,15 +178,15 @@ func enumValues(values []string) []any {
 }
 
 func toOKOutput() *okOutput {
-	return &okOutput{Body: OK{OK: true}}
+	return &okOutput{Body: OKResponse{OK: true}}
 }
 
-type emptyRequest struct{}
+type emptyInput struct{}
 
-type OK struct {
+type OKResponse struct {
 	OK bool `json:"ok"`
 }
 
 type okOutput struct {
-	Body OK
+	Body OKResponse
 }

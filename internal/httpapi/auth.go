@@ -15,7 +15,7 @@ import (
 	"github.com/kaixianzheng1216-creator/go-fetch/internal/session"
 )
 
-type loginRequest struct {
+type loginInput struct {
 	Body LoginRequest
 }
 
@@ -24,7 +24,7 @@ type LoginRequest struct {
 	Password string `json:"password" required:"true" minLength:"1" writeOnly:"true"`
 }
 
-type User struct {
+type UserResponse struct {
 	ID        uuid.UUID  `json:"id" format:"uuid"`
 	Username  string     `json:"username"`
 	CreatedAt time.Time  `json:"createdAt"`
@@ -33,7 +33,7 @@ type User struct {
 }
 
 type LoginResponse struct {
-	User User `json:"user"`
+	User UserResponse `json:"user"`
 }
 
 type loginOutput struct {
@@ -41,7 +41,7 @@ type loginOutput struct {
 }
 
 type userOutput struct {
-	Body User
+	Body UserResponse
 }
 
 func (apiServer server) registerAuthRoutes(humaAPI huma.API, authMiddleware huma.Middlewares) {
@@ -84,7 +84,7 @@ func (apiServer server) registerAuthRoutes(humaAPI huma.API, authMiddleware huma
 	)
 }
 
-func (apiServer server) login(ctx context.Context, input *loginRequest) (*loginOutput, error) {
+func (apiServer server) login(ctx context.Context, input *loginInput) (*loginOutput, error) {
 	user, err := apiServer.auth.Login(ctx, input.Body.Username, input.Body.Password)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
@@ -100,7 +100,7 @@ func (apiServer server) login(ctx context.Context, input *loginRequest) (*loginO
 	return &loginOutput{Body: LoginResponse{User: toUserResponse(user)}}, nil
 }
 
-func (apiServer server) logout(ctx context.Context, _ *emptyRequest) (*okOutput, error) {
+func (apiServer server) logout(ctx context.Context, _ *emptyInput) (*okOutput, error) {
 	if apiServer.sessions == nil {
 		return toOKOutput(), nil
 	}
@@ -111,7 +111,7 @@ func (apiServer server) logout(ctx context.Context, _ *emptyRequest) (*okOutput,
 	return toOKOutput(), nil
 }
 
-func (apiServer server) getCurrentUser(ctx context.Context, _ *emptyRequest) (*userOutput, error) {
+func (apiServer server) getCurrentUser(ctx context.Context, _ *emptyInput) (*userOutput, error) {
 	return &userOutput{Body: toUserResponse(currentUser(ctx))}, nil
 }
 
@@ -127,8 +127,8 @@ func (apiServer server) startUserSession(ctx context.Context, userID uuid.UUID) 
 	return nil
 }
 
-func toUserResponse(user domain.User) User {
-	return User{
+func toUserResponse(user domain.User) UserResponse {
+	return UserResponse{
 		ID:        user.ID,
 		Username:  user.Username,
 		CreatedAt: user.CreatedAt,
